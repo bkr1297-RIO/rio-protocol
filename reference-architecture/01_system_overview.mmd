@@ -1,0 +1,56 @@
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#e8edf3', 'primaryTextColor': '#1a1a2e', 'primaryBorderColor': '#2c3e6b', 'lineColor': '#2c3e6b', 'secondaryColor': '#f0f4fa', 'tertiaryColor': '#ffffff', 'background': '#ffffff', 'fontSize': '14px'}}}%%
+graph LR
+    subgraph EXTERNAL["External Requesters"]
+        direction TB
+        AI["AI Agents"]
+        AUTO["Automated Systems"]
+        HUMAN["Human-Initiated<br/>Workflows"]
+    end
+
+    subgraph RIO["RIO Control Plane"]
+        direction TB
+        INTAKE["Intake<br/>Service"]
+        ORIGIN["Origin<br/>Verification"]
+        CANON["Canonical<br/>Request"]
+        RISK["Risk<br/>Evaluation"]
+        POLICY["Policy<br/>Constraints"]
+        AUTH["Authorization<br/>Service"]
+        GATE["Execution<br/>Gate"]
+    end
+
+    subgraph EXEC["Execution Systems"]
+        direction TB
+        EXECSVC["Execution<br/>Service"]
+        PAY["Payment<br/>Networks"]
+        EMAIL["Email<br/>Systems"]
+        DEPLOY["Deployment<br/>Pipelines"]
+        DB["Databases"]
+    end
+
+    subgraph AUDIT["Audit & Attestation"]
+        direction TB
+        ATTEST["Attestation<br/>Service"]
+        RECEIPT["Receipt<br/>Generator"]
+        LEDGER["Tamper-Evident<br/>Ledger"]
+        LEARN["Learning<br/>Engine"]
+    end
+
+    AI --> INTAKE
+    AUTO --> INTAKE
+    HUMAN --> INTAKE
+    INTAKE --> ORIGIN
+    ORIGIN --> CANON
+    CANON --> RISK
+    RISK --> POLICY
+    POLICY --> AUTH
+    AUTH --> GATE
+    GATE --> EXECSVC
+    EXECSVC --> PAY
+    EXECSVC --> EMAIL
+    EXECSVC --> DEPLOY
+    EXECSVC --> DB
+    EXECSVC --> ATTEST
+    ATTEST --> RECEIPT
+    RECEIPT --> LEDGER
+    LEDGER --> LEARN
+    LEARN -.->|Feedback| RISK

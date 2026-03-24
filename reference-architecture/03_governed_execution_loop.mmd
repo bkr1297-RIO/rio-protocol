@@ -1,0 +1,42 @@
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#e8edf3', 'primaryTextColor': '#1a1a2e', 'primaryBorderColor': '#2c3e6b', 'lineColor': '#2c3e6b', 'secondaryColor': '#f0f4fa', 'tertiaryColor': '#ffffff', 'background': '#ffffff', 'fontSize': '14px'}}}%%
+graph TD
+    OBSERVE["1. OBSERVE<br/>Intake Service receives<br/>action request from AI agent"]
+    VERIFY["2. VERIFY<br/>Origin Verification confirms<br/>requester identity and signature"]
+    EVALUATE["3. EVALUATE<br/>Risk Evaluation scores risk<br/>and identifies policy flags"]
+    AUTHORIZE["4. AUTHORIZE<br/>Human authority reviews<br/>and signs decision"]
+    EXECUTE["5. EXECUTE<br/>Execution Gate validates<br/>and dispatches action"]
+    RECORD["6. RECORD<br/>Execution Record captures<br/>what actually happened"]
+    ATTEST["7. ATTEST<br/>Attestation Service verifies<br/>and signs the full chain"]
+    LEDGER["8. LEDGER<br/>Tamper-evident entry<br/>appended to hash chain"]
+    LEARN["9. LEARN<br/>Learning Engine updates<br/>risk models and policies"]
+
+    OBSERVE --> VERIFY
+    VERIFY --> EVALUATE
+    EVALUATE --> AUTHORIZE
+    AUTHORIZE --> EXECUTE
+    EXECUTE --> RECORD
+    RECORD --> ATTEST
+    ATTEST --> LEDGER
+    LEDGER --> LEARN
+    LEARN -.->|"Continuous<br/>Improvement"| OBSERVE
+
+    DENY_E["DENY<br/>Risk too high"]
+    DENY_A["DENY<br/>Authorization refused"]
+    FAIL["FAIL CLOSED<br/>Verification failed"]
+
+    VERIFY -->|"Invalid"| FAIL
+    EVALUATE -->|"Critical risk /<br/>Policy block"| DENY_E
+    AUTHORIZE -->|"Denied"| DENY_A
+
+    style OBSERVE fill:#e3f2fd,stroke:#2c3e6b,stroke-width:2px
+    style VERIFY fill:#e3f2fd,stroke:#2c3e6b,stroke-width:2px
+    style EVALUATE fill:#e3f2fd,stroke:#2c3e6b,stroke-width:2px
+    style AUTHORIZE fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+    style EXECUTE fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    style RECORD fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    style ATTEST fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px
+    style LEDGER fill:#fce4ec,stroke:#b71c1c,stroke-width:2px
+    style LEARN fill:#fff8e1,stroke:#b8963e,stroke-width:2px
+    style DENY_E fill:#ffebee,stroke:#c62828,stroke-width:2px
+    style DENY_A fill:#ffebee,stroke:#c62828,stroke-width:2px
+    style FAIL fill:#ffebee,stroke:#c62828,stroke-width:2px

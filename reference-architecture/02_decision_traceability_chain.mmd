@@ -1,0 +1,27 @@
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#e8edf3', 'primaryTextColor': '#1a1a2e', 'primaryBorderColor': '#2c3e6b', 'lineColor': '#2c3e6b', 'secondaryColor': '#f0f4fa', 'tertiaryColor': '#ffffff', 'background': '#ffffff', 'fontSize': '14px'}}}%%
+graph TD
+    CR["1. Canonical Request<br/><i>request_id: uuid</i><br/>Action proposed by AI agent"]
+    RE["2. Risk Evaluation<br/><i>risk_evaluation_id: uuid</i><br/>Risk scored and factors assessed"]
+    AR["3. Authorization Record<br/><i>authorization_id: uuid</i><br/>Human decision: approve / deny"]
+    ER["4. Execution Record<br/><i>execution_id: uuid</i><br/>Action performed on target system"]
+    AT["5. Attestation Record<br/><i>attestation_id: uuid</i><br/>Cryptographic proof of full chain"]
+    RC["6. Receipt<br/><i>receipt_id: uuid</i><br/>Human-readable audit summary"]
+    LE["7. Ledger Entry<br/><i>entry_id: uuid</i><br/>Tamper-evident hash chain record"]
+
+    CR -->|"references<br/>request_id"| RE
+    RE -->|"references<br/>request_id +<br/>risk_evaluation_id"| AR
+    AR -->|"references<br/>request_id +<br/>authorization_id"| ER
+    ER -->|"references<br/>all prior IDs +<br/>SHA-256 hashes"| AT
+    AT -->|"references<br/>all prior IDs +<br/>chain_hash"| RC
+    RC -->|"references<br/>all prior IDs +<br/>receipt_hash"| LE
+
+    HASH["Each record is:<br/>• Canonically hashed (SHA-256)<br/>• Cryptographically signed (ECDSA-secp256k1)<br/>• Immutably linked to prior records"]
+
+    style HASH fill:#fff8e1,stroke:#b8963e,stroke-width:2px
+    style CR fill:#e3f2fd,stroke:#2c3e6b,stroke-width:2px
+    style RE fill:#e3f2fd,stroke:#2c3e6b,stroke-width:2px
+    style AR fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+    style ER fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    style AT fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px
+    style RC fill:#e0f2f1,stroke:#00695c,stroke-width:2px
+    style LE fill:#fce4ec,stroke:#b71c1c,stroke-width:2px

@@ -1,0 +1,50 @@
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#e8edf3', 'primaryTextColor': '#1a1a2e', 'primaryBorderColor': '#2c3e6b', 'lineColor': '#2c3e6b', 'secondaryColor': '#f0f4fa', 'tertiaryColor': '#ffffff', 'background': '#ffffff', 'fontSize': '14px'}}}%%
+graph TD
+    subgraph PIPELINE["Sequential Pipeline Protocols"]
+        direction TB
+        P01["01 Intake Protocol<br/><i>Receive and validate raw action requests</i>"]
+        P02["02 Origin Verification Protocol<br/><i>Authenticate requester identity and signature</i>"]
+        P03["03 Canonical Request Protocol<br/><i>Normalize, hash, and create canonical form</i>"]
+        P04["04 Risk Evaluation Protocol<br/><i>Score risk and identify risk factors</i>"]
+        P05["05 Policy Constraints Protocol<br/><i>Evaluate organizational policies and rules</i>"]
+        P06["06 Authorization Protocol<br/><i>Obtain human or delegated authority decision</i>"]
+        P07["07 Execution Protocol<br/><i>Validate authorization and perform action</i>"]
+        P08["08 Attestation Protocol<br/><i>Produce cryptographic proof of chain</i>"]
+        P09["09 Audit Ledger Protocol<br/><i>Append tamper-evident record to hash chain</i>"]
+
+        P01 --> P02 --> P03 --> P04 --> P05 --> P06 --> P07 --> P08 --> P09
+    end
+
+    subgraph FEEDBACK["Feedback Protocol"]
+        P10["10 Learning Protocol<br/><i>Update risk models from outcomes</i>"]
+    end
+
+    subgraph STRUCTURAL["Structural / Cross-Cutting Protocols"]
+        direction TB
+        P11["11 Independence Protocol<br/><i>Control plane isolation from agents</i>"]
+        P12["12 Role Separation Protocol<br/><i>No self-authorization, duty separation</i>"]
+        P13["13 Meta-Governance Protocol<br/><i>Govern changes to governance itself</i>"]
+    end
+
+    subgraph CONTROL["Control Flow Protocol"]
+        P14["14 Orchestration Protocol<br/><i>Coordinate protocol execution order</i>"]
+    end
+
+    subgraph SPECIALIZED["Specialized Sub-Protocol"]
+        P15["15 Time-Bound Authorization Protocol<br/><i>Enforce expiration on all authorizations</i>"]
+    end
+
+    P09 --> P10
+    P10 -.->|"Feedback"| P04
+
+    P14 -.->|"Coordinates"| PIPELINE
+    P11 -.->|"Enforces isolation"| PIPELINE
+    P12 -.->|"Enforces roles"| PIPELINE
+    P13 -.->|"Governs changes"| PIPELINE
+    P15 -.->|"Constrains"| P06
+
+    style PIPELINE fill:#f0f4fa,stroke:#2c3e6b,stroke-width:2px
+    style FEEDBACK fill:#fff8e1,stroke:#b8963e,stroke-width:2px
+    style STRUCTURAL fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px
+    style CONTROL fill:#e0f2f1,stroke:#00695c,stroke-width:2px
+    style SPECIALIZED fill:#fff3e0,stroke:#e65100,stroke-width:2px

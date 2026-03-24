@@ -1,0 +1,81 @@
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#e8edf3', 'primaryTextColor': '#1a1a2e', 'primaryBorderColor': '#2c3e6b', 'lineColor': '#2c3e6b', 'secondaryColor': '#f0f4fa', 'tertiaryColor': '#ffffff', 'background': '#ffffff', 'fontSize': '14px'}}}%%
+graph LR
+    subgraph UNTRUSTED["UNTRUSTED ZONE<br/>Trust Level: None"]
+        direction TB
+        AI1["AI Finance Agent"]
+        AI2["AI DevOps Agent"]
+        AI3["AI Compliance Agent"]
+        AUTO1["Automated Workflows"]
+    end
+
+    subgraph BOUNDARY1["BOUNDARY 1: Intake Verification"]
+        direction TB
+        B1["Origin Signature Check<br/>Schema Validation<br/>Rate Limiting"]
+    end
+
+    subgraph CONTROLLED["RIO CONTROL PLANE<br/>Trust Level: Verified"]
+        direction TB
+        INTAKE2["Intake Service"]
+        CANON2["Canonical Request"]
+        RISK2["Risk Evaluation"]
+        POLICY2["Policy Engine"]
+        AUTH2["Authorization Service"]
+        NONCE["Nonce Registry"]
+        KEYS["Key Management"]
+    end
+
+    subgraph BOUNDARY2["BOUNDARY 2: Execution Gate"]
+        direction TB
+        B2["Signature Verification<br/>Nonce Validation<br/>Expiration Check<br/>Scope Matching"]
+    end
+
+    subgraph EXECUTION["EXECUTION ZONE<br/>Trust Level: Conditional"]
+        direction TB
+        GATE2["Execution Gate"]
+        EXEC2["Execution Service"]
+        EXT1["Payment Networks"]
+        EXT2["Email Systems"]
+        EXT3["Databases"]
+    end
+
+    subgraph BOUNDARY3["BOUNDARY 3: Attestation Barrier"]
+        direction TB
+        B3["Independent Hash Verification<br/>Multi-Party Signatures<br/>Append-Only Enforcement"]
+    end
+
+    subgraph AUDIT["AUDIT ZONE<br/>Trust Level: Independent"]
+        direction TB
+        ATTEST2["Attestation Service"]
+        RECEIPT2["Receipt Generator"]
+        LEDGER2["Tamper-Evident Ledger"]
+        LEARN2["Learning Engine"]
+    end
+
+    AI1 --> B1
+    AI2 --> B1
+    AI3 --> B1
+    AUTO1 --> B1
+    B1 --> INTAKE2
+    INTAKE2 --> CANON2
+    CANON2 --> RISK2
+    RISK2 --> POLICY2
+    POLICY2 --> AUTH2
+    AUTH2 --> B2
+    B2 --> GATE2
+    GATE2 --> EXEC2
+    EXEC2 --> EXT1
+    EXEC2 --> EXT2
+    EXEC2 --> EXT3
+    EXEC2 --> B3
+    B3 --> ATTEST2
+    ATTEST2 --> RECEIPT2
+    RECEIPT2 --> LEDGER2
+    LEDGER2 --> LEARN2
+
+    style UNTRUSTED fill:#ffebee,stroke:#c62828,stroke-width:3px
+    style BOUNDARY1 fill:#fff3e0,stroke:#e65100,stroke-width:3px,stroke-dasharray: 8 4
+    style CONTROLLED fill:#e3f2fd,stroke:#2c3e6b,stroke-width:3px
+    style BOUNDARY2 fill:#fff3e0,stroke:#e65100,stroke-width:3px,stroke-dasharray: 8 4
+    style EXECUTION fill:#fff8e1,stroke:#b8963e,stroke-width:3px
+    style BOUNDARY3 fill:#fff3e0,stroke:#e65100,stroke-width:3px,stroke-dasharray: 8 4
+    style AUDIT fill:#e8f5e9,stroke:#2e7d32,stroke-width:3px
