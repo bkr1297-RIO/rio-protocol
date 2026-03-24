@@ -1,0 +1,190 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rio-protocol.org/schemas/attestation_record.json",
+  "title": "RIO Attestation Record",
+  "description": "The cryptographic proof layer of the RIO Protocol. An attestation record binds together the canonical request, risk evaluation, authorization, and execution records by including the hash of each. It provides one or more cryptographic signatures — from the system, an independent witness, or an auditor — that attest to the integrity and authenticity of the entire decision chain. This record is itself hashable and signable, and serves as the verification artifact that an auditor uses to confirm that no record in the chain has been altered.",
+  "type": "object",
+  "properties": {
+    "attestation_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Globally unique identifier for this attestation record."
+    },
+    "request_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Reference to the canonical request that initiated the decision chain."
+    },
+    "risk_evaluation_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Reference to the risk evaluation record that assessed the request."
+    },
+    "authorization_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Reference to the authorization record that approved or denied the request."
+    },
+    "execution_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Reference to the execution record that documents what action was performed."
+    },
+    "record_hashes": {
+      "type": "object",
+      "description": "SHA-256 hashes of the canonical representation of each referenced record. An auditor recomputes these hashes from the original records and compares them to the values stored here. Any mismatch indicates tampering.",
+      "properties": {
+        "request_hash": {
+          "type": "string",
+          "description": "SHA-256 hash of the canonical request record (all fields, deterministic serialization)."
+        },
+        "risk_evaluation_hash": {
+          "type": "string",
+          "description": "SHA-256 hash of the risk evaluation record."
+        },
+        "authorization_hash": {
+          "type": "string",
+          "description": "SHA-256 hash of the authorization record."
+        },
+        "execution_hash": {
+          "type": "string",
+          "description": "SHA-256 hash of the execution record."
+        },
+        "chain_hash": {
+          "type": "string",
+          "description": "SHA-256 hash computed over the concatenation of request_hash + risk_evaluation_hash + authorization_hash + execution_hash (in that order). Provides a single digest that represents the integrity of the entire decision chain."
+        }
+      },
+      "required": ["request_hash", "risk_evaluation_hash", "authorization_hash", "execution_hash", "chain_hash"],
+      "additionalProperties": false
+    },
+    "attested_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp (UTC) indicating when this attestation was created."
+    },
+    "attestation_type": {
+      "type": "string",
+      "enum": ["system", "witness", "auditor", "multi_party"],
+      "description": "The type of attestation. 'system' is produced automatically by the RIO attestation service after execution completes. 'witness' is produced by an independent observer. 'auditor' is produced during a formal audit review. 'multi_party' indicates multiple signers attested in the signatures array."
+    },
+    "attested_by": {
+      "type": "object",
+      "description": "The primary entity that produced this attestation. For multi_party attestations, this is the coordinating entity; additional signers are recorded in the signatures array.",
+      "properties": {
+        "attestor_id": {
+          "type": "string",
+          "description": "Unique identifier of the attesting entity."
+        },
+        "attestor_type": {
+          "type": "string",
+          "enum": ["attestation_service", "independent_witness", "internal_auditor", "external_auditor", "compliance_officer"],
+          "description": "Classification of the attesting entity."
+        },
+        "display_name": {
+          "type": "string",
+          "description": "Human-readable name of the attesting entity."
+        },
+        "service_version": {
+          "type": "string",
+          "description": "Version of the attestation service, if automated."
+        }
+      },
+      "required": ["attestor_id", "attestor_type"],
+      "additionalProperties": false
+    },
+    "verification_checks": {
+      "type": "array",
+      "description": "The specific verification checks performed by the attestor before signing. Each check documents what was verified and whether it passed, providing an audit trail of the attestation process itself.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "check_id": {
+            "type": "string",
+            "description": "Identifier for the verification check (e.g., 'CHK-HASH-001', 'CHK-SIG-002')."
+          },
+          "check_type": {
+            "type": "string",
+            "enum": ["hash_integrity", "signature_verification", "timestamp_ordering", "authorization_validity", "nonce_uniqueness", "policy_compliance", "chain_continuity"],
+            "description": "The type of verification performed."
+          },
+          "description": {
+            "type": "string",
+            "description": "Human-readable description of what was checked."
+          },
+          "result": {
+            "type": "string",
+            "enum": ["pass", "fail", "warning", "skipped"],
+            "description": "The outcome of the check."
+          },
+          "details": {
+            "type": "string",
+            "description": "Additional details or evidence for the check result."
+          }
+        },
+        "required": ["check_id", "check_type", "description", "result"],
+        "additionalProperties": false
+      }
+    },
+    "signatures": {
+      "type": "array",
+      "description": "One or more cryptographic signatures attesting to the integrity of this record and the chain it represents. Supports multiple signers: the system attestation service, an independent witness, and/or an auditor.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "signer_id": {
+            "type": "string",
+            "description": "Unique identifier of the signing entity."
+          },
+          "signer_role": {
+            "type": "string",
+            "enum": ["system_attestor", "independent_witness", "internal_auditor", "external_auditor", "compliance_officer"],
+            "description": "The role under which the signer is attesting."
+          },
+          "algorithm": {
+            "type": "string",
+            "description": "The signing algorithm used (e.g., 'ECDSA-secp256k1', 'Ed25519', 'RSA-SHA256')."
+          },
+          "public_key_id": {
+            "type": "string",
+            "description": "Identifier or fingerprint of the public key corresponding to the signing key."
+          },
+          "signature_value": {
+            "type": "string",
+            "description": "The cryptographic signature encoded as a base64 string."
+          },
+          "signed_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "ISO 8601 timestamp (UTC) of when this signature was produced."
+          },
+          "signed_fields_hash": {
+            "type": "string",
+            "description": "SHA-256 hash of the canonical representation of all fields in this attestation record (excluding the signatures array). All signers sign the same digest."
+          }
+        },
+        "required": ["signer_id", "signer_role", "algorithm", "public_key_id", "signature_value", "signed_at", "signed_fields_hash"],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    },
+    "notes": {
+      "type": "string",
+      "description": "Free-text field for attestor observations, findings, or context. Preserved in the audit trail."
+    }
+  },
+  "required": [
+    "attestation_id",
+    "request_id",
+    "risk_evaluation_id",
+    "authorization_id",
+    "execution_id",
+    "record_hashes",
+    "attested_at",
+    "attestation_type",
+    "attested_by",
+    "verification_checks",
+    "signatures"
+  ],
+  "additionalProperties": false
+}

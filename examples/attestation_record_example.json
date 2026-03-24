@@ -1,0 +1,113 @@
+{
+  "attestation_id": "d4e5f6a7-b8c9-0123-efab-456789012345",
+  "request_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "risk_evaluation_id": "f7e8d9c0-b1a2-3456-cdef-789012345678",
+  "authorization_id": "b2c3d4e5-f6a7-8901-bcde-f23456789012",
+  "execution_id": "c3d4e5f6-a7b8-9012-defg-345678901234",
+  "record_hashes": {
+    "request_hash": "a3b485d9f8cb47b984ca148da37d38caf131d6ccd7ec8ad0e5253f7a87002223",
+    "risk_evaluation_hash": "a975f3c2045073551876be5b28032ede4bb659d7205778a3bdd02978e08b8185",
+    "authorization_hash": "4558244684f52ce8e46ecd2b7a624b27f0235963567bd84827cad728668ada57",
+    "execution_hash": "779b19dd894f0ec79a6bc47d7e84e8478866cbe7a0a85607e559794ecde4aac5",
+    "chain_hash": "6a2c376af0894248ca9bd1b40dc50bfeb38ecfd8c97479f4af1468ac571fb7c7"
+  },
+  "attested_at": "2026-03-24T14:34:03.891Z",
+  "attestation_type": "system",
+  "attested_by": {
+    "attestor_id": "rio-attestation-service-01",
+    "attestor_type": "attestation_service",
+    "display_name": "RIO Attestation Service",
+    "service_version": "1.1.0"
+  },
+  "verification_checks": [
+    {
+      "check_id": "CHK-HASH-001",
+      "check_type": "hash_integrity",
+      "description": "Verify canonical request record hash matches stored hash",
+      "result": "pass",
+      "details": "Recomputed SHA-256 of canonical_request matches record_hashes.request_hash"
+    },
+    {
+      "check_id": "CHK-HASH-002",
+      "check_type": "hash_integrity",
+      "description": "Verify risk evaluation record hash matches stored hash",
+      "result": "pass",
+      "details": "Recomputed SHA-256 of risk_evaluation matches record_hashes.risk_evaluation_hash"
+    },
+    {
+      "check_id": "CHK-HASH-003",
+      "check_type": "hash_integrity",
+      "description": "Verify authorization record hash matches stored hash",
+      "result": "pass",
+      "details": "Recomputed SHA-256 of authorization_record matches record_hashes.authorization_hash"
+    },
+    {
+      "check_id": "CHK-HASH-004",
+      "check_type": "hash_integrity",
+      "description": "Verify execution record hash matches stored hash",
+      "result": "pass",
+      "details": "Recomputed SHA-256 of execution_record matches record_hashes.execution_hash"
+    },
+    {
+      "check_id": "CHK-CHAIN-001",
+      "check_type": "chain_continuity",
+      "description": "Verify chain_hash is SHA-256 of concatenated record hashes in order",
+      "result": "pass",
+      "details": "SHA-256(request_hash + risk_evaluation_hash + authorization_hash + execution_hash) matches record_hashes.chain_hash"
+    },
+    {
+      "check_id": "CHK-SIG-001",
+      "check_type": "signature_verification",
+      "description": "Verify authorization record signature against authorizer public key",
+      "result": "pass",
+      "details": "ECDSA-secp256k1 signature verified against key-sarah-mitchell-2026-01"
+    },
+    {
+      "check_id": "CHK-SIG-002",
+      "check_type": "signature_verification",
+      "description": "Verify execution record signature against execution service public key",
+      "result": "pass",
+      "details": "ECDSA-secp256k1 signature verified against key-rio-exec-gateway-01-2026"
+    },
+    {
+      "check_id": "CHK-TIME-001",
+      "check_type": "timestamp_ordering",
+      "description": "Verify chronological ordering: requested_at < evaluated_at < authorized_at < executed_at < attested_at",
+      "result": "pass",
+      "details": "14:32:07.000Z < 14:32:08.412Z < 14:33:42.108Z < 14:34:01.237Z < 14:34:03.891Z"
+    },
+    {
+      "check_id": "CHK-AUTH-001",
+      "check_type": "authorization_validity",
+      "description": "Verify execution occurred within authorization time-bound window",
+      "result": "pass",
+      "details": "Execution at 14:34:01.237Z is within window [14:33:42.108Z, 14:38:42.108Z]; 281s remaining"
+    },
+    {
+      "check_id": "CHK-NONCE-001",
+      "check_type": "nonce_uniqueness",
+      "description": "Verify authorization nonce has not been used in any prior attestation",
+      "result": "pass",
+      "details": "Nonce nonce-20260324-143342-7f8e9d0c is unique in nonce registry"
+    },
+    {
+      "check_id": "CHK-POLICY-001",
+      "check_type": "policy_compliance",
+      "description": "Verify all required policy flags were addressed before execution",
+      "result": "pass",
+      "details": "Two require_authorization flags (pol-fin-001, pol-ai-003) satisfied by authorization b2c3d4e5-f6a7-8901-bcde-f23456789012"
+    }
+  ],
+  "signatures": [
+    {
+      "signer_id": "rio-attestation-service-01",
+      "signer_role": "system_attestor",
+      "algorithm": "ECDSA-secp256k1",
+      "public_key_id": "key-rio-attestation-01-2026",
+      "signature_value": "MEUCIQDaB2cD4eF5gH6iJ7kL8mN9oP0qR1sT2uV3wX4yZ5aAbBcCdDeEfFgGhHiIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ0123456789ABCDEFGHIJKLMNOP==",
+      "signed_at": "2026-03-24T14:34:03.891Z",
+      "signed_fields_hash": "c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6"
+    }
+  ],
+  "notes": "System attestation completed automatically after execution. All 11 verification checks passed. The full decision chain — from canonical request through risk evaluation, authorization, and execution — is cryptographically sealed. Record hashes are computed from deterministic JSON serialization (sorted keys, no whitespace). Chain hash provides a single digest for the entire transaction lifecycle."
+}
