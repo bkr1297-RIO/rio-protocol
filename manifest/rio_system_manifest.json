@@ -1,0 +1,53 @@
+{
+  "system": {
+    "name": "RIO Protocol",
+    "version": "1.0.0",
+    "description": "Decision Traceability and Authorization Protocol for AI and Automated Systems"
+  },
+  "cryptography": {
+    "signature_algorithm": "ECDSA",
+    "curve": "secp256k1",
+    "hash_algorithm": "SHA-256",
+    "canonicalization": "minified_sorted_json",
+    "fail_closed": true,
+    "time_skew_allowance_seconds": 300
+  },
+  "traceability_chain": [
+    "canonical_request",
+    "risk_evaluation",
+    "authorization_record",
+    "execution_record",
+    "attestation_record",
+    "receipt",
+    "ledger_entry"
+  ],
+  "protocol_stack": [
+    "intake_protocol",
+    "origin_verification_protocol",
+    "canonical_request_protocol",
+    "risk_evaluation_protocol",
+    "policy_constraints_protocol",
+    "authorization_protocol",
+    "execution_protocol",
+    "attestation_protocol",
+    "audit_ledger_protocol",
+    "learning_protocol",
+    "independence_protocol",
+    "role_separation_protocol",
+    "meta_governance_protocol",
+    "orchestration_protocol",
+    "time_bound_authorization_protocol"
+  ],
+  "governance_model": {
+    "role_separation": true,
+    "no_self_authorization": true,
+    "human_authority_required": true,
+    "policy_updates_require_authorization": true
+  },
+  "ledger": {
+    "type": "hash_chain",
+    "linking": "previous_hash + current_hash",
+    "tamper_evident": true,
+    "verifiable": true
+  }
+}
