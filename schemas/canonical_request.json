@@ -1,0 +1,215 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rio-protocol.org/schemas/canonical_request.json",
+  "title": "RIO Canonical Request",
+  "description": "The root object that initiates the RIO decision traceability chain. Every canonical request is hashable and signable, and serves as the anchor record to which all downstream objects — authorization, execution, attestation, receipt, and ledger entry — are linked via request_id.",
+  "type": "object",
+  "properties": {
+    "request_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Globally unique identifier for this request. All downstream records (authorization, execution, attestation, receipt, ledger entry) reference this value to maintain an unbroken traceability chain."
+    },
+    "requested_by": {
+      "type": "object",
+      "description": "The entity that originated this request. May be an AI agent, automated system, or human-initiated process.",
+      "properties": {
+        "entity_id": {
+          "type": "string",
+          "description": "Unique identifier of the requesting entity (e.g., agent ID, service account, or user ID)."
+        },
+        "entity_type": {
+          "type": "string",
+          "enum": ["ai_agent", "automated_system", "human", "delegated_process"],
+          "description": "Classification of the requesting entity."
+        },
+        "display_name": {
+          "type": "string",
+          "description": "Human-readable name of the requesting entity."
+        }
+      },
+      "required": ["entity_id", "entity_type"],
+      "additionalProperties": false
+    },
+    "requested_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp (UTC) indicating when the request was created. Used for freshness validation and time-bound authorization checks."
+    },
+    "action_type": {
+      "type": "string",
+      "description": "A namespaced identifier describing the action being requested. Uses dot notation to indicate domain and operation (e.g., 'finance.send_payment', 'infrastructure.delete_resource', 'communications.send_email')."
+    },
+    "target": {
+      "type": "object",
+      "description": "The resource or system that the requested action will affect.",
+      "properties": {
+        "target_type": {
+          "type": "string",
+          "description": "Classification of the target (e.g., 'bank_account', 'server', 'database', 'api_endpoint', 'file_system')."
+        },
+        "target_id": {
+          "type": "string",
+          "description": "Unique identifier of the target resource."
+        },
+        "target_label": {
+          "type": "string",
+          "description": "Human-readable label for the target resource."
+        }
+      },
+      "required": ["target_type", "target_id"],
+      "additionalProperties": true
+    },
+    "parameters": {
+      "type": "object",
+      "description": "Action-specific parameters. The structure varies by action_type. These parameters are included in the canonical hash to ensure that any modification to the requested action is detectable.",
+      "additionalProperties": true
+    },
+    "business_reason": {
+      "type": "object",
+      "description": "The justification for this request, as provided or inferred by the requesting entity. Preserved for audit and human review.",
+      "properties": {
+        "summary": {
+          "type": "string",
+          "description": "Brief human-readable explanation of why this action is being requested."
+        },
+        "supporting_references": {
+          "type": "array",
+          "description": "Optional references to supporting evidence (e.g., invoice IDs, ticket numbers, policy citations).",
+          "items": {
+            "type": "object",
+            "properties": {
+              "reference_type": {
+                "type": "string",
+                "description": "Type of reference (e.g., 'invoice', 'ticket', 'contract', 'policy', 'url')."
+              },
+              "reference_id": {
+                "type": "string",
+                "description": "Identifier or locator for the reference."
+              }
+            },
+            "required": ["reference_type", "reference_id"],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": ["summary"],
+      "additionalProperties": false
+    },
+    "risk_context": {
+      "type": "object",
+      "description": "Risk assessment metadata attached at intake. Used by the policy engine and human reviewers to evaluate the request.",
+      "properties": {
+        "risk_level": {
+          "type": "string",
+          "enum": ["low", "medium", "high", "critical"],
+          "description": "Assessed risk level of the requested action."
+        },
+        "risk_factors": {
+          "type": "array",
+          "description": "Specific factors contributing to the risk assessment.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "financial_impact": {
+          "type": "object",
+          "description": "Estimated financial impact, if applicable.",
+          "properties": {
+            "currency": {
+              "type": "string",
+              "description": "ISO 4217 currency code."
+            },
+            "amount": {
+              "type": "number",
+              "description": "Estimated monetary value of the action."
+            }
+          },
+          "required": ["currency", "amount"],
+          "additionalProperties": false
+        },
+        "reversibility": {
+          "type": "string",
+          "enum": ["reversible", "partially_reversible", "irreversible"],
+          "description": "Whether the action can be undone after execution."
+        }
+      },
+      "required": ["risk_level"],
+      "additionalProperties": true
+    },
+    "policy_context": {
+      "type": "object",
+      "description": "Policy evaluation metadata. Identifies which policies apply to this request and what constraints they impose.",
+      "properties": {
+        "applicable_policies": {
+          "type": "array",
+          "description": "List of policy identifiers that govern this request.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "policy_id": {
+                "type": "string",
+                "description": "Unique identifier of the policy."
+              },
+              "policy_name": {
+                "type": "string",
+                "description": "Human-readable name of the policy."
+              },
+              "version": {
+                "type": "string",
+                "description": "Version of the policy being applied."
+              }
+            },
+            "required": ["policy_id"],
+            "additionalProperties": false
+          }
+        },
+        "requires_authorization": {
+          "type": "boolean",
+          "description": "Whether this request requires explicit human authorization before execution."
+        },
+        "authorization_type": {
+          "type": "string",
+          "enum": ["none", "single_approver", "multi_approver", "escalation"],
+          "description": "The type of authorization workflow required, as determined by policy evaluation."
+        },
+        "constraints": {
+          "type": "array",
+          "description": "Specific constraints imposed by applicable policies.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "constraint_type": {
+                "type": "string",
+                "description": "Type of constraint (e.g., 'time_window', 'amount_limit', 'rate_limit', 'geographic_restriction')."
+              },
+              "description": {
+                "type": "string",
+                "description": "Human-readable description of the constraint."
+              },
+              "value": {
+                "description": "The constraint value. Type varies by constraint_type."
+              }
+            },
+            "required": ["constraint_type"],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": ["requires_authorization"],
+      "additionalProperties": true
+    }
+  },
+  "required": [
+    "request_id",
+    "requested_by",
+    "requested_at",
+    "action_type",
+    "target",
+    "parameters",
+    "business_reason",
+    "risk_context",
+    "policy_context"
+  ],
+  "additionalProperties": false
+}

@@ -1,0 +1,77 @@
+{
+  "request_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "requested_by": {
+    "entity_id": "agent-finance-7721",
+    "entity_type": "ai_agent",
+    "display_name": "Finance Operations Agent"
+  },
+  "requested_at": "2026-03-24T14:32:07.000Z",
+  "action_type": "finance.send_payment",
+  "target": {
+    "target_type": "bank_account",
+    "target_id": "acct-vendor-0042",
+    "target_label": "Meridian Industrial Supply — Operating Account"
+  },
+  "parameters": {
+    "currency": "USD",
+    "amount": 48250.00,
+    "payment_method": "wire_transfer",
+    "memo": "Invoice #INV-2026-03-1147 — Q1 materials, net-30 terms",
+    "recipient_routing": "021000021",
+    "recipient_account": "****7834"
+  },
+  "business_reason": {
+    "summary": "Payment for Invoice #INV-2026-03-1147 from Meridian Industrial Supply. Invoice is due 2026-03-28. Paying now avoids a projected 2.5% late fee ($1,206.25). The AI agent identified this invoice during scheduled accounts-payable review.",
+    "supporting_references": [
+      {
+        "reference_type": "invoice",
+        "reference_id": "INV-2026-03-1147"
+      },
+      {
+        "reference_type": "contract",
+        "reference_id": "MSA-2024-0042"
+      }
+    ]
+  },
+  "risk_context": {
+    "risk_level": "high",
+    "risk_factors": [
+      "Outbound wire transfer exceeding $10,000 threshold",
+      "Action initiated by AI agent without prior human instruction",
+      "Irreversible once settlement completes"
+    ],
+    "financial_impact": {
+      "currency": "USD",
+      "amount": 48250.00
+    },
+    "reversibility": "irreversible"
+  },
+  "policy_context": {
+    "applicable_policies": [
+      {
+        "policy_id": "pol-fin-001",
+        "policy_name": "Outbound Payment Authorization",
+        "version": "2.1"
+      },
+      {
+        "policy_id": "pol-ai-003",
+        "policy_name": "AI-Initiated Financial Action Review",
+        "version": "1.0"
+      }
+    ],
+    "requires_authorization": true,
+    "authorization_type": "single_approver",
+    "constraints": [
+      {
+        "constraint_type": "amount_limit",
+        "description": "Payments over $10,000 require explicit human authorization",
+        "value": 10000
+      },
+      {
+        "constraint_type": "time_window",
+        "description": "Authorization must be completed within 5 minutes of request creation",
+        "value": 300
+      }
+    ]
+  }
+}
