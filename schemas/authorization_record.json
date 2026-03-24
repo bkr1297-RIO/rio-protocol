@@ -1,0 +1,188 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rio-protocol.org/schemas/authorization_record.json",
+  "title": "RIO Authorization Record",
+  "description": "The authority decision record that represents explicit approval, denial, conditional approval, or expiration of a requested action. This record is created after risk evaluation and policy review, and before execution. It captures who authorized the action, how they authorized it, under what conditions, and when the authorization expires. It is hashable and signable, and links the canonical request and risk evaluation to downstream execution, attestation, receipt, and ledger records.",
+  "type": "object",
+  "properties": {
+    "authorization_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Globally unique identifier for this authorization record."
+    },
+    "request_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Reference to the canonical request being authorized. Maintains the traceability chain from intake through execution."
+    },
+    "risk_evaluation_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Reference to the risk evaluation that informed this authorization decision. Links the risk assessment to the authority response."
+    },
+    "decision": {
+      "type": "string",
+      "enum": ["approve", "deny", "approve_with_conditions", "expired"],
+      "description": "The authorization decision. 'approve' grants unconditional permission to execute. 'deny' permanently rejects the request. 'approve_with_conditions' grants permission subject to the constraints specified in the conditions array. 'expired' indicates the authorization window closed before a decision was rendered — the system records this automatically when the time-bound window elapses."
+    },
+    "authorized_by": {
+      "type": "object",
+      "description": "The individual or authority that rendered this decision. In multi-party authorization, this represents the final or decisive authorizer; co-authorizers are listed in the co_authorizers array.",
+      "properties": {
+        "authorizer_id": {
+          "type": "string",
+          "description": "Unique identifier of the authorizing individual or authority (e.g., user ID, role-based authority ID)."
+        },
+        "display_name": {
+          "type": "string",
+          "description": "Human-readable name of the authorizer."
+        },
+        "identity_verified": {
+          "type": "boolean",
+          "description": "Whether the authorizer's identity was cryptographically verified at the time of decision (e.g., via biometric confirmation, hardware token, or certificate-based authentication)."
+        },
+        "identity_method": {
+          "type": "string",
+          "description": "The method used to verify the authorizer's identity (e.g., 'face_id', 'fingerprint', 'hardware_token', 'certificate', 'password_mfa'). Present only when identity_verified is true."
+        }
+      },
+      "required": ["authorizer_id", "display_name", "identity_verified"],
+      "additionalProperties": false
+    },
+    "authorization_role": {
+      "type": "string",
+      "description": "The organizational or protocol role under which the authorizer is acting (e.g., 'finance_approver', 'operations_manager', 'security_officer', 'executive_authority'). This field supports role-based access control and separation of duties verification."
+    },
+    "authorization_method": {
+      "type": "string",
+      "enum": ["mobile_push", "mobile_biometric", "web_portal", "api_token", "hardware_token", "email_confirmation", "voice_confirmation", "in_person"],
+      "description": "The channel or mechanism through which the authorization was delivered. Determines the assurance level of the decision."
+    },
+    "authorized_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp (UTC) indicating when the authorization decision was rendered."
+    },
+    "expires_at": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "description": "ISO 8601 timestamp (UTC) indicating when this authorization expires. After this time, the authorization is no longer valid and the execution gate will reject it. Null indicates no expiration (not recommended for high-risk actions). For denial decisions, this field is null."
+    },
+    "co_authorizers": {
+      "type": "array",
+      "description": "Additional authorizers in a multi-party authorization workflow. Each co-authorizer's decision is recorded independently. Present only when the authorization_type required by policy is 'multi_approver'.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "authorizer_id": {
+            "type": "string",
+            "description": "Unique identifier of the co-authorizer."
+          },
+          "display_name": {
+            "type": "string",
+            "description": "Human-readable name of the co-authorizer."
+          },
+          "authorization_role": {
+            "type": "string",
+            "description": "Role under which the co-authorizer is acting."
+          },
+          "decision": {
+            "type": "string",
+            "enum": ["approve", "deny"],
+            "description": "The co-authorizer's individual decision."
+          },
+          "authorized_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp of the co-authorizer's decision."
+          },
+          "authorization_method": {
+            "type": "string",
+            "enum": ["mobile_push", "mobile_biometric", "web_portal", "api_token", "hardware_token", "email_confirmation", "voice_confirmation", "in_person"],
+            "description": "Channel through which the co-authorizer delivered their decision."
+          }
+        },
+        "required": ["authorizer_id", "decision", "authorized_at"],
+        "additionalProperties": false
+      }
+    },
+    "conditions": {
+      "type": "array",
+      "description": "Conditions attached to an 'approve_with_conditions' decision. Each condition must be satisfied before or during execution. If the decision is 'approve', 'deny', or 'expired', this array is empty.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "condition_id": {
+            "type": "string",
+            "description": "Unique identifier for this condition."
+          },
+          "condition_type": {
+            "type": "string",
+            "enum": ["amount_cap", "time_restriction", "parameter_override", "additional_review", "notification_required", "rate_limit", "custom"],
+            "description": "Classification of the condition."
+          },
+          "description": {
+            "type": "string",
+            "description": "Human-readable explanation of the condition."
+          },
+          "value": {
+            "description": "The condition value. Type varies by condition_type."
+          },
+          "enforced_by": {
+            "type": "string",
+            "enum": ["execution_gate", "policy_engine", "manual_verification"],
+            "description": "Which component of the RIO system is responsible for enforcing this condition."
+          }
+        },
+        "required": ["condition_id", "condition_type", "description", "enforced_by"],
+        "additionalProperties": false
+      }
+    },
+    "notes": {
+      "type": "string",
+      "description": "Free-text field for the authorizer's reasoning, observations, or instructions. Preserved in the audit trail for traceability and post-incident review."
+    },
+    "signature": {
+      "type": "object",
+      "description": "Cryptographic signature over the authorization record. The signature covers the canonical hash of this record (excluding the signature field itself) and provides non-repudiation — the authorizer cannot later deny having made this decision.",
+      "properties": {
+        "algorithm": {
+          "type": "string",
+          "description": "The signing algorithm used (e.g., 'ECDSA-secp256k1', 'Ed25519', 'RSA-SHA256')."
+        },
+        "public_key_id": {
+          "type": "string",
+          "description": "Identifier or fingerprint of the public key corresponding to the signing key. Used to locate the verification key."
+        },
+        "signature_value": {
+          "type": "string",
+          "description": "The cryptographic signature encoded as a base64 string."
+        },
+        "signed_fields_hash": {
+          "type": "string",
+          "description": "SHA-256 hash of the canonical representation of all fields in this record (excluding the signature object). Provides the digest that was signed."
+        },
+        "nonce": {
+          "type": "string",
+          "description": "Single-use value included in the signature to prevent replay attacks. Each authorization produces a unique nonce that is registered in the nonce registry."
+        }
+      },
+      "required": ["algorithm", "public_key_id", "signature_value", "signed_fields_hash", "nonce"],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "authorization_id",
+    "request_id",
+    "risk_evaluation_id",
+    "decision",
+    "authorized_by",
+    "authorization_role",
+    "authorization_method",
+    "authorized_at",
+    "expires_at",
+    "conditions",
+    "signature"
+  ],
+  "additionalProperties": false
+}
