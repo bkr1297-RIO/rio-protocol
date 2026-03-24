@@ -5,12 +5,12 @@
 RIO Protocol Step 14: Orchestration
 
 ## 2. Purpose
-This protocol defines the master control flow for the Runtime Intelligence Orchestration (RIO) decision chain. Its primary purpose is to coordinate the sequential and conditional execution of all other RIO protocol steps, from intake to feedback. It acts as a state machine, managing the lifecycle of an AI-initiated action request, ensuring each step is executed in the correct order, handling state transitions, managing timeouts, and guaranteeing that the entire process either completes successfully or fails in a clean, predictable, and auditable manner.
+This protocol defines the master control flow for the Runtime Intelligence Orchestration (RIO) decision chain. Its primary purpose is to coordinate the sequential and conditional execution of all other RIO Protocol steps, from intake to feedback. It acts as a state machine, managing the lifecycle of an AI-initiated action request, ensuring each step is executed in the correct order, handling state transitions, managing timeouts, and guaranteeing that the entire process either completes successfully or fails in a clean, predictable, and auditable manner.
 
 ## 3. Scope
 **In Scope:**
 -   Management of the state machine for a single `request_id`.
--   Sequential invocation of RIO protocol steps 1 through 13.
+-   Sequential invocation of RIO Protocol steps 1 through 13.
 -   Handling of success, failure, and timeout conditions for each step.
 -   Passing of data records (e.g., `canonical_request`, `risk_evaluation`) between protocol steps.
 -   Ensuring the integrity and order of the decision chain.

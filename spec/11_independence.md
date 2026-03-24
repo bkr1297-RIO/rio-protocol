@@ -81,7 +81,7 @@ Failures in this protocol represent a critical security breach.
 
 ## 12. Dependencies
 - **Upstream:** This protocol is foundational. It depends on the underlying infrastructure (cloud provider, container orchestrator) providing the necessary tools for network and identity management.
-- **Downstream:** All other RIO protocol steps (1-10) are critically dependent on the guarantees provided by the Independence protocol. A failure in Independence invalidates the entire decision chain.
+- **Downstream:** All other RIO Protocol steps (1-10) are critically dependent on the guarantees provided by the Independence protocol. A failure in Independence invalidates the entire decision chain.
 
 ## 13. Example Flow
 In the $48,250 wire transfer scenario, the principle of Independence is demonstrated as follows:

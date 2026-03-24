@@ -26,7 +26,7 @@ This protocol is initiated upon the submission of a formal Change Proposal. The 
 |---------------------|--------|----------|-----------------------------------------------------------------------------|
 | `change_request_id` | UUID   | Yes      | A unique identifier for the proposed change.                                |
 | `requested_by`      | String | Yes      | The identifier of the user or system entity requesting the change.          |
-| `target_component`  | String | Yes      | The specific RIO protocol, policy, or configuration to be modified.         |
+| `target_component`  | String | Yes      | The specific RIO Protocol, policy, or configuration to be modified.         |
 | `proposed_change`   | JSON   | Yes      | A machine-readable representation of the exact change being proposed.       |
 | `justification`     | String | Yes      | A human-readable explanation for why the change is necessary.               |
 | `impact_analysis`   | String | Yes      | A description of the expected impact and potential risks of the change.     |
@@ -102,7 +102,7 @@ The decision to approve or reject a change is governed by a combination of risk 
 
 ## 12. Dependencies
 - **Upstream**: This protocol has no direct upstream dependencies, as it is the top-level governance layer. It is triggered by an external administrative action.
-- **Downstream**: All other RIO protocols (1-12) are dependent on the output of the Meta-Governance protocol. The rules, policies, and thresholds defined via this protocol dictate the operational behavior of the entire RIO decision chain.
+- **Downstream**: All other RIO Protocols (1-12) are dependent on the output of the Meta-Governance protocol. The rules, policies, and thresholds defined via this protocol dictate the operational behavior of the entire RIO decision chain.
 
 ## 13. Example Flow
 While the $48,250 wire transfer is an operational action, a meta-governance change might be triggered by its analysis. Let's say the RIO administrators determine that wire transfers over $40,000 are consistently being flagged for manual review, and they want to lower the threshold for 'high-risk' to increase automation for smaller amounts.

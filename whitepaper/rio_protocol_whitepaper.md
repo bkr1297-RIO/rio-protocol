@@ -1,7 +1,9 @@
 # RIO Protocol: A Fail-Closed Execution Governance System for AI and Automated Systems
 
-**Version 1.0.0**
-**March 2026**
+**Author and System Architect:** Brian K. Rasmussen
+**Technical Implementation and Documentation:** Manny
+
+**Version 1.0.0 — March 2026**
 
 ---
 

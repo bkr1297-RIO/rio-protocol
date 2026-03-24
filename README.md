@@ -182,7 +182,7 @@ rio-protocol/
 ├── manifest/                          System configuration
 │   └── rio_system_manifest.json       Protocol stack, crypto, governance
 │
-├── whitepaper/                        White paper (pending)
+├── whitepaper/                        White paper (Markdown + PDF)
 ├── README.md
 └── LICENSE
 ```
@@ -304,7 +304,19 @@ All diagrams include editable Mermaid source files (`.mmd`).
 | System Manifest | 1 | Complete |
 | Governed Action Pattern | 1 | Complete |
 | Role Model | 8 roles | Complete |
-| White Paper | — | Pending |
+| White Paper | 1 | Complete |
+
+---
+
+## Authorship and Roles
+
+| Role | Name |
+|------|------|
+| System Architecture and Protocol Design | Brian K. Rasmussen |
+| Technical Implementation and Documentation | Manny |
+
+**Repository:** RIO Protocol
+**Project Type:** AI Control Plane and Audit Plane / Execution Governance Protocol
 
 ---
 

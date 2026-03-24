@@ -4,7 +4,7 @@
 
 High-risk industries have independently converged on the same fundamental system pattern for allowing action while controlling risk: **Propose → Evaluate → Authorize → Execute → Record → Audit → Learn**. This pattern — which we call the **Governed Action Control Loop** — appears wherever the cost of an uncontrolled action exceeds the cost of governing it. The RIO Protocol is a formal, machine-readable implementation of this pattern designed specifically for AI and automated systems.
 
-This document presents the abstract pattern, traces its manifestation across nine industries, and maps each stage to the corresponding RIO protocol component.
+This document presents the abstract pattern, traces its manifestation across nine industries, and maps each stage to the corresponding RIO Protocol component.
 
 ---
 
