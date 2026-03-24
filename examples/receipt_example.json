@@ -1,0 +1,79 @@
+{
+  "receipt_id": "e5f6a7b8-c9d0-1234-abcd-567890123456",
+  "request_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "risk_evaluation_id": "f7e8d9c0-b1a2-3456-cdef-789012345678",
+  "authorization_id": "b2c3d4e5-f6a7-8901-bcde-f23456789012",
+  "execution_id": "c3d4e5f6-a7b8-9012-defg-345678901234",
+  "attestation_id": "d4e5f6a7-b8c9-0123-efab-456789012345",
+  "final_decision": "approved",
+  "final_status": "executed",
+  "timeline": {
+    "request_timestamp": "2026-03-24T14:32:07.000Z",
+    "risk_evaluation_timestamp": "2026-03-24T14:32:08.412Z",
+    "authorization_timestamp": "2026-03-24T14:33:42.108Z",
+    "authorization_expiry_timestamp": "2026-03-24T14:38:42.108Z",
+    "execution_timestamp": "2026-03-24T14:34:01.237Z",
+    "attestation_timestamp": "2026-03-24T14:34:03.891Z",
+    "receipt_timestamp": "2026-03-24T14:34:04.500Z",
+    "total_duration_ms": 117500
+  },
+  "participants": {
+    "requester": {
+      "entity_id": "agent-finance-7721",
+      "entity_type": "ai_agent",
+      "display_name": "Finance Operations Agent"
+    },
+    "risk_evaluator": {
+      "evaluator_id": "rio-risk-engine-01",
+      "evaluator_type": "automated_engine",
+      "display_name": "RIO Risk Evaluation Engine"
+    },
+    "authorizer": {
+      "authorizer_id": "user-cfo-0001",
+      "display_name": "Sarah Mitchell",
+      "authorization_role": "finance_approver",
+      "authorization_method": "mobile_biometric"
+    },
+    "executor": {
+      "executor_id": "rio-exec-gateway-01",
+      "executor_type": "execution_service",
+      "display_name": "RIO Execution Gateway"
+    },
+    "attestor": {
+      "attestor_id": "rio-attestation-service-01",
+      "attestor_type": "attestation_service",
+      "display_name": "RIO Attestation Service"
+    }
+  },
+  "action_summary": {
+    "action_type": "finance.send_payment",
+    "target_label": "Meridian Industrial Supply — Operating Account",
+    "business_reason": "Payment for Invoice #INV-2026-03-1147 from Meridian Industrial Supply. Invoice is due 2026-03-28. Paying now avoids a projected 2.5% late fee ($1,206.25). The AI agent identified this invoice during scheduled accounts-payable review.",
+    "risk_level": "high",
+    "risk_score": 82,
+    "financial_impact": {
+      "currency": "USD",
+      "amount": 48250.00
+    }
+  },
+  "execution_result": {
+    "execution_status": "success",
+    "confirmation_id": "FWT-2026-0324-00847291",
+    "outcome_description": "Wire transfer of $48,250.00 USD to Meridian Industrial Supply completed successfully. Funds debited from operating account and submitted to Federal Reserve wire network.",
+    "authorization_match": true
+  },
+  "chain_integrity": {
+    "chain_hash": "6a2c376af0894248ca9bd1b40dc50bfeb38ecfd8c97479f4af1468ac571fb7c7",
+    "all_checks_passed": true,
+    "check_count": 11,
+    "checks_passed": 11
+  },
+  "summary": "On 2026-03-24 at 14:32:07 UTC, the Finance Operations Agent (AI agent-finance-7721) requested a wire transfer of $48,250.00 USD to Meridian Industrial Supply (account acct-vendor-0042) for Invoice #INV-2026-03-1147. The RIO Risk Evaluation Engine assessed the request as high risk (score 82/100) due to the transaction amount exceeding the $10,000 threshold, autonomous AI origin, and irreversible wire transfer method. Two policies required human authorization: Outbound Payment Authorization (pol-fin-001) and AI-Initiated Financial Action Review (pol-ai-003). Sarah Mitchell (CFO, finance_approver) approved the request at 14:33:42 UTC via mobile biometric authentication (Face ID), with a 5-minute authorization window expiring at 14:38:42 UTC. The RIO Execution Gateway executed the wire transfer at 14:34:01 UTC (19 seconds after approval, 281 seconds before expiration), receiving Federal Reserve confirmation FWT-2026-0324-00847291. The executed action matched the authorized parameters exactly. The RIO Attestation Service sealed the decision chain at 14:34:03 UTC, verifying all 11 integrity checks including hash integrity, signature verification, timestamp ordering, authorization validity, nonce uniqueness, and policy compliance. Total lifecycle duration: 117.5 seconds.",
+  "notes": "Complete decision chain verified. No deviations detected between authorized and executed parameters. Wire settlement expected by 18:00 UTC on 2026-03-24.",
+  "signature": {
+    "algorithm": "ECDSA-secp256k1",
+    "public_key_id": "key-rio-receipt-service-01-2026",
+    "signature_value": "MEYCIQDzA1bC2dE3fG4hI5jK6lM7nO8pQ9rS0tU1vW2xY3zA4bBcCdDeEfFgGhHiIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ01234567890ABCDEFGHIJKLMNOPQRSTUVWXYZab==",
+    "signed_fields_hash": "d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7"
+  }
+}

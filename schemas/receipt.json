@@ -1,0 +1,298 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rio-protocol.org/schemas/receipt.json",
+  "title": "RIO Receipt",
+  "description": "A human-readable and auditable summary of the full RIO decision traceability chain. The receipt links together the canonical request, risk evaluation, authorization, execution, and attestation records into a single document that an auditor or human reviewer can use to understand what was requested, who approved it, what was executed, and how it was verified. It is hashable and signable, and serves as the primary audit and compliance artifact for each governed action.",
+  "type": "object",
+  "properties": {
+    "receipt_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Globally unique identifier for this receipt."
+    },
+    "request_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Reference to the canonical request that initiated the decision chain."
+    },
+    "risk_evaluation_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Reference to the risk evaluation record."
+    },
+    "authorization_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Reference to the authorization record."
+    },
+    "execution_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Reference to the execution record. Null if the action was denied or expired before execution."
+    },
+    "attestation_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Reference to the attestation record that cryptographically sealed the chain. Null if attestation has not yet been produced."
+    },
+    "final_decision": {
+      "type": "string",
+      "enum": ["approved", "denied", "approved_with_conditions", "expired"],
+      "description": "The final authorization decision rendered for this request. Reflects the outcome of the authorization stage."
+    },
+    "final_status": {
+      "type": "string",
+      "enum": ["executed", "failed", "partial", "cancelled", "denied", "expired", "pending_execution"],
+      "description": "The final end-to-end status of the governed action. 'executed' means the action completed successfully after approval. 'failed' means execution was attempted but did not succeed. 'partial' means execution partially completed. 'cancelled' means execution was aborted. 'denied' means the request was rejected at authorization. 'expired' means the authorization window closed before a decision or execution. 'pending_execution' means authorization was granted but execution has not yet occurred."
+    },
+    "timeline": {
+      "type": "object",
+      "description": "Timestamps for each stage of the decision chain, providing a chronological view of the entire lifecycle.",
+      "properties": {
+        "request_timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the canonical request was created (from requested_at)."
+        },
+        "risk_evaluation_timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the risk evaluation was completed (from evaluated_at)."
+        },
+        "authorization_timestamp": {
+          "type": ["string", "null"],
+          "format": "date-time",
+          "description": "When the authorization decision was rendered (from authorized_at). Null if expired before decision."
+        },
+        "authorization_expiry_timestamp": {
+          "type": ["string", "null"],
+          "format": "date-time",
+          "description": "When the authorization expires (from expires_at). Null for denials or non-time-bound authorizations."
+        },
+        "execution_timestamp": {
+          "type": ["string", "null"],
+          "format": "date-time",
+          "description": "When the execution completed (from executed_at). Null if the action was not executed."
+        },
+        "attestation_timestamp": {
+          "type": ["string", "null"],
+          "format": "date-time",
+          "description": "When the attestation was produced (from attested_at). Null if attestation is pending."
+        },
+        "receipt_timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When this receipt was generated."
+        },
+        "total_duration_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total wall-clock time in milliseconds from request creation to receipt generation."
+        }
+      },
+      "required": ["request_timestamp", "risk_evaluation_timestamp", "receipt_timestamp", "total_duration_ms"],
+      "additionalProperties": false
+    },
+    "participants": {
+      "type": "object",
+      "description": "Summary of all entities involved in the decision chain, organized by role.",
+      "properties": {
+        "requester": {
+          "type": "object",
+          "description": "The entity that originated the request.",
+          "properties": {
+            "entity_id": { "type": "string" },
+            "entity_type": { "type": "string" },
+            "display_name": { "type": "string" }
+          },
+          "required": ["entity_id", "entity_type"],
+          "additionalProperties": false
+        },
+        "risk_evaluator": {
+          "type": "object",
+          "description": "The entity that performed the risk evaluation.",
+          "properties": {
+            "evaluator_id": { "type": "string" },
+            "evaluator_type": { "type": "string" },
+            "display_name": { "type": "string" }
+          },
+          "required": ["evaluator_id", "evaluator_type"],
+          "additionalProperties": false
+        },
+        "authorizer": {
+          "type": "object",
+          "description": "The individual or authority that rendered the authorization decision.",
+          "properties": {
+            "authorizer_id": { "type": "string" },
+            "display_name": { "type": "string" },
+            "authorization_role": { "type": "string" },
+            "authorization_method": { "type": "string" }
+          },
+          "required": ["authorizer_id"],
+          "additionalProperties": false
+        },
+        "executor": {
+          "type": ["object", "null"],
+          "description": "The system or service that performed the execution. Null if the action was not executed.",
+          "properties": {
+            "executor_id": { "type": "string" },
+            "executor_type": { "type": "string" },
+            "display_name": { "type": "string" }
+          },
+          "required": ["executor_id", "executor_type"],
+          "additionalProperties": false
+        },
+        "attestor": {
+          "type": ["object", "null"],
+          "description": "The entity that produced the attestation. Null if attestation is pending.",
+          "properties": {
+            "attestor_id": { "type": "string" },
+            "attestor_type": { "type": "string" },
+            "display_name": { "type": "string" }
+          },
+          "required": ["attestor_id", "attestor_type"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["requester", "risk_evaluator", "authorizer"],
+      "additionalProperties": false
+    },
+    "action_summary": {
+      "type": "object",
+      "description": "A concise summary of the action that was requested and (if applicable) executed.",
+      "properties": {
+        "action_type": {
+          "type": "string",
+          "description": "The namespaced action identifier."
+        },
+        "target_label": {
+          "type": "string",
+          "description": "Human-readable label of the target."
+        },
+        "business_reason": {
+          "type": "string",
+          "description": "The business justification summary from the canonical request."
+        },
+        "risk_level": {
+          "type": "string",
+          "enum": ["low", "medium", "high", "critical"],
+          "description": "The assessed risk level."
+        },
+        "risk_score": {
+          "type": "number",
+          "description": "The numeric risk score (0–100)."
+        },
+        "financial_impact": {
+          "type": ["object", "null"],
+          "description": "Financial impact if applicable.",
+          "properties": {
+            "currency": { "type": "string" },
+            "amount": { "type": "number" }
+          },
+          "required": ["currency", "amount"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["action_type", "target_label", "business_reason", "risk_level"],
+      "additionalProperties": false
+    },
+    "execution_result": {
+      "type": ["object", "null"],
+      "description": "Summary of the execution outcome. Null if the action was not executed.",
+      "properties": {
+        "execution_status": {
+          "type": "string",
+          "enum": ["success", "failed", "partial", "cancelled"],
+          "description": "The execution outcome."
+        },
+        "confirmation_id": {
+          "type": "string",
+          "description": "External confirmation or transaction identifier."
+        },
+        "outcome_description": {
+          "type": "string",
+          "description": "Human-readable description of what happened."
+        },
+        "authorization_match": {
+          "type": "boolean",
+          "description": "Whether the execution matched the authorized parameters."
+        }
+      },
+      "required": ["execution_status", "outcome_description", "authorization_match"],
+      "additionalProperties": false
+    },
+    "chain_integrity": {
+      "type": "object",
+      "description": "Summary of the cryptographic integrity verification from the attestation record.",
+      "properties": {
+        "chain_hash": {
+          "type": "string",
+          "description": "The chain_hash from the attestation record — a single digest representing the integrity of the entire decision chain."
+        },
+        "all_checks_passed": {
+          "type": "boolean",
+          "description": "Whether all verification checks in the attestation record passed."
+        },
+        "check_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total number of verification checks performed."
+        },
+        "checks_passed": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of verification checks that passed."
+        }
+      },
+      "required": ["chain_hash", "all_checks_passed", "check_count", "checks_passed"],
+      "additionalProperties": false
+    },
+    "summary": {
+      "type": "string",
+      "description": "A human-readable narrative summary of the entire decision chain. Written in plain language for non-technical reviewers. Should describe what was requested, who approved it, what was executed, and how it was verified."
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes or context for the receipt. May include auditor comments, compliance observations, or follow-up actions."
+    },
+    "signature": {
+      "type": "object",
+      "description": "Cryptographic signature over the receipt record. Produced by the receipt generation service. Covers the canonical hash of all fields (excluding the signature object itself).",
+      "properties": {
+        "algorithm": {
+          "type": "string",
+          "description": "The signing algorithm used."
+        },
+        "public_key_id": {
+          "type": "string",
+          "description": "Identifier of the public key corresponding to the signing key."
+        },
+        "signature_value": {
+          "type": "string",
+          "description": "The cryptographic signature encoded as a base64 string."
+        },
+        "signed_fields_hash": {
+          "type": "string",
+          "description": "SHA-256 hash of the canonical representation of all fields in this record (excluding the signature object)."
+        }
+      },
+      "required": ["algorithm", "public_key_id", "signature_value", "signed_fields_hash"],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "receipt_id",
+    "request_id",
+    "risk_evaluation_id",
+    "authorization_id",
+    "final_decision",
+    "final_status",
+    "timeline",
+    "participants",
+    "action_summary",
+    "chain_integrity",
+    "summary",
+    "signature"
+  ],
+  "additionalProperties": false
+}
