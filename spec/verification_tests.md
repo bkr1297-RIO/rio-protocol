@@ -400,6 +400,83 @@ A conformant test environment MUST include:
 
 ---
 
+### VT-11: Execution Outside Approved Scope Blocked
+
+| Attribute | Detail |
+|-----------|--------|
+| **Test ID** | VT-11 |
+| **Test Name** | Execution Outside Approved Scope Blocked |
+| **Category** | Scope Enforcement |
+| **Priority** | Critical |
+
+**Preconditions:**
+- A canonical request has been authorized for a $48,250 wire transfer to Meridian Industrial Supply (account ending 7892).
+- The authorization is valid (not expired, nonce not consumed).
+- The execution token has been issued with a scope binding the action to the specific `action_type`, `target_id`, and `parameter_hash`.
+
+**Test Steps:**
+
+1. Create a valid canonical request for a $48,250 wire transfer to Meridian Industrial Supply.
+2. Complete risk evaluation and obtain a valid authorization with `decision: approve`.
+3. Receive a valid execution token with scope: `action_type: finance.send_payment`, `target_id: vendor-meridian-001`, `parameter_hash: <hash of original parameters>`.
+4. Attempt to execute a DIFFERENT action using the same execution token — change the target to a different vendor (e.g., `target_id: vendor-unknown-999`) while keeping the same amount.
+5. Observe the system response.
+6. Separately, attempt to execute the correct target but with a different amount ($148,250 instead of $48,250) using the same execution token.
+7. Observe the system response.
+
+**Expected Result:** Both attempts MUST be rejected. The execution gate or execution service MUST detect that the attempted action does not match the scope defined in the execution token. The action MUST NOT be executed.
+
+**Pass Criteria:**
+- Attempt with wrong target: rejected with error referencing scope mismatch or target mismatch.
+- Attempt with wrong amount: rejected with error referencing parameter hash mismatch.
+- No execution record is created for either attempt.
+- The execution token remains in `active` status (not consumed by a failed scope check).
+- The system logs the scope violation for security monitoring.
+
+**Failure Behavior:** If an action outside the approved scope is executed, the implementation fails this test. This indicates that the execution gate does not enforce scope binding (Threat T-09), allowing an authorized entity to perform actions beyond what was specifically approved — a critical privilege escalation vulnerability.
+
+**References:** Spec 07 (Execution), Spec 09 (Audit Ledger), `execution_token.json` (scope field), `execution_record.json` (authorization_match, deviation_details), Threat Model T-09
+
+---
+
+### VT-12: Expired Authorization Cannot Execute
+
+| Attribute | Detail |
+|-----------|--------|
+| **Test ID** | VT-12 |
+| **Test Name** | Expired Authorization Cannot Execute |
+| **Category** | Time-Bound Authorization |
+| **Priority** | Critical |
+
+**Preconditions:**
+- A canonical request has been authorized with a 5-minute (300-second) expiration window.
+- The authorization was valid at the time of issuance.
+- The nonce has NOT been consumed (the authorization was never used).
+
+**Test Steps:**
+
+1. Create a valid canonical request for a $48,250 wire transfer.
+2. Complete risk evaluation and obtain authorization with `decision: approve`, `authorized_at: T`, and `expires_at: T + 300 seconds`.
+3. Wait until the current time exceeds `expires_at` (or advance the test clock past `T + 300 seconds + time_skew_allowance`).
+4. Submit the expired but otherwise valid authorization (correct signature, unused nonce, matching request hash) to the execution gate.
+5. Observe the system response.
+
+**Expected Result:** The execution gate MUST reject the authorization because it has expired. The action MUST NOT be executed, even though the authorization is otherwise valid (correct signature, unused nonce, matching hash).
+
+**Pass Criteria:**
+- The execution gate rejects the request.
+- Error message explicitly references authorization expired or time window exceeded.
+- No execution record is created.
+- No execution token is issued.
+- A receipt is created with `final_decision: expired` and `final_status: expired`.
+- A ledger entry records the expiration event.
+
+**Failure Behavior:** If an expired authorization is accepted for execution, the implementation fails this test. This is distinct from VT-04 (which tests expired timestamps on the request itself). This test specifically validates that the execution gate enforces the `expires_at` field on authorization records, preventing stale approvals from being used after conditions may have changed (Threat T-04).
+
+**References:** Spec 06 (Authorization), Spec 07 (Execution), Spec 15 (Time-Bound Authorization), `authorization_record.json` (expires_at field), Threat Model T-04
+
+---
+
 ## 4. Test Summary Matrix
 
 | Test ID | Test Name | Category | Priority | Status |
@@ -414,6 +491,8 @@ A conformant test environment MUST include:
 | VT-08 | Receipt Signature Valid | Cryptographic Integrity | High | Pending |
 | VT-09 | Forged Signature Rejected | Cryptographic Verification | Critical | Pending |
 | VT-10 | Direct Execution Blocked Without Approval | Access Control | Critical | Pending |
+| VT-11 | Execution Outside Approved Scope Blocked | Scope Enforcement | Critical | Pending |
+| VT-12 | Expired Authorization Cannot Execute | Time-Bound Authorization | Critical | Pending |
 
 ---
 
@@ -433,9 +512,11 @@ The following table maps each verification test to the protocol specifications a
 | VT-08 | Spec 08 (Attestation) | — | `receipt.json` | T-02 |
 | VT-09 | Spec 06 (Authorization) | Spec 07 (Execution) | `authorization_record.json` | T-02 |
 | VT-10 | Spec 07 (Execution) | Spec 11 (Independence) | `execution_token.json` | T-05 |
+| VT-11 | Spec 07 (Execution) | Spec 09 (Audit Ledger) | `execution_token.json`, `execution_record.json` | T-09 |
+| VT-12 | Spec 06 (Authorization) | Spec 07 (Execution), Spec 15 (Time-Bound Authorization) | `authorization_record.json` | T-04 |
 
 ### Minimum Compliance Threshold
 
-An implementation MUST pass ALL Critical-priority tests (VT-01 through VT-06, VT-09, VT-10) to be considered minimally compliant. An implementation SHOULD pass all tests (including High-priority VT-07 and VT-08) for full compliance.
+An implementation MUST pass ALL Critical-priority tests (VT-01 through VT-06, VT-09 through VT-12) to be considered minimally compliant. An implementation SHOULD pass all tests (including High-priority VT-07 and VT-08) for full compliance.
 
 Failure of any Critical-priority test indicates a fundamental security vulnerability that MUST be resolved before deployment.

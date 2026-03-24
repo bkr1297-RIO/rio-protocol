@@ -12,7 +12,23 @@ This document identifies and analyzes the security threats that the RIO Protocol
 
 ---
 
-## 2. System Boundaries
+## 2. Security Model: Fail-Closed Enforcement
+
+The RIO Protocol operates on a **fail-closed** security model. This means that every component in the protocol stack defaults to **denying** action execution when it cannot positively verify a required condition. There is no "fail-open" mode. This design principle applies universally:
+
+- If the intake service cannot verify the origin signature, the request is **rejected**.
+- If the risk evaluation engine cannot compute a risk score, the request is **held** (not forwarded).
+- If the execution gate cannot verify the authorization signature, the action is **not executed**.
+- If the execution gate cannot confirm the nonce is unused, the action is **not executed**.
+- If the execution gate cannot confirm the authorization has not expired, the action is **not executed**.
+- If the attestation service cannot verify all prior signatures and hashes, the attestation is **not issued**.
+- If the audit ledger cannot append an entry, the system **halts** the pipeline.
+
+This model ensures that any failure — whether caused by an attack, a misconfiguration, or a transient system error — results in the **safest possible outcome**: no action is taken. The cost of a false denial (a legitimate action is temporarily blocked) is always preferable to the cost of a false approval (an unauthorized action is executed).
+
+---
+
+## 3. System Boundaries
 
 ### Inside the RIO Trust Boundary
 
@@ -39,7 +55,7 @@ This document identifies and analyzes the security threats that the RIO Protocol
 
 ---
 
-## 3. Threat Catalog
+## 4. Threat Catalog
 
 ### T-01: Replay Attack
 
@@ -295,7 +311,7 @@ This document identifies and analyzes the security threats that the RIO Protocol
 
 ---
 
-## 4. Threat Summary Matrix
+## 5. Threat Summary Matrix
 
 | Threat ID | Threat Name | Severity | Likelihood | Primary Mitigation |
 |-----------|-------------|----------|------------|-------------------|
@@ -312,7 +328,109 @@ This document identifies and analyzes the security threats that the RIO Protocol
 
 ---
 
-## 5. Recommendations
+## 6. Mitigations Summary
+
+The following table consolidates all mitigations referenced across the threat catalog, organized by the defense layer they provide:
+
+| Defense Layer | Mitigation | Threats Addressed |
+|--------------|-----------|-------------------|
+| **Cryptographic Integrity** | ECDSA-secp256k1 signatures on all records | T-02, T-03, T-06, T-09 |
+| **Cryptographic Integrity** | SHA-256 canonical hashing of all records | T-03, T-06 |
+| **Cryptographic Integrity** | Signed fields hash binding signatures to specific data | T-02, T-03 |
+| **Replay Prevention** | Single-use nonces with persistent Nonce Registry | T-01 |
+| **Time-Bound Controls** | Mandatory `expires_at` on authorization records | T-01, T-04 |
+| **Time-Bound Controls** | Time skew allowance (300 seconds) | T-04, T-10 |
+| **Time-Bound Controls** | Timestamp ordering validation in attestation | T-04, T-10 |
+| **Access Control** | Execution gate as sole entry point to execution service | T-05 |
+| **Access Control** | Service-to-service authentication tokens | T-05 |
+| **Access Control** | Network isolation of execution service from AI agents | T-05 |
+| **Scope Enforcement** | Execution token scope binding (action_type, target_id, parameter_hash) | T-09 |
+| **Scope Enforcement** | Authorization match verification with deviation details | T-03, T-09 |
+| **Audit Integrity** | Hash chain linking (previous_hash + current_hash) | T-06 |
+| **Audit Integrity** | Append-only ledger storage with no update/delete operations | T-06 |
+| **Audit Integrity** | Independent attestation with multi-party signatures | T-06, T-08 |
+| **Governance Controls** | Role separation enforcement (no self-authorization) | T-08 |
+| **Governance Controls** | Meta-governance protocol for policy changes | T-07 |
+| **Governance Controls** | Independent attestation service on separate infrastructure | T-08 |
+| **Monitoring** | Anomaly detection via Learning Protocol | T-08, T-09 |
+| **Infrastructure** | NTP authentication (NTS, RFC 8915) | T-10 |
+| **Infrastructure** | Multiple independent time sources | T-10 |
+| **Infrastructure** | Hardware security modules for key storage | T-02 |
+
+---
+
+## 7. Assumptions
+
+The threat model is based on the following assumptions. If any assumption is violated, the corresponding threats may not be fully mitigated:
+
+1. **Cryptographic algorithm security.** SHA-256 and ECDSA-secp256k1 remain computationally secure against collision, preimage, and forgery attacks for the deployment lifetime of the system.
+
+2. **Key management integrity.** Private keys used for signing authorization records, attestation records, and service-to-service tokens are stored securely (preferably in HSMs) and are not compromised. Key compromise is addressed as a residual risk in T-02.
+
+3. **Infrastructure isolation.** The RIO control plane components operate on infrastructure that is logically and (where possible) physically separated from the AI agents and automated systems they govern. Network segmentation is correctly configured and maintained.
+
+4. **Clock reliability.** System clocks on RIO components are synchronized to within the `time_skew_allowance_seconds` (300 seconds) using authenticated time sources. Clock manipulation is addressed in T-10.
+
+5. **Honest majority of roles.** At least the attestation service and audit ledger are operated by entities that are independent of the requester, authorizer, and executor. If all roles are controlled by a single entity, the governance model provides no additional security.
+
+6. **Append-only storage integrity.** The underlying storage for the audit ledger enforces append-only semantics at the infrastructure level. If the storage layer allows arbitrary writes, ledger integrity (T-06) depends solely on hash chain verification.
+
+7. **Correct implementation.** The RIO components correctly implement the protocol specifications. Implementation bugs could introduce vulnerabilities not covered by this threat model. The Verification Test Suite (spec/verification_tests.md) provides a baseline for validating implementation correctness.
+
+8. **Authenticated communication channels.** All communication between RIO components uses TLS 1.3 (or equivalent) with mutual authentication. Man-in-the-middle attacks on inter-component communication are outside the threat model if this assumption holds.
+
+---
+
+## 8. Security Boundaries
+
+The RIO Protocol defines three security boundaries that determine trust levels and enforcement points:
+
+### Boundary 1: External → RIO Intake
+
+This is the outermost boundary where action requests enter the RIO system from AI agents, automated systems, or human-initiated workflows.
+
+| Property | Detail |
+|----------|--------|
+| **Enforcement Point** | Intake Service + Origin Verification Service |
+| **Trust Level** | Untrusted — all incoming requests are treated as potentially malicious |
+| **Controls** | Origin signature verification, request schema validation, rate limiting |
+| **Threats Addressed** | T-02 (forged signatures at intake), T-03 (malformed payloads) |
+
+### Boundary 2: Authorization → Execution Gate
+
+This is the critical control boundary where authorized decisions are presented for execution. This boundary enforces the core governance guarantee: no action without valid authorization.
+
+| Property | Detail |
+|----------|--------|
+| **Enforcement Point** | Execution Gate |
+| **Trust Level** | Conditionally trusted — authorization records are accepted only after full cryptographic verification |
+| **Controls** | Signature verification, nonce validation, expiration check, scope matching, hash integrity, execution token issuance |
+| **Threats Addressed** | T-01 (replay), T-02 (forged signature), T-03 (tampered payload), T-04 (expired authorization), T-05 (direct bypass), T-09 (scope violation), T-10 (time skew) |
+
+### Boundary 3: Execution → Audit Trail
+
+This is the post-execution boundary where the system produces cryptographic proof of what happened and records it in the tamper-evident ledger.
+
+| Property | Detail |
+|----------|--------|
+| **Enforcement Point** | Attestation Service + Audit Ledger |
+| **Trust Level** | Independently verified — the attestation service operates on separate infrastructure and independently verifies all prior records |
+| **Controls** | Independent hash recomputation, multi-party signatures, hash chain linking, append-only storage |
+| **Threats Addressed** | T-06 (ledger tampering), T-08 (role collusion detection) |
+
+### Cross-Boundary Principle
+
+No entity that operates within one security boundary should have privileged access to another boundary's enforcement mechanisms. Specifically:
+
+- AI agents (Boundary 1) MUST NOT have access to the execution service (Boundary 2).
+- The execution service (Boundary 2) MUST NOT have write access to the audit ledger (Boundary 3).
+- The attestation service (Boundary 3) MUST NOT have the ability to modify authorization records (Boundary 2).
+
+This cross-boundary isolation ensures that compromise of any single component does not cascade into a full system compromise.
+
+---
+
+## 9. Recommendations
 
 ### For Implementers
 
