@@ -1,0 +1,234 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rio-protocol.org/schemas/execution_record.json",
+  "title": "RIO Execution Record",
+  "description": "A record of the action that was actually performed by the system after authorization was granted. This record captures what happened in the real world — the executor identity, the precise action taken, the outcome, and whether the execution matched the authorized parameters. It is hashable and signable, and links the authorization decision to downstream attestation, receipt, and ledger records via request_id and authorization_id.",
+  "type": "object",
+  "properties": {
+    "execution_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Globally unique identifier for this execution record."
+    },
+    "request_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Reference to the original canonical request. Maintains the end-to-end traceability chain from intake through attestation."
+    },
+    "authorization_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Reference to the authorization record that permitted this execution. The execution gate verifies this authorization is valid, unexpired, and unused before allowing execution to proceed."
+    },
+    "executed_by": {
+      "type": "object",
+      "description": "The system, service, or agent that performed the execution. This is the executor — distinct from the requester (who proposed the action) and the authorizer (who approved it).",
+      "properties": {
+        "executor_id": {
+          "type": "string",
+          "description": "Unique identifier of the executing entity (e.g., execution service instance ID, gateway ID, agent ID)."
+        },
+        "executor_type": {
+          "type": "string",
+          "enum": ["execution_service", "gateway", "ai_agent", "human_operator", "external_system"],
+          "description": "Classification of the executor. 'execution_service' is the standard RIO execution component. 'gateway' indicates execution via an API gateway. 'ai_agent' indicates the original requesting agent performed the action under supervision. 'human_operator' indicates manual execution. 'external_system' indicates delegation to a third-party system."
+        },
+        "display_name": {
+          "type": "string",
+          "description": "Human-readable name of the executing entity."
+        },
+        "service_version": {
+          "type": "string",
+          "description": "Version identifier of the execution service or gateway. Supports auditability of which software version performed the action."
+        }
+      },
+      "required": ["executor_id", "executor_type"],
+      "additionalProperties": false
+    },
+    "executed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp (UTC) indicating when the execution was performed. For multi-step executions, this is the timestamp when the primary action completed."
+    },
+    "execution_duration_ms": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Wall-clock duration of the execution in milliseconds, measured from the moment the execution gate released the action to the moment the outcome was confirmed."
+    },
+    "execution_status": {
+      "type": "string",
+      "enum": ["success", "failed", "partial", "cancelled"],
+      "description": "The outcome of the execution. 'success' indicates the action completed as authorized. 'failed' indicates the action could not be completed. 'partial' indicates the action was partially completed (e.g., partial payment). 'cancelled' indicates the execution was aborted before completion, either by the system or by intervention."
+    },
+    "action_performed": {
+      "type": "object",
+      "description": "The actual action that was executed. This records what was done, not what was requested — enabling comparison between the authorized action and the performed action.",
+      "properties": {
+        "action_type": {
+          "type": "string",
+          "description": "The namespaced action identifier that was actually executed (should match the canonical request's action_type unless a substitution occurred)."
+        },
+        "parameters": {
+          "type": "object",
+          "description": "The actual parameters used during execution. These may differ from the requested parameters if conditions were applied or if the execution service made adjustments within authorized bounds.",
+          "additionalProperties": true
+        }
+      },
+      "required": ["action_type", "parameters"],
+      "additionalProperties": false
+    },
+    "target": {
+      "type": "object",
+      "description": "The actual target that was acted upon. Recorded independently to detect any divergence from the authorized target.",
+      "properties": {
+        "target_type": {
+          "type": "string",
+          "description": "Classification of the target that was acted upon."
+        },
+        "target_id": {
+          "type": "string",
+          "description": "Unique identifier of the target that was acted upon."
+        },
+        "target_label": {
+          "type": "string",
+          "description": "Human-readable label for the target."
+        }
+      },
+      "required": ["target_type", "target_id"],
+      "additionalProperties": true
+    },
+    "result_summary": {
+      "type": "object",
+      "description": "A structured summary of the execution outcome. Contains the key facts about what happened.",
+      "properties": {
+        "outcome_description": {
+          "type": "string",
+          "description": "Human-readable description of the execution outcome."
+        },
+        "confirmation_id": {
+          "type": "string",
+          "description": "External confirmation or transaction identifier returned by the target system (e.g., wire transfer confirmation number, API response ID, ticket number)."
+        },
+        "output_data": {
+          "type": "object",
+          "description": "Structured output data from the execution. Contents vary by action_type.",
+          "additionalProperties": true
+        },
+        "error": {
+          "type": "object",
+          "description": "Error details if execution_status is 'failed' or 'partial'. Null or absent for successful executions.",
+          "properties": {
+            "error_code": {
+              "type": "string",
+              "description": "Machine-readable error code."
+            },
+            "error_message": {
+              "type": "string",
+              "description": "Human-readable error description."
+            },
+            "recoverable": {
+              "type": "boolean",
+              "description": "Whether the error is recoverable (i.e., the action could be retried)."
+            }
+          },
+          "required": ["error_code", "error_message"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["outcome_description"],
+      "additionalProperties": false
+    },
+    "result_reference": {
+      "type": "object",
+      "description": "A pointer to the full execution result or evidence stored externally. For large outputs, binary artifacts, or third-party confirmations that cannot be embedded inline.",
+      "properties": {
+        "reference_type": {
+          "type": "string",
+          "enum": ["url", "s3_object", "database_record", "file_hash", "external_system"],
+          "description": "The type of external reference."
+        },
+        "reference_location": {
+          "type": "string",
+          "description": "The URI, path, or identifier where the full result can be retrieved."
+        },
+        "content_hash": {
+          "type": "string",
+          "description": "SHA-256 hash of the referenced content at the time of execution. Enables integrity verification of the external evidence."
+        }
+      },
+      "required": ["reference_type", "reference_location"],
+      "additionalProperties": false
+    },
+    "authorization_match": {
+      "type": "boolean",
+      "description": "Whether the executed action matched the authorized parameters. True if the action_performed, target, and all material parameters are identical to what was authorized. False if any deviation occurred — in which case the deviation_details field explains the discrepancy."
+    },
+    "deviation_details": {
+      "type": "array",
+      "description": "Details of any deviations between the authorized action and the executed action. Present only when authorization_match is false.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "field": {
+            "type": "string",
+            "description": "The field or parameter that deviated."
+          },
+          "authorized_value": {
+            "description": "The value that was authorized."
+          },
+          "executed_value": {
+            "description": "The value that was actually used during execution."
+          },
+          "reason": {
+            "type": "string",
+            "description": "Explanation of why the deviation occurred."
+          }
+        },
+        "required": ["field", "authorized_value", "executed_value", "reason"],
+        "additionalProperties": false
+      }
+    },
+    "notes": {
+      "type": "string",
+      "description": "Free-text field for additional context about the execution. May include system logs, operator observations, or explanatory notes. Preserved in the audit trail."
+    },
+    "signature": {
+      "type": "object",
+      "description": "Cryptographic signature over the execution record. The signature is produced by the execution service and covers the canonical hash of all fields (excluding the signature object itself). Provides proof that the execution service attests to the recorded outcome.",
+      "properties": {
+        "algorithm": {
+          "type": "string",
+          "description": "The signing algorithm used (e.g., 'ECDSA-secp256k1', 'Ed25519', 'RSA-SHA256')."
+        },
+        "public_key_id": {
+          "type": "string",
+          "description": "Identifier or fingerprint of the public key corresponding to the execution service's signing key."
+        },
+        "signature_value": {
+          "type": "string",
+          "description": "The cryptographic signature encoded as a base64 string."
+        },
+        "signed_fields_hash": {
+          "type": "string",
+          "description": "SHA-256 hash of the canonical representation of all fields in this record (excluding the signature object)."
+        }
+      },
+      "required": ["algorithm", "public_key_id", "signature_value", "signed_fields_hash"],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "execution_id",
+    "request_id",
+    "authorization_id",
+    "executed_by",
+    "executed_at",
+    "execution_status",
+    "action_performed",
+    "target",
+    "result_summary",
+    "authorization_match",
+    "signature"
+  ],
+  "additionalProperties": false
+}

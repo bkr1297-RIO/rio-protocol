@@ -1,0 +1,56 @@
+{
+  "execution_id": "c3d4e5f6-a7b8-9012-defg-345678901234",
+  "request_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "authorization_id": "b2c3d4e5-f6a7-8901-bcde-f23456789012",
+  "executed_by": {
+    "executor_id": "rio-exec-gateway-01",
+    "executor_type": "execution_service",
+    "display_name": "RIO Execution Gateway",
+    "service_version": "1.2.0"
+  },
+  "executed_at": "2026-03-24T14:34:01.237Z",
+  "execution_duration_ms": 1842,
+  "execution_status": "success",
+  "action_performed": {
+    "action_type": "finance.send_payment",
+    "parameters": {
+      "currency": "USD",
+      "amount": 48250.00,
+      "payment_method": "wire_transfer",
+      "memo": "Invoice #INV-2026-03-1147 — Q1 materials, net-30 terms",
+      "recipient_routing": "021000021",
+      "recipient_account": "****7834"
+    }
+  },
+  "target": {
+    "target_type": "bank_account",
+    "target_id": "acct-vendor-0042",
+    "target_label": "Meridian Industrial Supply — Operating Account"
+  },
+  "result_summary": {
+    "outcome_description": "Wire transfer of $48,250.00 USD to Meridian Industrial Supply completed successfully. Funds debited from operating account and submitted to Federal Reserve wire network.",
+    "confirmation_id": "FWT-2026-0324-00847291",
+    "output_data": {
+      "debit_account": "****3201",
+      "debit_amount": 48250.00,
+      "wire_fee": 25.00,
+      "total_debited": 48275.00,
+      "settlement_expected": "2026-03-24T18:00:00.000Z",
+      "fed_reference_number": "20260324MMQFMP0R000847"
+    }
+  },
+  "result_reference": {
+    "reference_type": "s3_object",
+    "reference_location": "s3://rio-audit-evidence/executions/2026/03/24/c3d4e5f6-a7b8-9012-defg-345678901234/wire_confirmation.pdf",
+    "content_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "authorization_match": true,
+  "deviation_details": [],
+  "notes": "Execution completed within authorization window. Authorization validated: unexpired (94s remaining of 300s window), nonce verified as unused, signature verified against key-sarah-mitchell-2026-01. Wire submitted to Fed network; settlement expected by 18:00 UTC.",
+  "signature": {
+    "algorithm": "ECDSA-secp256k1",
+    "public_key_id": "key-rio-exec-gateway-01-2026",
+    "signature_value": "MEQCIHrT5kL8mNpW2xY3zA4bC5dE6fG7hI8jK9lM0nO1pQ2rS3tU4vW5xY6zA7bC8dE9fG0hI1jK2lM3nO4pQ5rS6tU7vW8xY9zA0bCdEfGhIjKlMnOpQrStUvWxYz==",
+    "signed_fields_hash": "b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5"
+  }
+}
