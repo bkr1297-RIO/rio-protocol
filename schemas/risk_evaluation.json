@@ -1,0 +1,152 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rio-protocol.org/schemas/risk_evaluation.json",
+  "title": "RIO Risk Evaluation",
+  "description": "A risk assessment record produced after a canonical request is received and before an authorization decision is made. This record captures the system's evaluation of the risk associated with the requested action, including automated scoring, policy flags, and a recommendation. It is hashable and signable, and links the canonical request to the downstream authorization record via request_id.",
+  "type": "object",
+  "properties": {
+    "risk_evaluation_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Globally unique identifier for this risk evaluation record."
+    },
+    "request_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Reference to the canonical request that this evaluation assesses. Establishes the traceability link between intake and authorization."
+    },
+    "evaluated_by": {
+      "type": "object",
+      "description": "The entity that performed this risk evaluation. May be an automated risk engine, a human reviewer, or a combination of both.",
+      "properties": {
+        "evaluator_id": {
+          "type": "string",
+          "description": "Unique identifier of the evaluating entity (e.g., risk engine instance ID, analyst user ID)."
+        },
+        "evaluator_type": {
+          "type": "string",
+          "enum": ["automated_engine", "human_reviewer", "hybrid"],
+          "description": "Classification of the evaluator. 'automated_engine' indicates a purely algorithmic assessment. 'human_reviewer' indicates a manual review. 'hybrid' indicates an automated assessment that was reviewed or adjusted by a human."
+        },
+        "display_name": {
+          "type": "string",
+          "description": "Human-readable name of the evaluating entity."
+        },
+        "engine_version": {
+          "type": "string",
+          "description": "Version identifier of the risk evaluation engine, if automated. Supports auditability of which model or ruleset produced the assessment."
+        }
+      },
+      "required": ["evaluator_id", "evaluator_type"],
+      "additionalProperties": false
+    },
+    "evaluated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp (UTC) indicating when the risk evaluation was completed."
+    },
+    "risk_level": {
+      "type": "string",
+      "enum": ["low", "medium", "high", "critical"],
+      "description": "Categorical risk classification derived from the risk score and policy rules. This value determines the authorization pathway: 'low' may proceed without human approval, 'medium' may require notification, 'high' requires explicit authorization, and 'critical' requires escalation."
+    },
+    "risk_score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Numeric risk score on a 0–100 scale, where 0 represents no detectable risk and 100 represents maximum risk. The score is computed from weighted risk factors and provides a continuous measure that complements the categorical risk_level."
+    },
+    "risk_factors": {
+      "type": "array",
+      "description": "Individual risk factors identified during evaluation. Each factor contributes to the overall risk score and provides explainability for the assessment.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "factor_id": {
+            "type": "string",
+            "description": "Unique identifier for this risk factor category (e.g., 'RF-FIN-001', 'RF-AI-003')."
+          },
+          "category": {
+            "type": "string",
+            "enum": ["financial", "operational", "compliance", "reputational", "security", "data_privacy", "ai_behavioral"],
+            "description": "Classification of the risk factor domain."
+          },
+          "description": {
+            "type": "string",
+            "description": "Human-readable explanation of the risk factor."
+          },
+          "severity": {
+            "type": "string",
+            "enum": ["low", "medium", "high", "critical"],
+            "description": "Severity of this individual risk factor."
+          },
+          "weight": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Relative weight of this factor in the overall risk score calculation (0.0 to 1.0)."
+          },
+          "evidence": {
+            "type": "string",
+            "description": "Supporting data or reasoning that triggered this risk factor."
+          }
+        },
+        "required": ["factor_id", "category", "description", "severity"],
+        "additionalProperties": false
+      }
+    },
+    "policy_flags": {
+      "type": "array",
+      "description": "Policy rules that were triggered by this request. Each flag identifies a specific policy constraint that applies and its disposition.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "policy_id": {
+            "type": "string",
+            "description": "Identifier of the policy that was triggered."
+          },
+          "policy_name": {
+            "type": "string",
+            "description": "Human-readable name of the triggered policy."
+          },
+          "rule_id": {
+            "type": "string",
+            "description": "Specific rule within the policy that was triggered."
+          },
+          "flag_type": {
+            "type": "string",
+            "enum": ["block", "require_authorization", "require_review", "warn", "log_only"],
+            "description": "The action disposition imposed by this policy flag. 'block' prevents execution entirely. 'require_authorization' mandates human approval. 'require_review' flags for review but does not block. 'warn' generates a warning. 'log_only' records the flag without affecting the workflow."
+          },
+          "message": {
+            "type": "string",
+            "description": "Human-readable explanation of why this policy was triggered."
+          }
+        },
+        "required": ["policy_id", "flag_type", "message"],
+        "additionalProperties": false
+      }
+    },
+    "recommendation": {
+      "type": "string",
+      "enum": ["approve", "require_authorization", "deny", "escalate"],
+      "description": "The risk engine's recommended disposition for this request. 'approve' indicates the request may proceed without additional authorization. 'require_authorization' indicates human approval is needed. 'deny' indicates the request should be rejected. 'escalate' indicates the request exceeds normal review thresholds and requires elevated authority."
+    },
+    "notes": {
+      "type": "string",
+      "description": "Free-text field for additional context, observations, or reasoning provided by the evaluator. Preserved in the audit trail for human reviewers and post-incident analysis."
+    }
+  },
+  "required": [
+    "risk_evaluation_id",
+    "request_id",
+    "evaluated_by",
+    "evaluated_at",
+    "risk_level",
+    "risk_score",
+    "risk_factors",
+    "policy_flags",
+    "recommendation"
+  ],
+  "additionalProperties": false
+}

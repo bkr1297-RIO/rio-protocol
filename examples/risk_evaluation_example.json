@@ -1,0 +1,72 @@
+{
+  "risk_evaluation_id": "f7e8d9c0-b1a2-3456-cdef-789012345678",
+  "request_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "evaluated_by": {
+    "evaluator_id": "rio-risk-engine-01",
+    "evaluator_type": "automated_engine",
+    "display_name": "RIO Risk Evaluation Engine",
+    "engine_version": "1.4.2"
+  },
+  "evaluated_at": "2026-03-24T14:32:08.412Z",
+  "risk_level": "high",
+  "risk_score": 82,
+  "risk_factors": [
+    {
+      "factor_id": "RF-FIN-001",
+      "category": "financial",
+      "description": "Outbound wire transfer amount ($48,250.00) exceeds the $10,000 high-risk threshold",
+      "severity": "high",
+      "weight": 0.35,
+      "evidence": "parameters.amount = 48250.00; threshold defined in policy pol-fin-001 rule R-001 = 10000"
+    },
+    {
+      "factor_id": "RF-AI-001",
+      "category": "ai_behavioral",
+      "description": "Action initiated autonomously by an AI agent without prior human instruction",
+      "severity": "high",
+      "weight": 0.30,
+      "evidence": "requested_by.entity_type = ai_agent; no matching human-initiated task found in active workflow queue"
+    },
+    {
+      "factor_id": "RF-OPS-002",
+      "category": "operational",
+      "description": "Target action is irreversible once wire settlement completes",
+      "severity": "medium",
+      "weight": 0.20,
+      "evidence": "action_type = finance.send_payment; payment_method = wire_transfer; reversibility classified as irreversible"
+    },
+    {
+      "factor_id": "RF-COM-001",
+      "category": "compliance",
+      "description": "Transaction requires recordkeeping under internal financial controls policy",
+      "severity": "low",
+      "weight": 0.15,
+      "evidence": "Amount exceeds $5,000 reporting threshold defined in pol-fin-002"
+    }
+  ],
+  "policy_flags": [
+    {
+      "policy_id": "pol-fin-001",
+      "policy_name": "Outbound Payment Authorization",
+      "rule_id": "R-001",
+      "flag_type": "require_authorization",
+      "message": "Wire transfers exceeding $10,000 require explicit human authorization before execution"
+    },
+    {
+      "policy_id": "pol-ai-003",
+      "policy_name": "AI-Initiated Financial Action Review",
+      "rule_id": "R-010",
+      "flag_type": "require_authorization",
+      "message": "All financial actions initiated by AI agents require human approval regardless of amount"
+    },
+    {
+      "policy_id": "pol-fin-002",
+      "policy_name": "Financial Recordkeeping",
+      "rule_id": "R-005",
+      "flag_type": "log_only",
+      "message": "Transaction exceeds $5,000 internal reporting threshold; logged for compliance records"
+    }
+  ],
+  "recommendation": "require_authorization",
+  "notes": "Two independent policies require human authorization for this request: the financial threshold policy (pol-fin-001) and the AI-initiated action review policy (pol-ai-003). Combined risk score of 82 reflects the high financial impact, autonomous AI origin, and irreversible nature of the wire transfer. Recommend single-approver authorization with 5-minute time-bound window."
+}
