@@ -6,6 +6,142 @@ RIO is a fail-closed execution governance system that requires authorization bef
 
 ---
 
+## Quick Start
+
+```bash
+git clone https://github.com/bkr1297-RIO/rio-protocol.git
+cd rio-protocol
+python -m venv venv
+source venv/bin/activate        # Windows: venv\Scripts\activate
+pip install -r requirements.txt
+python scripts/init_rio.py
+python scripts/create_admin_user.py
+python scripts/run_all.py
+```
+
+The dashboard opens at `http://localhost:8050`. API documentation is at `http://localhost:8050/docs`.
+
+---
+
+## Installation
+
+### Prerequisites
+
+- Python 3.10 or later
+- pip (included with Python)
+- Git
+
+### Option A: Local Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/bkr1297-RIO/rio-protocol.git
+cd rio-protocol
+
+# Create and activate a virtual environment
+python -m venv venv
+source venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Initialize the system (creates directories, keys, seed data)
+python scripts/init_rio.py
+
+# Create the first admin user
+python scripts/create_admin_user.py
+
+# Start the server
+python scripts/run_all.py
+```
+
+### Option B: Docker
+
+```bash
+git clone https://github.com/bkr1297-RIO/rio-protocol.git
+cd rio-protocol
+cp .env.example .env            # edit .env as needed
+docker compose -f docker/docker-compose.yml up --build
+```
+
+This starts two services:
+
+| Service | Port | Description |
+|---------|------|-------------|
+| `rio-dashboard` | 8050 | Dashboard + API + Admin UI |
+| `rio-api` | 8000 | API-only instance |
+
+### Option C: Makefile
+
+```bash
+make install    # Install dependencies
+make init       # Initialize the system
+make admin      # Create admin user
+make run        # Start the server
+make test       # Run 47 tests
+```
+
+---
+
+## Configuration
+
+Copy `.env.example` to `.env` and edit as needed:
+
+```bash
+cp .env.example .env
+```
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `RIO_ENV` | `local` | Environment name |
+| `RIO_DATA_DIR` | `runtime/data` | Data file directory |
+| `RIO_KEYS_DIR` | `runtime/keys` | Cryptographic key directory |
+| `RIO_MODE` | `simulated` | Execution mode (`simulated` or `live`) |
+| `ADMIN_EMAIL` | `admin@rio.local` | Bootstrap admin email |
+| `ADMIN_PASSWORD` | `change_me` | Bootstrap admin password |
+| `RIO_DASHBOARD_HOST` | `0.0.0.0` | Server bind address |
+| `RIO_DASHBOARD_PORT` | `8050` | Server bind port |
+| `RIO_LOG_LEVEL` | `INFO` | Log verbosity |
+
+---
+
+## Scripts
+
+| Script | Purpose | Usage |
+|--------|---------|-------|
+| `scripts/init_rio.py` | Initialize directories, keys, policy files, risk files, users, roles | `python scripts/init_rio.py` |
+| `scripts/create_admin_user.py` | Create or update the admin user with hashed password | `python scripts/create_admin_user.py` |
+| `scripts/run_all.py` | Start the dashboard and API server | `python scripts/run_all.py` |
+
+All scripts support `--help` for additional options.
+
+---
+
+## Running Tests
+
+The test harness includes 47 test cases covering the full protocol stack:
+
+```bash
+python -m runtime.test_harness
+```
+
+| Test Suite | Count | Coverage |
+|------------|-------|----------|
+| TC-RIO (core protocol) | 3 | Stages 1–8, kill switch |
+| TC-EXTRA (invariants) | 4 | Self-auth, replay, validation, hash chain |
+| TC-POLICY / TC-RISK | 2 | Policy deny, risk scoring |
+| TC-INTENT | 1 | Intent requirements matrix |
+| TC-CONN (connectors) | 5 | Email, file, HTTP, kill switch |
+| TC-APPR (approvals) | 4 | Queue, approve, deny, role check |
+| TC-GOV (governance) | 5 | Version, activate, rollback, ledger, auth |
+| TC-ADPT (adapters) | 5 | Email, calendar, file sandbox, HTTP, kill switch |
+| TC-LEDG (ledger integrity) | 4 | Valid, tamper entry, delete, tamper receipt |
+| TC-IAM (identity) | 5 | Role hierarchy, limits, self-approval, expiry |
+| TC-CORP (corpus) | 4 | Record, replay, stricter role, same settings |
+| TC-ADMIN (admin UI) | 5 | Risk draft, auth block, activate, rollback, ledger |
+
+---
+
 ## The Problem
 
 AI agents and automated systems can propose and execute consequential actions — payments, data deletions, code deployments, access grants — at machine speed. Without a governance layer between intent and execution, there is no mechanism to enforce authorization, verify compliance, or produce an audit trail. The result is uncontrolled execution with no accountability.
@@ -185,7 +321,7 @@ rio-protocol/
 ├── architecture/                      System architecture models
 │   └── 15_layer_model.md             15-layer system architecture
 │
-├── runtime/                           Reference runtime skeleton (Python)
+├── runtime/                           Reference runtime (Python)
 │   ├── __init__.py                    Package init with execution flow docs
 │   ├── models.py                      Data structures: Request, Intent, Authorization, Receipt, LedgerEntry
 │   ├── invariants.py                  Protocol invariant checks (INV-01 through INV-08)
@@ -201,7 +337,17 @@ rio-protocol/
 │   ├── receipt.py                     Stage 7: Receipt generation, hashing, signing
 │   ├── ledger.py                      Stage 8: Append-only ledger with hash chain
 │   ├── verification.py                Verification of receipts, ledger, and invariants
-│   └── governance_learning.py         Stage 9: Asynchronous learning recommendations
+│   ├── governance_learning.py         Stage 9: Asynchronous learning recommendations
+│   ├── test_harness.py                47-test harness (run with python -m runtime.test_harness)
+│   ├── policy/                        Policy and risk engines + rules
+│   ├── governance/                    Versioned policy/risk management + change logs
+│   ├── approvals/                     Approval queue and manager
+│   ├── connectors/                    Email, file, HTTP connectors
+│   ├── adapters/                      Execution adapters
+│   ├── iam/                           Identity, roles, permissions, sessions
+│   ├── corpus/                        Governed corpus and replay engine
+│   ├── keys/                          RSA-2048 key pair (generated by init)
+│   └── data/                          Runtime data files (ledger, receipts, users)
 │
 ├── schemas/                           JSON Schema 2020-12 definitions
 │   ├── canonical_request.json
@@ -246,9 +392,33 @@ rio-protocol/
 ├── safety/                            Safety mechanisms
 │   └── EKS-0_kill_switch.md           Global execution kill switch specification
 │
-├── diagrams/                          Diagram source files (reserved)
+├── dashboard/                         Audit dashboard (FastAPI + Jinja2)
+│   ├── app.py                         Main dashboard application
+│   ├── admin/                         Policy & Risk Admin UI
+│   │   ├── policies.py                Policy admin routes
+│   │   ├── risk_models.py             Risk model admin routes
+│   │   └── templates/                 Admin HTML templates
+│   ├── templates/                     Dashboard HTML templates
+│   └── static/                        CSS and static assets
 │
+├── scripts/                           Setup and run scripts
+│   ├── init_rio.py                    System initialization
+│   ├── create_admin_user.py           Admin user creation
+│   └── run_all.py                     Server startup
+│
+├── docker/                            Docker configuration
+│   ├── Dockerfile                     Container image definition
+│   └── docker-compose.yml             Multi-service orchestration
+│
+├── diagrams/                          Diagram source files (reserved)
 ├── whitepaper/                        White paper (Markdown + PDF)
+│
+├── requirements.txt                   Python dependencies
+├── setup.py                           Package installation script
+├── pyproject.toml                     Modern Python packaging metadata
+├── Makefile                           Common development targets
+├── .env.example                       Environment variable template
+├── .dockerignore                      Docker build exclusions
 ├── README.md
 └── LICENSE
 ```
@@ -465,6 +635,16 @@ See [`spec/receipt_spec.md`](spec/receipt_spec.md) for receipt fields and verifi
 | Master Protocol Index | 1 | Complete |
 | Runtime Skeleton | 15 Python modules | Complete |
 | White Paper | 1 | Complete |
+| Audit Dashboard | 1 (FastAPI + Jinja2) | Complete |
+| Policy Admin UI | 6 routes | Complete |
+| Risk Model Admin UI | 6 routes | Complete |
+| IAM System | 5 roles, 9 seed users | Complete |
+| Approval Workflow | 4 API endpoints | Complete |
+| Connector Framework | 3 connectors (email, file, HTTP) | Complete |
+| Adapter Framework | 4 adapters | Complete |
+| Governed Corpus + Replay | 2 modules | Complete |
+| Test Harness | 47 tests (12 suites) | Complete |
+| Packaging (pip, Docker, Make) | 3 methods | Complete |
 
 ---
 
