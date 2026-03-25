@@ -45,6 +45,10 @@ Test Cases:
     TC-IAM-003: Admin can approve anything
     TC-IAM-004: Approver cannot be same as requester for high-risk
     TC-IAM-005: Expired approval token rejected
+    TC-CORP-001: Completed request written to governed corpus
+    TC-CORP-002: Replay does not execute real action
+    TC-CORP-003: Replay under stricter role changes decision
+    TC-CORP-004: Replay under same settings matches original result
 
 Run with: python -m runtime.test_harness
 """
@@ -67,6 +71,8 @@ from . import receipt as receipt_module
 from . import verify_ledger
 from .iam import permissions as iam_permissions, users as iam_users
 from .iam.approval_workflow import check_authority
+from .corpus.corpus_store import read_corpus, get_corpus_record, clear_corpus
+from .corpus.replay_engine import replay_record, clear_simulations
 
 # Configure logging
 logging.basicConfig(
@@ -87,6 +93,8 @@ def _reset_state() -> SystemState:
     approval_manager.reset()
     iam_permissions.reset()
     iam_users.reset()
+    clear_corpus()
+    clear_simulations()
     return SystemState()
 
 
@@ -2714,6 +2722,254 @@ def test_iam_expired_token_rejected():
 
 
 # ---------------------------------------------------------------------------
+# TC-CORP-001: Completed request written to governed corpus
+# ---------------------------------------------------------------------------
+
+def test_corpus_record_written():
+    """
+    TC-CORP-001: Run a successful pipeline and verify a corpus record
+    is written with all expected fields.
+    """
+    logger.info("TC-CORP-001: Completed request written to governed corpus")
+    state = _reset_state()
+
+    result = run(
+        actor_id="user_002",
+        raw_input={
+            "action_type": "send_email",
+            "target_resource": "email_system",
+            "requested_by": "user_002",
+            "parameters": {
+                "recipient": "test@example.com",
+                "subject": "Corpus test",
+                "body": "Testing corpus write",
+            },
+            "justification": "TC-CORP-001",
+        },
+        approver_id="manager_bob",
+        state=state,
+    )
+
+    _assert(result.receipt is not None, "Receipt was generated")
+
+    # Read corpus
+    records = read_corpus()
+    _assert(len(records) >= 1, f"Corpus has at least 1 record (got {len(records)})")
+
+    # Find our record
+    corpus_rec = get_corpus_record(result.request.request_id)
+    _assert(corpus_rec is not None, f"Corpus record found for request {result.request.request_id}")
+    _assert(corpus_rec.action_type == "send_email", f"Action type is send_email (got {corpus_rec.action_type})")
+    _assert(corpus_rec.requested_by == "user_002", f"Requested by user_002 (got {corpus_rec.requested_by})")
+    _assert(corpus_rec.receipt_id == result.receipt.receipt_id, "Receipt ID matches")
+    _assert(corpus_rec.ledger_entry_id != "", f"Ledger entry ID populated (got {corpus_rec.ledger_entry_id})")
+    _assert(corpus_rec.execution_status != "", f"Execution status populated (got {corpus_rec.execution_status})")
+    _assert(corpus_rec.risk_score > 0, f"Risk score recorded (got {corpus_rec.risk_score})")
+    _assert(corpus_rec.corpus_timestamp > 0, f"Corpus timestamp set (got {corpus_rec.corpus_timestamp})")
+    _assert(len(corpus_rec.stages_completed) > 0, f"Stages completed recorded (got {corpus_rec.stages_completed})")
+
+    logger.info("TC-CORP-001: PASSED")
+    logger.info("")
+
+
+# ---------------------------------------------------------------------------
+# TC-CORP-002: Replay does not execute real action
+# ---------------------------------------------------------------------------
+
+def test_corpus_replay_no_execution():
+    """
+    TC-CORP-002: Replay a corpus record and verify no real action is executed.
+    The simulation must set executed_real_action = False.
+    """
+    logger.info("TC-CORP-002: Replay does not execute real action")
+    state = _reset_state()
+
+    # First, run a real pipeline to create a corpus record
+    result = run(
+        actor_id="user_002",
+        raw_input={
+            "action_type": "send_email",
+            "target_resource": "email_system",
+            "requested_by": "user_002",
+            "parameters": {
+                "recipient": "replay@example.com",
+                "subject": "Replay test",
+                "body": "Testing replay safety",
+            },
+            "justification": "TC-CORP-002",
+        },
+        approver_id="manager_bob",
+        state=state,
+    )
+
+    _assert(result.receipt is not None, "Pipeline produced a receipt")
+
+    # Get the corpus record
+    corpus_rec = get_corpus_record(result.request.request_id)
+    _assert(corpus_rec is not None, "Corpus record exists")
+
+    # Count adapter log lines BEFORE replay
+    email_log = os.path.join(os.path.dirname(__file__), "data", "sent_emails.log")
+    lines_before = 0
+    if os.path.exists(email_log):
+        with open(email_log) as f:
+            lines_before = sum(1 for _ in f)
+
+    # Replay the record
+    sim_result = replay_record(corpus_rec)
+
+    # Verify safety
+    _assert(
+        sim_result.executed_real_action is False,
+        "Simulation did NOT execute real action",
+    )
+    _assert(
+        sim_result.simulated_decision != "",
+        f"Simulated decision produced (got {sim_result.simulated_decision})",
+    )
+    _assert(
+        sim_result.request_id == result.request.request_id,
+        "Simulation references the correct request",
+    )
+
+    # Verify no new email log lines were written
+    lines_after = 0
+    if os.path.exists(email_log):
+        with open(email_log) as f:
+            lines_after = sum(1 for _ in f)
+    _assert(
+        lines_after == lines_before,
+        f"No new adapter log entries (before={lines_before}, after={lines_after})",
+    )
+
+    logger.info("TC-CORP-002: PASSED")
+    logger.info("")
+
+
+# ---------------------------------------------------------------------------
+# TC-CORP-003: Replay under stricter role changes decision
+# ---------------------------------------------------------------------------
+
+def test_corpus_replay_stricter_role():
+    """
+    TC-CORP-003: Replay a corpus record with an intern role override.
+    An action that was ALLOWED for an employee should be DENIED for an intern
+    (e.g., transfer_funds is denied for interns by POL-003).
+    """
+    logger.info("TC-CORP-003: Replay under stricter role changes decision")
+    state = _reset_state()
+
+    # Run a transfer_funds as employee with amount <= 1000 (ALLOWED by POL-008)
+    result = run(
+        actor_id="user_002",
+        raw_input={
+            "action_type": "transfer_funds",
+            "target_resource": "banking_system",
+            "requested_by": "user_002",
+            "parameters": {
+                "amount": 500,
+                "destination_account": "ACCT-999",
+            },
+            "justification": "TC-CORP-003: employee transfer",
+        },
+        approver_id="manager_bob",
+        state=state,
+    )
+
+    # This should be ESCALATED (transfer_funds is HIGH risk) but let's check
+    # what the corpus recorded as the decision
+    corpus_rec = get_corpus_record(result.request.request_id)
+    _assert(corpus_rec is not None, "Corpus record exists for employee transfer")
+
+    original_decision = corpus_rec.policy_decision
+    logger.info("  Original decision for employee: %s", original_decision)
+
+    # Replay with intern role — POL-003 should DENY
+    sim_result = replay_record(corpus_rec, override_role="intern")
+
+    _assert(
+        sim_result.simulated_decision == "DENY",
+        f"Intern replay produces DENY (got {sim_result.simulated_decision})",
+    )
+    _assert(
+        sim_result.executed_real_action is False,
+        "No real action executed during replay",
+    )
+
+    # If original was not DENY, decision should have changed
+    if original_decision != "DENY":
+        _assert(
+            sim_result.decision_changed is True,
+            f"Decision changed from {original_decision} to DENY",
+        )
+
+    logger.info("TC-CORP-003: PASSED")
+    logger.info("")
+
+
+# ---------------------------------------------------------------------------
+# TC-CORP-004: Replay under same settings matches original result
+# ---------------------------------------------------------------------------
+
+def test_corpus_replay_same_settings():
+    """
+    TC-CORP-004: Replay a corpus record with the same role and parameters.
+    The simulated decision should match the original decision.
+    """
+    logger.info("TC-CORP-004: Replay under same settings matches original result")
+    state = _reset_state()
+
+    # Run a send_email as employee (ALLOWED, low risk)
+    result = run(
+        actor_id="user_002",
+        raw_input={
+            "action_type": "send_email",
+            "target_resource": "email_system",
+            "requested_by": "user_002",
+            "parameters": {
+                "recipient": "same@example.com",
+                "subject": "Same settings test",
+                "body": "Testing same-settings replay",
+            },
+            "justification": "TC-CORP-004",
+        },
+        approver_id="manager_bob",
+        state=state,
+    )
+
+    _assert(result.receipt is not None, "Pipeline produced a receipt")
+
+    corpus_rec = get_corpus_record(result.request.request_id)
+    _assert(corpus_rec is not None, "Corpus record exists")
+
+    original_decision = corpus_rec.policy_decision
+    logger.info("  Original decision: %s", original_decision)
+
+    # Replay with same settings (no overrides)
+    sim_result = replay_record(corpus_rec)
+
+    _assert(
+        sim_result.decision_changed is False,
+        f"Decision unchanged (original={original_decision}, simulated={sim_result.simulated_decision})",
+    )
+    _assert(
+        sim_result.simulated_decision == original_decision,
+        f"Simulated decision matches original (got {sim_result.simulated_decision})",
+    )
+    _assert(
+        abs(sim_result.risk_score_delta) < 0.01,
+        f"Risk score delta near zero (got {sim_result.risk_score_delta})",
+    )
+    _assert(
+        sim_result.executed_real_action is False,
+        "No real action executed",
+    )
+
+    logger.info("TC-CORP-004: PASSED")
+    logger.info("")
+
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
@@ -2763,6 +3019,10 @@ def run_all_tests():
         ("TC-IAM-003", test_iam_admin_approve_anything),
         ("TC-IAM-004", test_iam_self_approval_blocked),
         ("TC-IAM-005", test_iam_expired_token_rejected),
+        ("TC-CORP-001", test_corpus_record_written),
+        ("TC-CORP-002", test_corpus_replay_no_execution),
+        ("TC-CORP-003", test_corpus_replay_stricter_role),
+        ("TC-CORP-004", test_corpus_replay_same_settings),
     ]
 
     passed = 0

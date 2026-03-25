@@ -41,6 +41,7 @@ from . import (
     data_store,
 )
 from .approvals import approval_manager
+from .corpus.corpus_store import build_corpus_record, write_corpus_record
 from .approvals.approval_queue import ApprovalRequest
 from .invariants import (
     check_inv_01_completeness,
@@ -211,6 +212,16 @@ def run(
             result.error = f"Intent validation failed: {validation.errors}"
             result.stage_failed = "intent_validation"
             result.duration_ms = int((time.time() - start_time) * 1000)
+
+            # Write to Governed Corpus (validation failures are still recorded)
+            try:
+                corpus_record = build_corpus_record(result)
+                if corpus_record:
+                    write_corpus_record(corpus_record)
+                    logger.info("CORPUS WRITE (validation failure) — corpus_id=%s", corpus_record.corpus_id)
+            except Exception as corpus_err:
+                logger.warning("Corpus write failed (non-fatal): %s", str(corpus_err))
+
             logger.info("PIPELINE END — DENIED at validation — request_id=%s", req.request_id)
             return result
 
@@ -380,6 +391,17 @@ def run(
         result.success = exec_result.execution_status == ExecutionStatus.EXECUTED
 
         result.duration_ms = int((time.time() - start_time) * 1000)
+
+        # ---------------------------------------------------------------
+        # Post-pipeline: Write to Governed Corpus
+        # ---------------------------------------------------------------
+        try:
+            corpus_record = build_corpus_record(result)
+            if corpus_record:
+                write_corpus_record(corpus_record)
+                logger.info("CORPUS WRITE — corpus_id=%s", corpus_record.corpus_id)
+        except Exception as corpus_err:
+            logger.warning("Corpus write failed (non-fatal): %s", str(corpus_err))
         logger.info(
             "PIPELINE END — success=%s status=%s duration=%dms request_id=%s",
             result.success,
