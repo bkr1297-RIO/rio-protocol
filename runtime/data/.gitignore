@@ -1,0 +1,3 @@
+# Connector output logs (generated at runtime)
+*.log
+test_output.txt

@@ -9,9 +9,10 @@ It verifies four conditions before allowing execution:
 3. Token has not been used before (INV-07: single-use).
 4. Token has not expired.
 
-If all conditions pass, the action is executed and the result is passed
-to the Receipt stage. If any condition fails, execution is blocked and
-a receipt is still generated (fail-closed).
+If all conditions pass, the action is executed **through the Connector
+Registry** and the result is passed to the Receipt stage.  If any
+condition fails, execution is blocked and a receipt is still generated
+(fail-closed).
 
 Spec reference: /spec/07_execution.md
 Protocol stage: Step 6 of the 8-step Governed Execution Protocol
@@ -25,6 +26,8 @@ import time
 from dataclasses import dataclass
 from typing import Any, Callable, Optional
 
+from .connectors.base_connector import ExecutionResult as ConnectorResult
+from .connectors.connector_registry import get_connector
 from .invariants import InvariantViolation, check_inv_07_single_use, check_inv_08_kill_switch
 from .models import Authorization, Decision, ExecutionStatus, Intent
 from .state import SystemState
@@ -41,6 +44,7 @@ class ExecutionResult:
     result_data: dict[str, Any]
     timestamp: int
     blocked_reason: str = ""
+    connector_id: str = ""
 
 
 def execute(
@@ -48,6 +52,7 @@ def execute(
     authorization: Authorization,
     state: SystemState,
     action_handler: Optional[Callable[[Intent], dict[str, Any]]] = None,
+    use_connectors: bool = True,
 ) -> ExecutionResult:
     """
     Evaluate gate conditions and execute the action if all pass.
@@ -58,15 +63,20 @@ def execute(
     3. Token not previously consumed (INV-07)
     4. Token has not expired
 
-    If all checks pass and an action_handler is provided, the action is executed.
-    The authorization token is consumed (marked as used) upon successful execution.
+    If all checks pass, the action is executed through the Connector
+    Registry (if ``use_connectors`` is True and no ``action_handler``
+    is provided).  The authorization token is consumed (marked as used)
+    upon successful execution.
 
     Args:
         intent: The canonical Intent.
         authorization: The Authorization token from the Authorization stage.
         state: The current system state.
         action_handler: Optional callable that performs the actual action.
-            Receives the Intent and returns a result dict.
+            Receives the Intent and returns a result dict.  When provided,
+            this takes precedence over the connector registry.
+        use_connectors: If True (default), use the connector registry
+            when no action_handler is provided.
 
     Returns:
         An ExecutionResult recording the outcome.
@@ -142,7 +152,7 @@ def execute(
             blocked_reason="Authorization token has expired",
         )
 
-    # All gate checks passed — consume token and execute
+    # ── All gate checks passed — consume token and execute ──────────
     state.consume_token(authorization.authorization_id)
     logger.info(
         "GATE PASSED — intent=%s token=%s consumed",
@@ -152,26 +162,77 @@ def execute(
 
     result_data: dict[str, Any] = {}
     execution_status = ExecutionStatus.EXECUTED
+    connector_id = ""
 
     if action_handler is not None:
+        # Legacy path: use the provided action_handler callable
         try:
             result_data = action_handler(intent)
             logger.info(
-                "ACTION EXECUTED — intent=%s result_keys=%s",
+                "ACTION EXECUTED (handler) — intent=%s result_keys=%s",
                 intent.intent_id,
                 list(result_data.keys()),
             )
         except Exception as exc:
             logger.error(
-                "ACTION FAILED — intent=%s error=%s",
+                "ACTION FAILED (handler) — intent=%s error=%s",
                 intent.intent_id,
                 str(exc),
             )
             execution_status = ExecutionStatus.FAILED
             result_data = {"error": str(exc)}
+
+    elif use_connectors:
+        # Connector path: resolve and call the registered connector
+        connector = get_connector(intent.action_type)
+        connector_id = connector.connector_id
+        logger.info(
+            "CONNECTOR RESOLVED — intent=%s action=%s connector=%s",
+            intent.intent_id,
+            intent.action_type,
+            connector_id,
+        )
+
+        try:
+            connector_result: ConnectorResult = connector.execute(intent)
+            result_data = {
+                "execution_status": connector_result.execution_status,
+                "result_summary": connector_result.result_summary,
+                "raw_result": connector_result.raw_result,
+                "connector_id": connector_result.connector_id,
+                "connector_timestamp": connector_result.timestamp,
+            }
+
+            if connector_result.execution_status == "success":
+                logger.info(
+                    "CONNECTOR EXECUTED — intent=%s connector=%s summary=%s",
+                    intent.intent_id,
+                    connector_id,
+                    connector_result.result_summary,
+                )
+            else:
+                logger.warning(
+                    "CONNECTOR FAILED — intent=%s connector=%s summary=%s",
+                    intent.intent_id,
+                    connector_id,
+                    connector_result.result_summary,
+                )
+                execution_status = ExecutionStatus.FAILED
+                result_data["error"] = connector_result.result_summary
+
+        except Exception as exc:
+            logger.error(
+                "CONNECTOR ERROR — intent=%s connector=%s error=%s",
+                intent.intent_id,
+                connector_id,
+                str(exc),
+            )
+            execution_status = ExecutionStatus.FAILED
+            result_data = {"error": str(exc), "connector_id": connector_id}
+
     else:
         logger.info(
-            "GATE PASSED (dry run) — intent=%s no_action_handler",
+            "GATE PASSED (dry run) — intent=%s no_action_handler no_connectors",
             intent.intent_id,
         )
 
@@ -181,4 +242,5 @@ def execute(
         execution_status=execution_status,
         result_data=result_data,
         timestamp=now,
+        connector_id=connector_id,
     )

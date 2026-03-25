@@ -3,7 +3,8 @@ RIO Runtime — Test Harness
 
 Implements the protocol test cases defined in /tests/TC-RIO-001.md,
 /tests/TC-RIO-002.md, and /tests/TC-RIO-003.md, plus additional
-scenarios for invariant enforcement and edge cases.
+scenarios for invariant enforcement, edge cases, and connector
+integration.
 
 Test Cases:
     TC-RIO-001: Allowed execution with receipt and ledger
@@ -13,13 +14,23 @@ Test Cases:
     TC-EXTRA-002: Token replay blocked (INV-07)
     TC-EXTRA-003: Validation failure produces receipt
     TC-EXTRA-004: Ledger hash chain integrity
+    TC-POLICY-001: Policy engine denies intern transfer_funds > 1000
+    TC-RISK-001: Risk engine computes correct score and level
+    TC-INTENT-001: Intent requirements matrix validates required parameters
+    TC-CONN-001: Email connector — allowed send writes to sent_emails.log
+    TC-CONN-002: Email connector — denied send writes no log
+    TC-CONN-003: Kill switch ON — connector not called
+    TC-CONN-004: File connector — write_file creates file
+    TC-CONN-005: HTTP connector — simulated request logged
 
 Run with: python -m runtime.test_harness
 """
 
 from __future__ import annotations
 
+import json
 import logging
+import os
 import sys
 
 from . import ledger, kill_switch
@@ -604,6 +615,353 @@ def test_intent_requirements_validation():
 
 
 # ---------------------------------------------------------------------------
+# TC-CONN-001: Email connector — allowed send writes to sent_emails.log
+# Protocol Steps Covered: 1–8 (full pipeline with connector execution)
+# ---------------------------------------------------------------------------
+
+def test_email_connector_allowed():
+    """
+    TC-CONN-001: An allowed send_email action routes through the email
+    connector and writes a record to runtime/data/sent_emails.log.
+    """
+    logger.info("=" * 70)
+    logger.info("TC-CONN-001: Email connector — allowed send writes to sent_emails.log")
+    logger.info("=" * 70)
+
+    state = _reset_state()
+
+    # Clean up any previous email log
+    email_log = os.path.join(os.path.dirname(__file__), "data", "sent_emails.log")
+    if os.path.exists(email_log):
+        os.remove(email_log)
+
+    result = run(
+        actor_id="user_alice",
+        raw_input={
+            "action_type": "send_email",
+            "target_resource": "email_system",
+            "parameters": {
+                "recipient": "bob@example.com",
+                "subject": "Quarterly Report",
+                "body": "Please find the quarterly report attached.",
+            },
+            "requested_by": "user_alice",
+            "justification": "Sending quarterly report",
+        },
+        approver_id="manager_bob",
+        state=state,
+        # No action_handler — let the connector handle it
+    )
+
+    # Verify execution succeeded via connector
+    _assert(result.success is True, "Pipeline reports success")
+    _assert(
+        result.execution_result.execution_status == ExecutionStatus.EXECUTED,
+        "Execution status is EXECUTED",
+    )
+    _assert(
+        result.execution_result.connector_id == "email",
+        f"Connector ID is 'email' (got: {result.execution_result.connector_id})",
+    )
+
+    # Verify email log file was written
+    _assert(os.path.exists(email_log), "sent_emails.log file exists")
+    with open(email_log, "r") as fh:
+        lines = fh.readlines()
+    _assert(len(lines) >= 1, f"Email log has at least 1 entry (got {len(lines)})")
+
+    record = json.loads(lines[-1])
+    _assert(record["recipient"] == "bob@example.com", "Email recipient matches")
+    _assert(record["subject"] == "Quarterly Report", "Email subject matches")
+
+    # Verify receipt and ledger
+    _assert(result.receipt is not None, "Receipt was generated")
+    _assert(result.ledger_entry is not None, "Ledger entry was created")
+    _assert(ledger.verify_chain(), "Ledger hash chain is intact")
+
+    logger.info("TC-CONN-001: PASSED")
+    logger.info("")
+
+
+# ---------------------------------------------------------------------------
+# TC-CONN-002: Denied action — connector NOT called
+# Protocol Steps Covered: 1–5, 7–8 (denied at policy, connector NOT called)
+# ---------------------------------------------------------------------------
+
+def test_email_connector_denied():
+    """
+    TC-CONN-002: A denied action (intern attempting delete_data, blocked by
+    POL-004) must NOT invoke any connector. The execution gate blocks before
+    the connector layer is reached, and no side effects occur.
+    """
+    logger.info("=" * 70)
+    logger.info("TC-CONN-002: Denied action — connector NOT called")
+    logger.info("=" * 70)
+
+    state = _reset_state()
+
+    # Clean up any previous email log (should stay absent)
+    email_log = os.path.join(os.path.dirname(__file__), "data", "sent_emails.log")
+    if os.path.exists(email_log):
+        os.remove(email_log)
+
+    # Use delete_data by intern — denied by POL-004
+    result = run(
+        actor_id="intern_user_04",
+        raw_input={
+            "action_type": "delete_data",
+            "target_resource": "production_database",
+            "parameters": {
+                "dataset": "customer_records",
+                "scope": "all",
+                "approval_authority": "data_governance_board",
+            },
+            "requested_by": "intern_user_04",
+            "justification": "Cleanup request",
+            "role": "intern",
+        },
+        approver_id="finance_manager",
+        state=state,
+    )
+
+    # Verify execution was blocked
+    _assert(result.success is False, "Pipeline reports failure (denied)")
+    _assert(
+        result.execution_result.execution_status == ExecutionStatus.BLOCKED,
+        "Execution status is BLOCKED",
+    )
+
+    # Verify no connector side effects occurred
+    # (email log should not exist since no connector was called)
+    log_exists = os.path.exists(email_log)
+    if log_exists:
+        with open(email_log, "r") as fh:
+            content = fh.read().strip()
+        _assert(content == "", "Email log is empty (no connector side effects)")
+    else:
+        _assert(True, "No connector side effects (email log absent)")
+
+    # Verify the connector_id is empty (connector was never resolved)
+    _assert(
+        result.execution_result.connector_id == "",
+        f"Connector ID is empty (got: '{result.execution_result.connector_id}')",
+    )
+
+    # Receipt and ledger should still exist
+    _assert(result.receipt is not None, "Receipt was generated for denial")
+    _assert(result.receipt.decision == Decision.DENY, "Receipt decision is DENY")
+    _assert(result.ledger_entry is not None, "Ledger entry was created")
+
+    logger.info("TC-CONN-002: PASSED")
+    logger.info("")
+
+
+# ---------------------------------------------------------------------------
+# TC-CONN-003: Kill switch ON — connector not called
+# Protocol Steps Covered: 1–8 (kill switch blocks at execution gate)
+# Invariants Covered: INV-08
+# ---------------------------------------------------------------------------
+
+def test_kill_switch_blocks_connector():
+    """
+    TC-CONN-003: With the kill switch engaged, even an otherwise-allowed
+    send_email action must be blocked. The email connector must NOT be
+    invoked and no email log record should be written.
+    """
+    logger.info("=" * 70)
+    logger.info("TC-CONN-003: Kill switch ON — connector not called")
+    logger.info("=" * 70)
+
+    state = _reset_state()
+
+    # Clean up any previous email log
+    email_log = os.path.join(os.path.dirname(__file__), "data", "sent_emails.log")
+    if os.path.exists(email_log):
+        os.remove(email_log)
+
+    # Engage kill switch
+    kill_switch.engage(state, actor_id="security_admin", reason="Emergency lockdown")
+    _assert(state.kill_switch_active is True, "Kill switch is engaged")
+
+    result = run(
+        actor_id="user_alice",
+        raw_input={
+            "action_type": "send_email",
+            "target_resource": "email_system",
+            "parameters": {
+                "recipient": "bob@example.com",
+                "subject": "Urgent update",
+                "body": "This should never be sent.",
+            },
+            "requested_by": "user_alice",
+            "justification": "Urgent communication",
+        },
+        approver_id="manager_bob",
+        state=state,
+    )
+
+    # Verify execution was blocked by kill switch
+    _assert(result.success is False, "Pipeline reports failure (kill switch)")
+
+    # Verify email log was NOT written
+    log_exists = os.path.exists(email_log)
+    if log_exists:
+        with open(email_log, "r") as fh:
+            content = fh.read().strip()
+        _assert(content == "", "Email log is empty (connector not called)")
+    else:
+        _assert(True, "Email log file does not exist (connector not called)")
+
+    # Receipt and ledger should still exist
+    _assert(result.receipt is not None, "Receipt was generated")
+    _assert(result.ledger_entry is not None, "Ledger entry was created")
+    _assert(ledger.verify_chain(), "Ledger hash chain is intact")
+
+    logger.info("TC-CONN-003: PASSED")
+    logger.info("")
+
+
+# ---------------------------------------------------------------------------
+# TC-CONN-004: File connector — write_file creates file
+# Protocol Steps Covered: 1–8 (full pipeline with file connector)
+# ---------------------------------------------------------------------------
+
+def test_file_connector_write():
+    """
+    TC-CONN-004: An allowed write_file action routes through the file
+    connector and creates the target file in runtime/data/.
+    """
+    logger.info("=" * 70)
+    logger.info("TC-CONN-004: File connector — write_file creates file")
+    logger.info("=" * 70)
+
+    state = _reset_state()
+
+    # Clean up any previous test file
+    test_file = os.path.join(os.path.dirname(__file__), "data", "test_output.txt")
+    if os.path.exists(test_file):
+        os.remove(test_file)
+
+    result = run(
+        actor_id="user_alice",
+        raw_input={
+            "action_type": "write_file",
+            "target_resource": "file_system",
+            "parameters": {
+                "operation": "write_file",
+                "filename": "test_output.txt",
+                "content": "RIO governed file write test — TC-CONN-004",
+            },
+            "requested_by": "user_alice",
+            "justification": "Writing test output",
+        },
+        approver_id="manager_bob",
+        state=state,
+    )
+
+    # Verify execution succeeded via connector
+    _assert(result.success is True, "Pipeline reports success")
+    _assert(
+        result.execution_result.execution_status == ExecutionStatus.EXECUTED,
+        "Execution status is EXECUTED",
+    )
+    _assert(
+        result.execution_result.connector_id == "file",
+        f"Connector ID is 'file' (got: {result.execution_result.connector_id})",
+    )
+
+    # Verify the file was created
+    _assert(os.path.exists(test_file), "test_output.txt was created")
+    with open(test_file, "r") as fh:
+        content = fh.read()
+    _assert(
+        content == "RIO governed file write test — TC-CONN-004",
+        "File content matches expected value",
+    )
+
+    # Verify receipt and ledger
+    _assert(result.receipt is not None, "Receipt was generated")
+    _assert(result.ledger_entry is not None, "Ledger entry was created")
+    _assert(ledger.verify_chain(), "Ledger hash chain is intact")
+
+    # Clean up
+    os.remove(test_file)
+
+    logger.info("TC-CONN-004: PASSED")
+    logger.info("")
+
+
+# ---------------------------------------------------------------------------
+# TC-CONN-005: HTTP connector — simulated request logged
+# Protocol Steps Covered: 1–8 (full pipeline with HTTP connector)
+# ---------------------------------------------------------------------------
+
+def test_http_connector_simulated():
+    """
+    TC-CONN-005: An allowed http_request action routes through the HTTP
+    connector and writes a record to runtime/data/http_requests.log.
+    """
+    logger.info("=" * 70)
+    logger.info("TC-CONN-005: HTTP connector — simulated request logged")
+    logger.info("=" * 70)
+
+    state = _reset_state()
+
+    # Clean up any previous HTTP log
+    http_log = os.path.join(os.path.dirname(__file__), "data", "http_requests.log")
+    if os.path.exists(http_log):
+        os.remove(http_log)
+
+    result = run(
+        actor_id="user_alice",
+        raw_input={
+            "action_type": "http_request",
+            "target_resource": "external_api",
+            "parameters": {
+                "method": "POST",
+                "url": "https://api.example.com/v1/reports",
+                "headers": {"Authorization": "Bearer test-token"},
+                "body": {"report_id": "RPT-2026-001"},
+            },
+            "requested_by": "user_alice",
+            "justification": "Submitting report to external API",
+        },
+        approver_id="manager_bob",
+        state=state,
+    )
+
+    # Verify execution succeeded via connector
+    _assert(result.success is True, "Pipeline reports success")
+    _assert(
+        result.execution_result.execution_status == ExecutionStatus.EXECUTED,
+        "Execution status is EXECUTED",
+    )
+    _assert(
+        result.execution_result.connector_id == "http",
+        f"Connector ID is 'http' (got: {result.execution_result.connector_id})",
+    )
+
+    # Verify HTTP log file was written
+    _assert(os.path.exists(http_log), "http_requests.log file exists")
+    with open(http_log, "r") as fh:
+        lines = fh.readlines()
+    _assert(len(lines) >= 1, f"HTTP log has at least 1 entry (got {len(lines)})")
+
+    record = json.loads(lines[-1])
+    _assert(record["method"] == "POST", "HTTP method is POST")
+    _assert(record["url"] == "https://api.example.com/v1/reports", "HTTP URL matches")
+    _assert(record["response"]["status_code"] == 200, "Simulated response is 200")
+
+    # Verify receipt and ledger
+    _assert(result.receipt is not None, "Receipt was generated")
+    _assert(result.ledger_entry is not None, "Ledger entry was created")
+    _assert(ledger.verify_chain(), "Ledger hash chain is intact")
+
+    logger.info("TC-CONN-005: PASSED")
+    logger.info("")
+
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
@@ -625,6 +983,11 @@ def run_all_tests():
         ("TC-POLICY-001", test_policy_engine_deny),
         ("TC-RISK-001", test_risk_engine_scoring),
         ("TC-INTENT-001", test_intent_requirements_validation),
+        ("TC-CONN-001", test_email_connector_allowed),
+        ("TC-CONN-002", test_email_connector_denied),
+        ("TC-CONN-003", test_kill_switch_blocks_connector),
+        ("TC-CONN-004", test_file_connector_write),
+        ("TC-CONN-005", test_http_connector_simulated),
     ]
 
     passed = 0
