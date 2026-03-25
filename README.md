@@ -143,6 +143,13 @@ rio-protocol/
 │   ├── 14_orchestration.md
 │   ├── 15_time_bound_authorization.md
 │   ├── governed_execution_protocol.md 8-stage runtime protocol + learning loop
+│   ├── runtime_flow.md               8-step runtime flow with diagram
+│   ├── protocol_invariants.md         8 protocol invariants (INV-01 through INV-08)
+│   ├── system_invariants.md          21 system invariants across 6 categories
+│   ├── governed_corpus.md             Decision-history layer specification
+│   ├── 8_step_to_15_protocol_mapping.md  Maps 8-step flow to 15 control protocols
+│   ├── system_architecture.md         4-layer system architecture
+│   ├── protocol_test_matrix.md        Test-to-invariant mapping
 │   ├── threat_model.md                10 threats with mitigations
 │   ├── verification_tests.md          12 verification test cases
 │   ├── constraint_vs_policy.md        Policy vs. constraint distinction
@@ -155,17 +162,16 @@ rio-protocol/
 │   ├── protocol_flow.md              Full protocol flow reference (11 steps)
 │   ├── protocol_state_machine.md     Formal state transitions and terminal states
 │   ├── execution_envelope.md         Bounded execution model with kill switch
-│   ├── system_invariants.md          21 system invariants across 6 categories
 │   ├── api_endpoints.md              REST API surface definition
 │   ├── identity_and_credentials.md   DID, Verifiable Credentials, trust registry
 │   ├── oracle_attestation.md         External signed attestations for risk/policy
 │   ├── cross_domain_verification.md  Cross-system receipt and ledger verification
-│   ├── content_addressing_and_lineage.md  Content hashing and provenance chains
-│   ├── protocol_invariants.md         8 protocol invariants (INV-01 through INV-08)
-│   ├── protocol_test_matrix.md        Test-to-invariant mapping
-│   ├── governed_corpus.md             Decision-history layer specification
-│   ├── system_architecture.md         4-layer system architecture
-│   └── 8_step_to_15_protocol_mapping.md  Maps 8-step flow to 15 control protocols
+│   └── content_addressing_and_lineage.md  Content hashing and provenance chains
+│
+├── architecture/                      System architecture models
+│   └── 15_layer_model.md             15-layer system architecture
+│
+├── runtime/                           Runtime implementation (reserved)
 │
 ├── schemas/                           JSON Schema 2020-12 definitions
 │   ├── canonical_request.json
@@ -209,6 +215,8 @@ rio-protocol/
 │
 ├── safety/                            Safety mechanisms
 │   └── EKS-0_kill_switch.md           Global execution kill switch specification
+│
+├── diagrams/                          Diagram source files (reserved)
 │
 ├── whitepaper/                        White paper (Markdown + PDF)
 ├── README.md
@@ -319,6 +327,68 @@ All diagrams include editable Mermaid source files (`.mmd`).
 
 ---
 
+## System Architecture (15 Layers)
+
+The RIO system is organized into 15 architectural layers that describe where each function lives. This model defines system structure, not runtime order. The 15 layers are: Intake, Interpretation, Planning, Tools, Memory, Risk, Policy, Authority, Gate, Execution, Verification, Receipt, Ledger, Audit, and Learning.
+
+See [`architecture/15_layer_model.md`](architecture/15_layer_model.md) for the full layer definitions.
+
+---
+
+## Runtime Protocol (8 Steps)
+
+The Governed Execution Protocol defines the mandatory runtime path for every request: Intake, Classification, Structured Intent, Policy & Risk Check, Authorization, Execution Gate, Receipt/Attestation, and Audit Ledger. Governance Learning operates asynchronously as a ninth step and does not bypass runtime controls.
+
+See [`spec/runtime_flow.md`](spec/runtime_flow.md) for the runtime flow diagram and [`spec/governed_execution_protocol.md`](spec/governed_execution_protocol.md) for the full stage definitions.
+
+---
+
+## Protocol Invariants
+
+Eight protocol invariants (INV-01 through INV-08) define safety and correctness properties that must never be violated by any implementation. These cover completeness (every action traverses all stages), authorization safety (valid, time-bound, single-use tokens with distinct requester/authorizer), and fail-closed behavior (denials and kill switch events follow deterministic, auditable paths).
+
+See [`spec/protocol_invariants.md`](spec/protocol_invariants.md) for the full invariant definitions and [`spec/system_invariants.md`](spec/system_invariants.md) for the 21 system-level invariants.
+
+---
+
+## Safety (Kill Switch)
+
+The EKS-0 Kill Switch is a global execution halt mechanism that overrides normal authorization and execution behavior. When engaged, no new executions may proceed regardless of policy decisions. All kill switch events and blocked requests still generate receipts and ledger entries.
+
+See [`safety/EKS-0_kill_switch.md`](safety/EKS-0_kill_switch.md) for the specification and [`tests/TC-RIO-003.md`](tests/TC-RIO-003.md) for the test case.
+
+---
+
+## Test Cases
+
+Three protocol-level test cases validate the core runtime behavior:
+
+| Test Case | Description | Protocol Steps Covered |
+|-----------|-------------|------------------------|
+| [TC-RIO-001](tests/TC-RIO-001.md) | Allowed execution with receipt and ledger | Stages 1–8 |
+| [TC-RIO-002](tests/TC-RIO-002.md) | Denied execution due to policy | Stages 1–5, 7–8 |
+| [TC-RIO-003](tests/TC-RIO-003.md) | Kill switch blocks execution | Stages 5–8 |
+
+See [`spec/protocol_test_matrix.md`](spec/protocol_test_matrix.md) for the test-to-invariant mapping.
+
+---
+
+## Governed Corpus
+
+The Governed Corpus is a structured decision-history layer that records intent, classification, policy decisions, authorization outcomes, execution results, receipts, ledger references, and eventual outcomes. It serves as the data source for Governance Learning (Step 9) and provides the foundation for audit, simulation, and risk modeling.
+
+See [`spec/governed_corpus.md`](spec/governed_corpus.md) for the full specification.
+
+---
+
+## Ledger & Receipts
+
+Every protocol decision — whether approved, denied, or blocked — produces a cryptographic receipt (Stage 7) and an append-only ledger entry (Stage 8). Receipts contain intent hash, decision hash, execution hash, timestamp, and ECDSA-secp256k1 signature. Ledger entries are hash-linked to form a tamper-evident chain. There are no silent failures and no unrecorded decisions.
+
+See [`spec/receipt_spec.md`](spec/receipt_spec.md) for receipt fields and verification, and [`spec/ledger_interoperability.md`](spec/ledger_interoperability.md) for hash chain verification and anchoring.
+
+---
+
 ## Status
 
 | Component | Count | Status |
@@ -340,7 +410,9 @@ All diagrams include editable Mermaid source files (`.mmd`).
 | Protocol Test Cases | 3 tests | Complete |
 | Safety Mechanisms | 1 (EKS-0) | Complete |
 | Governed Corpus | 1 | Complete |
-| System Architecture | 1 | Complete |
+| System Architecture (4-layer) | 1 | Complete |
+| 15-Layer Architecture | 1 | Complete |
+| Runtime Flow | 1 | Complete |
 | 8-Step to 15-Protocol Mapping | 1 | Complete |
 | White Paper | 1 | Complete |
 
