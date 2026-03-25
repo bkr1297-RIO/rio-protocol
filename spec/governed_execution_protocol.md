@@ -159,3 +159,10 @@ See `/spec/protocol_invariants.md` for the full invariant definitions.
 The protocol includes a global execution halt mechanism (EKS-0 Kill Switch) that overrides normal authorization and execution behavior. When engaged, no new executions may proceed regardless of policy decisions. All kill switch events and blocked requests must still generate receipts and be written to the audit ledger.
 
 See `/safety/EKS-0_kill_switch.md` and `/tests/TC-RIO-003.md` for specification and test behavior.
+
+
+---
+
+## Relationship to the 15 Control Protocols
+
+The Governed Execution Protocol defines the high-level execution stages. Each stage is implemented and enforced by one or more of the detailed control protocols defined in the `/spec` directory. See `/spec/8_step_to_15_protocol_mapping.md` for the mapping between execution stages and control protocols.

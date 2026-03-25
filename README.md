@@ -164,7 +164,8 @@ rio-protocol/
 │   ├── protocol_invariants.md         8 protocol invariants (INV-01 through INV-08)
 │   ├── protocol_test_matrix.md        Test-to-invariant mapping
 │   ├── governed_corpus.md             Decision-history layer specification
-│   └── system_architecture.md         4-layer system architecture
+│   ├── system_architecture.md         4-layer system architecture
+│   └── 8_step_to_15_protocol_mapping.md  Maps 8-step flow to 15 control protocols
 │
 ├── schemas/                           JSON Schema 2020-12 definitions
 │   ├── canonical_request.json
@@ -340,6 +341,7 @@ All diagrams include editable Mermaid source files (`.mmd`).
 | Safety Mechanisms | 1 (EKS-0) | Complete |
 | Governed Corpus | 1 | Complete |
 | System Architecture | 1 | Complete |
+| 8-Step to 15-Protocol Mapping | 1 | Complete |
 | White Paper | 1 | Complete |
 
 ---
