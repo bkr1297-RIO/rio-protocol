@@ -1,95 +1,166 @@
-# Receipt Protocol
+# Receipt / Attestation Protocol
 
-**Version:** 1.0.0
+**Version:** 2.0.0
 **Status:** Core Specification
-**Category:** Data Structure / Protocol Stage
+**Category:** Protocol Stage (Stage 7)
 
 ---
 
-## Overview
+## 1. Purpose
 
-The Receipt Protocol defines the structure, generation rules, and verification procedures for cryptographic receipts produced by Stage 7 (Receipt / Attestation) of the Governed Execution Protocol. A receipt is generated for every request that enters the protocol, regardless of outcome — approved, denied, escalated, or blocked by the kill switch. Receipts form a hash chain that provides tamper-evident auditability across the full decision history.
+The Receipt Protocol defines how the system generates a cryptographic receipt for every authorization decision and execution outcome.
 
----
+Receipts serve as:
 
-## Receipt Structure
+- **Proof of what was requested.** The receipt contains the canonical intent hash, linking the receipt to the original structured request.
+- **Proof of what was decided.** The receipt records the authorization decision (ALLOW, DENY, ESCALATE, or BLOCKED) and the identity of the authorizer.
+- **Proof of what was executed or denied.** The receipt records the execution status and a hash of the execution result, providing a tamper-evident record of the outcome.
+- **Input records for the audit ledger.** Receipts are the atomic unit of the append-only audit ledger. The ledger stores receipts, not raw logs.
+- **Input records for the governed corpus and learning system.** The Governed Corpus derives its structured decision history from receipts and their associated execution outcomes.
 
-Every receipt contains the following fields:
+Every governed request must produce a receipt, whether the action is allowed, denied, or blocked. There are no exceptions. A request that does not produce a receipt is a protocol violation.
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `receipt_id` | string (UUID v4) | Yes | Unique identifier for this receipt |
-| `request_id` | string (UUID v4) | Yes | Reference to the original request registered at Stage 1 (Intake) |
-| `canonical_intent_id` | string (UUID v4) | Yes | Reference to the canonical intent produced at Stage 3 (Structured Intent) |
-| `authorization_id` | string (UUID v4) | Yes | Reference to the authorization token produced at Stage 5 (Authorization). For denied requests, this references the denial record |
-| `decision` | string (enum) | Yes | Final outcome: `ALLOW` (execution proceeded) or `DENY` (execution blocked) |
-| `execution_status` | string (enum) | Yes | Execution result: `completed` (action succeeded), `failed` (action attempted but failed), `blocked` (action never attempted), `denied` (authorization denied) |
-| `timestamps` | object | Yes | Contains `intake_timestamp`, `authorization_timestamp`, `execution_timestamp`, and `receipt_timestamp` — all UTC Unix milliseconds |
-| `result_hash` | string | Yes | SHA-256 hash of the execution result payload (or the denial/block record for non-executed requests) |
-| `signature` | string | Yes | ECDSA-secp256k1 signature over the canonical JSON representation of this receipt (excluding the `signature` and `receipt_hash` fields) |
-| `receipt_hash` | string | Yes | SHA-256 hash of the canonical JSON representation of this receipt (excluding the `receipt_hash` field itself). Used as the content identifier for this receipt |
-| `previous_receipt_hash` | string | Yes | SHA-256 hash of the immediately preceding receipt. For the genesis receipt, this value is a defined constant (`0x0000...0000`, 64 hex characters). This field forms the hash chain |
+This enforces:
+
+- **INV-02:** Every execution must produce a receipt.
+- **INV-03:** Every receipt must be written to the ledger.
 
 ---
 
-## Hash Chain
+## 2. Receipt Structure
 
-Receipts form a hash chain where each receipt references the hash of the immediately preceding receipt through the `previous_receipt_hash` field. This chain provides the following properties:
+Each receipt must contain the following fields:
 
-**Ordering.** The hash chain establishes a total order over all receipts. Any receipt can be verified to have been generated after its predecessor by checking the hash reference.
+| Field | Type | Description |
+|-------|------|-------------|
+| `receipt_id` | string (UUID) | Unique receipt identifier |
+| `request_id` | string (UUID) | Intake request ID |
+| `intent_id` | string (UUID) | Canonical intent ID |
+| `authorization_id` | string (UUID) | Authorization decision ID |
+| `decision` | string (enum) | ALLOW / DENY / ESCALATE / BLOCKED |
+| `action_type` | string | Action requested |
+| `execution_status` | string (enum) | `executed` / `denied` / `blocked` / `failed` |
+| `risk_score` | number | Risk score at decision time |
+| `policy_ids` | array of strings | Policies applied during evaluation |
+| `timestamps` | object | Contains `intake_time`, `authorization_time`, `execution_time` (all ISO 8601) |
+| `result_hash` | string (SHA-256) | Hash of execution result (or null hash if not executed) |
+| `previous_receipt_hash` | string (SHA-256) | Hash of previous ledger receipt (genesis receipt uses null hash) |
+| `receipt_hash` | string (SHA-256) | Hash of this receipt |
+| `signature` | string (ECDSA-secp256k1) | Cryptographic signature of the Receipt Service |
 
-**Tamper evidence.** Any modification to a historical receipt changes its `receipt_hash`, which breaks the `previous_receipt_hash` reference in the next receipt. An auditor can detect tampering by recomputing hashes from the genesis receipt forward.
-
-**Completeness.** A gap in the hash chain (a receipt whose `previous_receipt_hash` does not match any known receipt's `receipt_hash`) indicates a missing or deleted entry.
-
-**Genesis receipt.** The first receipt in the chain uses a defined constant (`0x0000...0000`, 64 hex characters) as its `previous_receipt_hash`. This is the only receipt permitted to use this value.
-
----
-
-## Generation Rules
-
-1. A receipt is generated for every request that reaches Stage 7, regardless of the decision outcome.
-2. The receipt is generated after execution completes (for `ALLOW` decisions) or after the denial/block is recorded (for `DENY` decisions).
-3. All required fields must be populated. A receipt with missing fields is invalid.
-4. The `receipt_hash` is computed over the canonical (minified, sorted) JSON representation of the receipt, excluding the `receipt_hash` field itself.
-5. The `signature` is computed over the canonical JSON representation excluding both the `signature` and `receipt_hash` fields.
-6. The `previous_receipt_hash` must reference the most recently generated receipt. The Receipt Service maintains a pointer to the current chain head.
-7. Receipt generation must be atomic — either a complete, valid receipt is produced or no receipt is produced. Partial receipts are not permitted.
-8. If receipt generation fails, the system must halt and record the failure. A missing receipt constitutes a protocol integrity violation (INV-02).
+All fields are required. If a field is not applicable (e.g., `authorization_id` for a kill-switch-blocked request), the field must contain a null sentinel value, not be omitted.
 
 ---
 
-## Verification Procedure
+## 3. Receipt Types
 
-An auditor verifies a receipt by performing the following steps:
+The system must generate receipts for every governed action. The receipt type is determined by the outcome:
 
-1. Obtain the receipt record.
-2. Reconstruct the canonical JSON representation (minified, sorted) excluding the `signature` and `receipt_hash` fields.
-3. Verify the `signature` using the Receipt Service's public key (obtained from the key registry, not from the receipt itself).
-4. Recompute the `receipt_hash` from the canonical JSON (excluding `receipt_hash`) and verify it matches the stored value.
-5. Verify that `previous_receipt_hash` matches the `receipt_hash` of the immediately preceding receipt in the chain.
-6. Verify that all timestamps are chronologically ordered (`intake_timestamp` <= `authorization_timestamp` <= `execution_timestamp` <= `receipt_timestamp`).
-7. Verify that the `canonical_intent_id` references a valid canonical intent and that the `authorization_id` references a valid authorization record.
+| Receipt Type | When Generated | `decision` Value | `execution_status` Value |
+|--------------|----------------|------------------|--------------------------|
+| Allow Receipt | Action approved and executed successfully | ALLOW | `executed` |
+| Denial Receipt | Action denied by policy or authorization | DENY | `denied` |
+| Blocked Receipt | Execution blocked by gate or kill switch | BLOCKED | `blocked` |
+| Failure Receipt | Execution attempted but failed | ALLOW | `failed` |
+| Kill Switch Event Receipt | EKS-0 engaged or disengaged | BLOCKED | `blocked` |
 
-If any verification step fails, the receipt is considered invalid and the integrity of the decision chain from that point forward is suspect.
-
----
-
-## Relationship to Existing Specifications
-
-| Document | Relationship |
-|----------|-------------|
-| `/spec/receipt_spec.md` | Defines canonical receipt fields and verification procedures for the original 15-protocol stack |
-| `/spec/receipt_schema.json` | Machine-readable JSON Schema for the receipt structure |
-| `/spec/08_attestation.md` | Attestation protocol specification (Protocol 08 in the 15-protocol stack) |
-| `/spec/governed_execution_protocol.md` | Stage 7 definition in the 8-step runtime protocol |
+Every receipt type follows the same structure and signing process. There is no distinction in how different receipt types are stored or verified — the `decision` and `execution_status` fields encode the outcome.
 
 ---
 
-## Related Invariants
+## 4. Hash Chain Requirement
 
-| Invariant | Relevance |
-|-----------|-----------|
-| INV-02 | Every governed action must produce a signed receipt |
-| INV-03 | Every receipt must be recorded in the audit ledger |
-| INV-04 | Ledger entries (and receipts) form a hash chain; no gaps permitted |
+Receipts must be linked using a hash chain:
+
+```
+receipt_hash = SHA-256(canonical_json(receipt_data) + previous_receipt_hash)
+```
+
+The `canonical_json` function produces a deterministic JSON serialization (sorted keys, no whitespace, UTF-8 encoding) of all receipt fields except `receipt_hash` and `signature`. The `previous_receipt_hash` is the `receipt_hash` of the immediately preceding receipt in the ledger.
+
+This ensures:
+
+- **Ledger entries cannot be modified.** Changing any field in a receipt changes its hash, which breaks the chain for all subsequent entries.
+- **Tampering is detectable.** An auditor can recompute all hashes from the genesis receipt forward and verify that each `previous_receipt_hash` matches.
+- **Full execution history is verifiable.** The hash chain provides a total ordering of all governed actions and makes deletion or reordering detectable.
+
+The genesis receipt (the first receipt in the ledger) uses a null hash (`0x0000...0000`, 64 hex zeros) as its `previous_receipt_hash`.
+
+This supports invariant:
+
+- **INV-04:** Ledger is append-only.
+
+---
+
+## 5. Signing Requirement
+
+Each receipt must be cryptographically signed by the Receipt Service using ECDSA-secp256k1.
+
+The signature is computed over the `receipt_hash`:
+
+```
+signature = ECDSA_SIGN(receipt_service_private_key, receipt_hash)
+```
+
+The signature attests that:
+
+- **The protocol executed correctly.** The Receipt Service only signs receipts that were generated through the full protocol flow.
+- **The decision and execution data are authentic.** The signature binds the Receipt Service's identity to the receipt content.
+- **The receipt can be independently verified.** Any party with access to the Receipt Service's public key (from the key registry) can verify the signature without trusting any runtime component.
+
+The Receipt Service's public key is published in the key registry and is subject to the key rotation and revocation procedures defined in the identity and credentials specification.
+
+---
+
+## 6. Relationship to Ledger
+
+Receipts are the atomic unit of the Audit Ledger. The ledger does not store raw logs, intermediate state, or unstructured data. Every ledger entry is a signed, hash-linked receipt.
+
+The flow is:
+
+```
+Execution → Receipt Generated → Receipt Signed → Receipt Written to Ledger
+```
+
+A receipt that is generated but not written to the ledger is a protocol violation (INV-03). The Receipt Service must confirm ledger write acknowledgment before considering the receipt finalized. If the ledger write fails, the Receipt Service must retry until the write succeeds or escalate to the kill switch if the ledger is unavailable.
+
+---
+
+## 7. Relationship to Governed Corpus
+
+The Governed Corpus stores structured decision history derived from receipts and execution outcomes. The corpus is used for:
+
+- **Audit.** Reconstructing the full decision chain for any governed action.
+- **Risk modeling.** Analyzing patterns in risk scores, outcomes, and failure rates.
+- **Policy tuning.** Identifying policies that produce excessive false positives or false negatives.
+- **Governance learning.** Training updated risk and classification models on historical decision data.
+
+Receipts are the ground-truth record. The Governed Corpus may enrich receipt data with additional context (e.g., eventual outcomes, post-execution observations), but the receipt itself is immutable and serves as the authoritative record of what was decided and executed at runtime.
+
+---
+
+## 8. Security Properties
+
+The Receipt Protocol ensures four fundamental security properties:
+
+**Non-repudiation.** No party can deny that an action occurred. The receipt contains the canonical intent, the authorization decision, and the execution result, all signed by the Receipt Service and linked to the authorizer's identity.
+
+**Integrity.** A receipt cannot be modified after generation. The hash chain and cryptographic signature make any modification detectable. Changing a single bit in any receipt field invalidates the receipt hash, breaks the chain, and invalidates the signature.
+
+**Traceability.** Every action is linked to its authorization. The receipt contains the `authorization_id`, which links to the signed authorization token, which links to the authorizer's identity. The full chain from request to execution to authorization to identity is reconstructable.
+
+**Auditability.** Independent verification is possible without trusting any runtime component. An auditor needs only the ledger contents and the Receipt Service's public key to verify every receipt in the system.
+
+---
+
+## References
+
+| Document | Path |
+|----------|------|
+| Governed Execution Protocol | `/spec/governed_execution_protocol.md` |
+| Audit Ledger Protocol | `/spec/audit_ledger_protocol.md` |
+| Receipt JSON Schema | `/spec/receipt_schema.json` |
+| Ledger Entry JSON Schema | `/spec/ledger_entry_schema.json` |
+| Protocol Invariants | `/spec/protocol_invariants.md` |
+| Governed Corpus | `/spec/governed_corpus.md` |
+| EKS-0 Kill Switch | `/safety/EKS-0_kill_switch.md` |
