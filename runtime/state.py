@@ -2,8 +2,8 @@
 RIO Runtime — System State
 
 Manages the mutable runtime state of the governed execution system, including
-the kill switch, consumed token registry, ledger head hash, and version tracking
-for policies and risk models.
+the kill switch, consumed token registry, token registry (for tracking issued
+tokens), ledger head hash, and version tracking for policies and risk models.
 
 In a production implementation, this state would be persisted to a durable store
 with transactional guarantees. This reference skeleton uses in-memory state.
@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass, field
+from typing import Any
 
 
 @dataclass
@@ -25,6 +26,7 @@ class SystemState:
         kill_switch_engaged_by: Identity of the actor who engaged the kill switch.
         kill_switch_engaged_at: Timestamp when the kill switch was engaged.
         consumed_tokens: Set of authorization_ids that have been consumed (INV-07).
+        token_registry: Dict tracking all issued authorization tokens and their metadata.
         ledger_head_hash: Hash of the most recent ledger entry (hash chain head).
         ledger_length: Number of entries in the ledger.
         policy_version: Current version identifier for the active policy set.
@@ -38,6 +40,9 @@ class SystemState:
 
     # Token registry (INV-07: single-use enforcement)
     consumed_tokens: set[str] = field(default_factory=set)
+
+    # Token tracking (issued tokens with metadata)
+    token_registry: dict[str, dict[str, Any]] = field(default_factory=dict)
 
     # Ledger state
     ledger_head_hash: str = ""
@@ -79,6 +84,8 @@ class SystemState:
         """
         Mark an authorization token as consumed (single-use enforcement).
 
+        Also updates the token_registry entry if present.
+
         Args:
             authorization_id: The authorization token ID to consume.
 
@@ -90,6 +97,10 @@ class SystemState:
                 f"Authorization token '{authorization_id}' has already been consumed"
             )
         self.consumed_tokens.add(authorization_id)
+
+        # Update token registry
+        if authorization_id in self.token_registry:
+            self.token_registry[authorization_id]["used"] = True
 
     def update_ledger_head(self, ledger_hash: str) -> None:
         """

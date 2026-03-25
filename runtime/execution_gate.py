@@ -1,16 +1,17 @@
 """
-RIO Runtime — Stage 7: Execution Gate
+RIO Runtime — Stage 6: Execution Gate
 
 The Execution Gate is the final checkpoint before any action is executed.
 It verifies four conditions before allowing execution:
 
-1. Valid authorization token (signature and expiration).
-2. Token has not been used before (INV-07: single-use).
-3. Kill switch is OFF (INV-08).
-4. Decision is ALLOW.
+1. Kill switch OFF (INV-08).
+2. Decision is ALLOW.
+3. Token has not been used before (INV-07: single-use).
+4. Token has not expired.
 
 If all conditions pass, the action is executed and the result is passed
-to the Receipt stage. If any condition fails, execution is blocked.
+to the Receipt stage. If any condition fails, execution is blocked and
+a receipt is still generated (fail-closed).
 
 Spec reference: /spec/07_execution.md
 Protocol stage: Step 6 of the 8-step Governed Execution Protocol
@@ -77,7 +78,7 @@ def execute(
         check_inv_08_kill_switch(state)
     except InvariantViolation as e:
         logger.warning(
-            "Execution BLOCKED for intent %s — kill switch engaged",
+            "GATE BLOCKED — intent=%s reason=kill_switch_engaged",
             intent.intent_id,
         )
         return ExecutionResult(
@@ -92,7 +93,7 @@ def execute(
     # Gate check 2: Decision must be ALLOW
     if authorization.decision != Decision.ALLOW:
         logger.info(
-            "Execution BLOCKED for intent %s — decision is %s",
+            "GATE BLOCKED — intent=%s reason=decision_%s",
             intent.intent_id,
             authorization.decision.value,
         )
@@ -110,8 +111,9 @@ def execute(
         check_inv_07_single_use(authorization, state)
     except InvariantViolation as e:
         logger.warning(
-            "Execution BLOCKED for intent %s — token already consumed",
+            "GATE BLOCKED — intent=%s reason=token_already_consumed token=%s",
             intent.intent_id,
+            authorization.authorization_id,
         )
         return ExecutionResult(
             intent_id=intent.intent_id,
@@ -125,8 +127,11 @@ def execute(
     # Gate check 4: Token expiration
     if authorization.expiration_timestamp > 0 and now > authorization.expiration_timestamp:
         logger.warning(
-            "Execution BLOCKED for intent %s — authorization token expired",
+            "GATE BLOCKED — intent=%s reason=token_expired token=%s expired_at=%d now=%d",
             intent.intent_id,
+            authorization.authorization_id,
+            authorization.expiration_timestamp,
+            now,
         )
         return ExecutionResult(
             intent_id=intent.intent_id,
@@ -139,6 +144,11 @@ def execute(
 
     # All gate checks passed — consume token and execute
     state.consume_token(authorization.authorization_id)
+    logger.info(
+        "GATE PASSED — intent=%s token=%s consumed",
+        intent.intent_id,
+        authorization.authorization_id,
+    )
 
     result_data: dict[str, Any] = {}
     execution_status = ExecutionStatus.EXECUTED
@@ -147,13 +157,13 @@ def execute(
         try:
             result_data = action_handler(intent)
             logger.info(
-                "Action executed for intent %s — result keys: %s",
+                "ACTION EXECUTED — intent=%s result_keys=%s",
                 intent.intent_id,
                 list(result_data.keys()),
             )
         except Exception as exc:
             logger.error(
-                "Action FAILED for intent %s — %s",
+                "ACTION FAILED — intent=%s error=%s",
                 intent.intent_id,
                 str(exc),
             )
@@ -161,7 +171,7 @@ def execute(
             result_data = {"error": str(exc)}
     else:
         logger.info(
-            "Execution gate passed for intent %s — no action handler provided (dry run)",
+            "GATE PASSED (dry run) — intent=%s no_action_handler",
             intent.intent_id,
         )
 
