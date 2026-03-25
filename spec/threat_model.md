@@ -455,3 +455,38 @@ This cross-boundary isolation ensures that compromise of any single component do
 4. **Review role assignments.** Verify that no entity held conflicting roles in the same decision chain (e.g., requester and authorizer, executor and attestor).
 
 5. **Sample and deep-inspect.** Select a random sample of decision chains and verify every field, hash, signature, and timestamp from canonical request through ledger entry. The protocol is designed to make this verification deterministic and repeatable.
+
+
+---
+
+## Protocol Threat-to-Control Mapping
+
+The following table maps core protocol threats to the specific Governed Execution Protocol stages, invariants, and controls that mitigate them. This mapping complements the threat analysis above by linking each threat directly to the 8-step runtime protocol and the protocol invariant framework defined in `/spec/protocol_invariants.md`.
+
+| Threat | Description | Mitigating Protocol Stage | Invariants | Notes |
+|--------|-------------|---------------------------|------------|-------|
+| Unauthorized Execution | An action executes without valid authorization from a qualified authority | Authorization (Step 5), Execution Gate (Step 6) | INV-01, INV-06 | The Execution Gate re-verifies the authorization token's signature, expiration, single-use status, and intent binding before releasing any action. No execution proceeds without a valid, unexpired, unspent authorization token. |
+| Token Reuse / Replay Attack | A previously consumed authorization token is presented a second time to authorize a new execution | Authorization token design (single-use flag), Execution Gate validation (Step 6) | INV-07 | Authorization tokens are marked single-use by default. The Execution Gate checks the nonce registry before accepting any token. A consumed nonce is permanently recorded and cannot be reused. |
+| Ledger Tampering | An attacker modifies, deletes, or reorders entries in the audit ledger to conceal or alter the decision history | Append-only Audit Ledger (Step 8), Hash chain receipts (Step 7) | INV-04 | Each ledger entry contains a SHA-256 hash of the previous entry, forming a tamper-evident chain. Any modification to a prior entry breaks all subsequent hashes. The ledger permits append operations only — no update, delete, or reorder. |
+| AI Self-Authorization | An AI agent generates a request and also approves its own request, bypassing human or independent oversight | Separation of requester and authorizer identity at Authorization (Step 5) | INV-06 | The protocol enforces that the `approver_id` on any authorization token must differ from the `actor_id` on the canonical intent. No entity may authorize its own request. This is structurally enforced, not policy-dependent. |
+| Privilege Escalation | An entity with limited permissions obtains or forges credentials to perform actions beyond its authorized scope | Identity verification at Intake (Step 1), Policy & Risk Check (Step 4), Authorization (Step 5) | INV-01, INV-06 | Intake verifies actor identity. Policy evaluation checks whether the verified actor is permitted to request the specific action type and target resource. Authorization requires a qualified approver with appropriate authority for the risk level. All three checks must pass independently. |
+| Kill Switch Bypass | An attacker or misconfigured system continues executing actions after the global kill switch has been engaged | EKS-0 Kill Switch enforced at Authorization (Step 5) and Execution Gate (Step 6) | INV-08 | When the kill switch is engaged, the Execution Gate blocks all new executions regardless of existing authorization tokens. The kill switch state is checked before every execution release. Kill switch engagement and all blocked requests are recorded in the audit ledger. |
+| Missing Audit Trail | An action executes but no receipt or ledger entry is generated, leaving a gap in the decision history | Receipt generation (Step 7), Audit Ledger (Step 8) | INV-02, INV-03 | Every request — whether approved, denied, or blocked — must produce a signed receipt and a corresponding ledger entry. The protocol treats a missing receipt or ledger entry as a system integrity failure. There are no silent failures and no unrecorded decisions. |
+
+---
+
+## Security Model Summary
+
+The RIO security model is constructed from six reinforcing structural controls. These controls are not policy preferences — they are architectural properties enforced by the protocol runtime.
+
+**Separation of decision and execution.** The entity that requests an action is structurally separated from the entity that authorizes it and the component that executes it. No single entity can propose, approve, and carry out an action. This separation is enforced by identity verification at Intake (Step 1), distinct role requirements at Authorization (Step 5), and independent validation at the Execution Gate (Step 6).
+
+**Single-use authorization tokens.** Every authorization token is bound to a specific canonical intent by `intent_id`, carries an expiration timestamp, and is flagged as single-use. The Execution Gate consumes the token upon first use and records the nonce. A consumed token cannot authorize a second execution. This eliminates replay attacks and token reuse at the protocol level.
+
+**Append-only ledger with hash chaining.** The audit ledger accepts only append operations. Each entry contains a SHA-256 hash of the previous entry, creating a tamper-evident chain from the genesis entry forward. Any modification to a historical entry breaks all subsequent hashes and is immediately detectable by any auditor who recomputes the chain.
+
+**Mandatory receipts for all decisions.** Every request that enters the protocol — regardless of whether it is approved, denied, escalated, or blocked by the kill switch — produces a cryptographically signed receipt. The receipt links the canonical intent, authorization decision, and execution result into a single verifiable record. No decision passes through the protocol without generating a receipt.
+
+**Global kill switch override.** The EKS-0 Kill Switch provides a system-wide emergency halt that overrides all normal authorization and execution behavior. When engaged, no new executions proceed. The kill switch is checked at both the Authorization stage and the Execution Gate, ensuring that even pre-authorized actions cannot execute during a halt. All kill switch events are themselves recorded in the audit ledger.
+
+**Governance learning separated from runtime execution.** The learning loop (Step 9) operates asynchronously on historical decision data stored in the Governed Corpus. It proposes updates to risk models and policies, but those updates must themselves pass through the governed change process before taking effect in the runtime. The learning loop cannot bypass, override, or weaken runtime controls.
