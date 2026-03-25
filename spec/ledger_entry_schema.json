@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rio-protocol.org/spec/ledger_entry_schema.json",
+  "title": "Ledger Entry",
+  "description": "The Ledger Entry is produced by Stage 8 (Audit Ledger) of the Governed Execution Protocol. It records an immutable, hash-linked entry in the append-only audit ledger. Each entry references the receipt it records and the hash of the previous ledger entry, forming a tamper-evident chain. Ledger entries are consumed by the Governed Corpus for decision-history analysis, by auditors for compliance verification, and by cross-domain verification processes for inter-system proof exchange.",
+  "type": "object",
+  "properties": {
+    "ledger_entry_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for this ledger entry (UUID v4)"
+    },
+    "receipt_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Reference to the receipt recorded by this ledger entry"
+    },
+    "receipt_hash": {
+      "type": "string",
+      "description": "SHA-256 hash of the canonical JSON representation of the referenced receipt"
+    },
+    "previous_ledger_hash": {
+      "type": "string",
+      "description": "SHA-256 hash of the immediately preceding ledger entry, forming the append-only hash chain"
+    },
+    "timestamp": {
+      "type": "integer",
+      "description": "UTC Unix timestamp in milliseconds when this ledger entry was appended"
+    },
+    "ledger_signature": {
+      "type": "string",
+      "description": "ECDSA-secp256k1 signature over the canonical JSON representation of this entry (excluding the ledger_signature field itself)"
+    }
+  },
+  "required": [
+    "ledger_entry_id",
+    "receipt_id",
+    "receipt_hash",
+    "previous_ledger_hash",
+    "timestamp",
+    "ledger_signature"
+  ],
+  "additionalProperties": false
+}

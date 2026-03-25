@@ -166,7 +166,11 @@ rio-protocol/
 │   ├── identity_and_credentials.md   DID, Verifiable Credentials, trust registry
 │   ├── oracle_attestation.md         External signed attestations for risk/policy
 │   ├── cross_domain_verification.md  Cross-system receipt and ledger verification
-│   └── content_addressing_and_lineage.md  Content hashing and provenance chains
+│   ├── content_addressing_and_lineage.md  Content hashing and provenance chains
+│   ├── canonical_intent_schema.json   Core schema: canonical intent (Stage 3)
+│   ├── authorization_token_schema.json Core schema: authorization token (Stage 5)
+│   ├── receipt_schema.json            Core schema: receipt (Stage 7)
+│   └── ledger_entry_schema.json       Core schema: ledger entry (Stage 8)
 │
 ├── architecture/                      System architecture models
 │   └── 15_layer_model.md             15-layer system architecture
@@ -395,7 +399,8 @@ See [`spec/receipt_spec.md`](spec/receipt_spec.md) for receipt fields and verifi
 |-----------|-------|--------|
 | Core Protocol Definition | 1 | Complete |
 | Protocol Specifications | 15 | Complete |
-| JSON Schemas | 8 | Complete |
+| JSON Schemas (original) | 8 | Complete |
+| Core Protocol Schemas | 4 | Complete |
 | End-to-End Examples | 5 | Complete |
 | Architecture Diagrams | 5 | Complete |
 | Threat Model | 10 threats | Complete |

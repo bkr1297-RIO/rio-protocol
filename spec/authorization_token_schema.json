@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rio-protocol.org/spec/authorization_token_schema.json",
+  "title": "Authorization Token",
+  "description": "The Authorization Token is produced by Stage 5 (Authorization) of the Governed Execution Protocol. It records the authorization decision made by a human approver or delegated policy authority. It is consumed by Stage 6 (Execution Gate), which validates the token's signature, expiration, single-use status, and intent binding before releasing execution. The authorization_id is referenced in receipts and ledger entries.",
+  "type": "object",
+  "properties": {
+    "authorization_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for this authorization decision (UUID v4)"
+    },
+    "intent_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Reference to the canonical intent this authorization applies to"
+    },
+    "decision": {
+      "type": "string",
+      "enum": ["ALLOW", "DENY", "ESCALATE"],
+      "description": "Authorization decision: ALLOW permits execution, DENY blocks it, ESCALATE routes to a higher authority"
+    },
+    "approver_id": {
+      "type": "string",
+      "description": "Verified identity of the authorizing entity (must differ from the actor_id in the canonical intent per INV-03)"
+    },
+    "approval_timestamp": {
+      "type": "integer",
+      "description": "UTC Unix timestamp in milliseconds when the authorization decision was made"
+    },
+    "expiration_timestamp": {
+      "type": "integer",
+      "description": "UTC Unix timestamp in milliseconds after which this authorization is no longer valid"
+    },
+    "single_use": {
+      "type": "boolean",
+      "description": "When true, the token is consumed upon first use and cannot authorize a second execution"
+    },
+    "signature": {
+      "type": "string",
+      "description": "ECDSA-secp256k1 signature over the canonical JSON representation of this token (excluding the signature field itself)"
+    }
+  },
+  "required": [
+    "authorization_id",
+    "intent_id",
+    "decision",
+    "approver_id",
+    "approval_timestamp",
+    "expiration_timestamp",
+    "single_use",
+    "signature"
+  ],
+  "additionalProperties": false
+}

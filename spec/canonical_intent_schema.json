@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rio-protocol.org/spec/canonical_intent_schema.json",
+  "title": "Canonical Intent",
+  "description": "The Canonical Intent is produced by Stage 3 (Structured Intent) of the Governed Execution Protocol. It represents the normalized, validated, and hashed form of an incoming request. It is consumed by Stage 4 (Policy & Risk Check), Stage 5 (Authorization), and Stage 6 (Execution Gate). The intent_id and canonical hash of this object are referenced in all downstream records including authorization tokens, receipts, and ledger entries.",
+  "type": "object",
+  "properties": {
+    "intent_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for this canonical intent (UUID v4)"
+    },
+    "request_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Reference to the original request registered at Stage 1 (Intake)"
+    },
+    "actor_id": {
+      "type": "string",
+      "description": "Verified identity of the requesting entity (DID URI or system identifier)"
+    },
+    "action_type": {
+      "type": "string",
+      "description": "Canonical action type from the intent ontology (e.g., WIRE_TRANSFER, DATA_DELETE, CODE_DEPLOY)"
+    },
+    "target_resource": {
+      "type": "string",
+      "description": "Identifier of the resource upon which the action is to be performed"
+    },
+    "parameters": {
+      "type": "object",
+      "description": "Action-specific parameters normalized to standard formats (amounts, currencies, identifiers)",
+      "additionalProperties": true
+    },
+    "risk_category": {
+      "type": "string",
+      "enum": ["low", "medium", "high", "critical"],
+      "description": "Preliminary risk level assigned by Stage 2 (Classification)"
+    },
+    "timestamp": {
+      "type": "integer",
+      "description": "UTC Unix timestamp in milliseconds when the canonical intent was formed"
+    },
+    "nonce": {
+      "type": "string",
+      "description": "Cryptographic nonce (minimum 128 bits) generated at Stage 1 (Intake) to prevent replay attacks"
+    }
+  },
+  "required": [
+    "intent_id",
+    "request_id",
+    "actor_id",
+    "action_type",
+    "target_resource",
+    "parameters",
+    "risk_category",
+    "timestamp",
+    "nonce"
+  ],
+  "additionalProperties": false
+}

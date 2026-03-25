@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rio-protocol.org/spec/receipt_schema.json",
+  "title": "Receipt",
+  "description": "The Receipt is produced by Stage 7 (Receipt / Attestation) of the Governed Execution Protocol. It is generated for every request regardless of outcome — approved, denied, or blocked. The receipt contains cryptographic hashes linking the intent, authorization decision, and execution result into a verifiable chain. It is consumed by Stage 8 (Audit Ledger) for immutable recording and by the Governed Corpus for decision-history analysis.",
+  "type": "object",
+  "properties": {
+    "receipt_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for this receipt (UUID v4)"
+    },
+    "request_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Reference to the original request registered at Stage 1 (Intake)"
+    },
+    "intent_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Reference to the canonical intent produced at Stage 3 (Structured Intent)"
+    },
+    "authorization_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Reference to the authorization token produced at Stage 5 (Authorization)"
+    },
+    "decision": {
+      "type": "string",
+      "enum": ["ALLOW", "DENY"],
+      "description": "Final outcome of the governed execution: ALLOW indicates execution proceeded, DENY indicates execution was blocked"
+    },
+    "action_type": {
+      "type": "string",
+      "description": "Canonical action type from the intent ontology, copied from the canonical intent for receipt-level querying"
+    },
+    "execution_timestamp": {
+      "type": "integer",
+      "description": "UTC Unix timestamp in milliseconds when execution completed (or when denial was recorded)"
+    },
+    "result_hash": {
+      "type": "string",
+      "description": "SHA-256 hash of the execution result payload (or the denial record for denied requests)"
+    },
+    "previous_receipt_hash": {
+      "type": "string",
+      "description": "SHA-256 hash of the immediately preceding receipt, forming a hash chain for tamper detection"
+    },
+    "signature": {
+      "type": "string",
+      "description": "ECDSA-secp256k1 signature over the canonical JSON representation of this receipt (excluding the signature field itself)"
+    }
+  },
+  "required": [
+    "receipt_id",
+    "request_id",
+    "intent_id",
+    "authorization_id",
+    "decision",
+    "action_type",
+    "execution_timestamp",
+    "result_hash",
+    "previous_receipt_hash",
+    "signature"
+  ],
+  "additionalProperties": false
+}
