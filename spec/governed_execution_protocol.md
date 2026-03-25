@@ -133,6 +133,10 @@ A ninth, asynchronous Governance Learning loop updates risk and policy models ba
 | Updated Policy Versions | Revised policy rules informed by observed outcomes |
 | Updated Risk Models | Recalibrated risk scoring models reflecting new data |
 
+Governance Learning operates on historical governed decision data stored in the Governed Corpus. The Governed Corpus is a structured decision-history layer that records intent, classification, policy decisions, authorization outcomes, execution results, receipts, ledger references, and eventual outcomes. Learning processes use this corpus to update risk models and policies without bypassing runtime enforcement.
+
+See `/spec/governed_corpus.md` for the Governed Corpus specification.
+
 ---
 
 ## Protocol Flow

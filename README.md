@@ -162,7 +162,9 @@ rio-protocol/
 │   ├── cross_domain_verification.md  Cross-system receipt and ledger verification
 │   ├── content_addressing_and_lineage.md  Content hashing and provenance chains
 │   ├── protocol_invariants.md         8 protocol invariants (INV-01 through INV-08)
-│   └── protocol_test_matrix.md        Test-to-invariant mapping
+│   ├── protocol_test_matrix.md        Test-to-invariant mapping
+│   ├── governed_corpus.md             Decision-history layer specification
+│   └── system_architecture.md         4-layer system architecture
 │
 ├── schemas/                           JSON Schema 2020-12 definitions
 │   ├── canonical_request.json
@@ -336,6 +338,8 @@ All diagrams include editable Mermaid source files (`.mmd`).
 | Protocol Invariants | 8 invariants | Complete |
 | Protocol Test Cases | 3 tests | Complete |
 | Safety Mechanisms | 1 (EKS-0) | Complete |
+| Governed Corpus | 1 | Complete |
+| System Architecture | 1 | Complete |
 | White Paper | 1 | Complete |
 
 ---
