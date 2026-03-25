@@ -142,6 +142,7 @@ rio-protocol/
 │   ├── 13_meta_governance.md
 │   ├── 14_orchestration.md
 │   ├── 15_time_bound_authorization.md
+│   ├── governed_execution_protocol.md 8-stage runtime protocol + learning loop
 │   ├── threat_model.md                10 threats with mitigations
 │   ├── verification_tests.md          12 verification test cases
 │   ├── constraint_vs_policy.md        Policy vs. constraint distinction
@@ -309,6 +310,7 @@ All diagrams include editable Mermaid source files (`.mmd`).
 
 | Component | Count | Status |
 |-----------|-------|--------|
+| Core Protocol Definition | 1 | Complete |
 | Protocol Specifications | 15 | Complete |
 | JSON Schemas | 8 | Complete |
 | End-to-End Examples | 5 | Complete |
