@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <h2>
+        {% if is_editable %}
+            Edit Policy (based on v{{ version }})
+        {% else %}
+            Policy Version {{ version }}
+            {% if is_active %}<span class="badge badge-allow">ACTIVE</span>{% endif %}
+        {% endif %}
+    </h2>
+    <p class="subtitle">
+        <a href="/admin/policies">&larr; Back to Policy Admin</a>
+    </p>
+</div>
+
+<!-- Version Info -->
+<div class="summary-cards">
+    <div class="card">
+        <div class="card-label">Version</div>
+        <div class="card-value">v{{ version }}</div>
+    </div>
+    <div class="card">
+        <div class="card-label">Rules Count</div>
+        <div class="card-value">{{ rules | length }}</div>
+    </div>
+    <div class="card">
+        <div class="card-label">Status</div>
+        <div class="card-value">{{ 'ACTIVE' if is_active else 'INACTIVE' }}</div>
+    </div>
+</div>
+
+<!-- Rules Table -->
+<div class="section">
+    <h3>Policy Rules</h3>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Rule ID</th>
+                    <th>Action</th>
+                    <th>Role</th>
+                    <th>Condition</th>
+                    <th>Decision</th>
+                    <th>Priority</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for rule in rules %}
+                <tr>
+                    <td><code>{{ rule.rule_id }}</code></td>
+                    <td>{{ rule.action }}</td>
+                    <td>{{ rule.role or '*' }}</td>
+                    <td>{{ rule.condition or '—' }}</td>
+                    <td>
+                        <span class="badge badge-{{ rule.decision | lower }}">{{ rule.decision }}</span>
+                    </td>
+                    <td>{{ rule.priority }}</td>
+                    <td>{{ rule.description }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Raw JSON -->
+<div class="section">
+    <h3>Raw JSON</h3>
+    <pre class="code-block">{{ rules_json }}</pre>
+</div>
+
+<!-- Actions -->
+<div class="section">
+    <div class="action-buttons">
+        {% if not is_active %}
+        <a href="/admin/policies/{{ version }}/edit" class="btn btn-primary">Create Draft Based on This Version</a>
+        {% endif %}
+        <a href="/admin/policies" class="btn">Back to Policy Admin</a>
+    </div>
+</div>
+
+{% endblock %}

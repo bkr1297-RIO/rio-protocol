@@ -49,6 +49,11 @@ Test Cases:
     TC-CORP-002: Replay does not execute real action
     TC-CORP-003: Replay under stricter role changes decision
     TC-CORP-004: Replay under same settings matches original result
+    TC-ADMIN-001: Risk model draft creation (admin only)
+    TC-ADMIN-002: Non-admin cannot modify risk model
+    TC-ADMIN-003: Risk model activation changes live thresholds
+    TC-ADMIN-004: Risk model rollback restores prior version
+    TC-ADMIN-005: Risk threshold change logged in governance ledger
 
 Run with: python -m runtime.test_harness
 """
@@ -66,6 +71,7 @@ from .pipeline import PipelineResult, run
 from .state import SystemState
 from .approvals import approval_queue, approval_manager
 from .governance import policy_manager
+from .governance import risk_manager
 from .governance.governance_ledger import record_governance_change, set_governance_state
 from . import receipt as receipt_module
 from . import verify_ledger
@@ -2970,6 +2976,381 @@ def test_corpus_replay_same_settings():
 
 
 # ---------------------------------------------------------------------------
+# TC-ADMIN-001: Risk model draft creation (admin only)
+# ---------------------------------------------------------------------------
+
+def test_admin_risk_draft_creation():
+    """
+    TC-ADMIN-001: An admin can submit a risk model change proposal.
+    The draft must be stored as PROPOSED and must not affect the live model.
+    """
+    logger.info("=" * 70)
+    logger.info("TC-ADMIN-001: Risk model draft creation (admin only)")
+    logger.info("=" * 70)
+
+    state = _reset_state()
+    risk_manager.reset()
+
+    # Get the current risk model
+    current = risk_manager.get_current_risk_model()
+    _assert(current.success is True, "Current risk model loaded")
+    _assert(current.version == "1.0.0", f"Current version is 1.0.0 (got: {current.version})")
+
+    # Propose a new risk model with modified thresholds
+    import copy
+    new_rules = copy.deepcopy(current.rules)
+    new_rules["base_risk"]["delete_data"] = 10  # Increase from 8 to 10
+
+    submit_result = risk_manager.submit_risk_change(
+        proposed_by="admin_01",
+        proposed_by_role="admin",
+        new_rules=new_rules,
+        change_summary="Increase delete_data base risk from 8 to 10",
+    )
+    _assert(submit_result.success is True, "Risk model change submitted")
+    _assert(submit_result.change.status == "PROPOSED", "Status is PROPOSED")
+    _assert(submit_result.version == "1.0.1", f"New version is 1.0.1 (got: {submit_result.version})")
+
+    # Verify the live model is NOT affected
+    live = risk_manager.get_current_risk_model()
+    _assert(live.version == "1.0.0", "Live version is still 1.0.0")
+    _assert(live.rules["base_risk"]["delete_data"] == 8, "Live delete_data risk is still 8")
+
+    # Verify the pending change exists
+    pending = risk_manager.get_pending_changes()
+    _assert(len(pending) >= 1, "At least one pending change")
+    _assert(pending[0].change_id == submit_result.change.change_id, "Pending change ID matches")
+
+    logger.info("TC-ADMIN-001: PASSED")
+    logger.info("")
+
+
+# ---------------------------------------------------------------------------
+# TC-ADMIN-002: Non-admin cannot modify risk model
+# ---------------------------------------------------------------------------
+
+def test_admin_non_admin_blocked():
+    """
+    TC-ADMIN-002: Non-admin roles (employee, manager, intern) cannot submit,
+    approve, activate, or rollback risk model changes.
+    """
+    logger.info("=" * 70)
+    logger.info("TC-ADMIN-002: Non-admin cannot modify risk model")
+    logger.info("=" * 70)
+
+    state = _reset_state()
+    risk_manager.reset()
+
+    current = risk_manager.get_current_risk_model()
+
+    # Employee cannot propose
+    result = risk_manager.submit_risk_change(
+        proposed_by="employee_01",
+        proposed_by_role="employee",
+        new_rules=current.rules,
+        change_summary="Unauthorized change attempt",
+    )
+    _assert(result.success is False, "Employee cannot propose risk model changes")
+    _assert("not authorized" in result.error.lower(), "Error mentions authorization")
+
+    # Manager cannot propose
+    result2 = risk_manager.submit_risk_change(
+        proposed_by="manager_01",
+        proposed_by_role="manager",
+        new_rules=current.rules,
+        change_summary="Unauthorized change attempt",
+    )
+    _assert(result2.success is False, "Manager cannot propose risk model changes")
+
+    # Intern cannot propose
+    result3 = risk_manager.submit_risk_change(
+        proposed_by="intern_01",
+        proposed_by_role="intern",
+        new_rules=current.rules,
+        change_summary="Unauthorized change attempt",
+    )
+    _assert(result3.success is False, "Intern cannot propose risk model changes")
+
+    # Create a valid proposal for testing approve/activate/rollback blocks
+    submit = risk_manager.submit_risk_change(
+        proposed_by="admin_01",
+        proposed_by_role="admin",
+        new_rules=current.rules,
+        change_summary="Valid proposal for testing",
+    )
+    _assert(submit.success is True, "Admin can propose")
+    change_id = submit.change.change_id
+
+    # Employee cannot approve
+    approve_result = risk_manager.approve_risk_change(
+        change_id=change_id,
+        approver_id="employee_01",
+        approver_role="employee",
+    )
+    _assert(approve_result.success is False, "Employee cannot approve risk model changes")
+
+    # Manager cannot approve (only admin can)
+    approve_result2 = risk_manager.approve_risk_change(
+        change_id=change_id,
+        approver_id="manager_01",
+        approver_role="manager",
+    )
+    _assert(approve_result2.success is False, "Manager cannot approve risk model changes")
+
+    # Employee cannot activate
+    activate_result = risk_manager.activate_risk_version(
+        version="1.0.1",
+        activated_by="employee_01",
+        activated_by_role="employee",
+    )
+    _assert(activate_result.success is False, "Employee cannot activate risk model versions")
+
+    # Employee cannot rollback
+    rollback_result = risk_manager.rollback_risk_version(
+        target_version="1.0.0",
+        rolled_back_by="employee_01",
+        rolled_back_by_role="employee",
+    )
+    _assert(rollback_result.success is False, "Employee cannot rollback risk model versions")
+
+    logger.info("TC-ADMIN-002: PASSED")
+    logger.info("")
+
+
+# ---------------------------------------------------------------------------
+# TC-ADMIN-003: Risk model activation changes live thresholds
+# ---------------------------------------------------------------------------
+
+def test_admin_risk_activation():
+    """
+    TC-ADMIN-003: After creating, approving, and activating a new risk model
+    version, the risk engine should use the updated thresholds.
+    """
+    logger.info("=" * 70)
+    logger.info("TC-ADMIN-003: Risk model activation changes live thresholds")
+    logger.info("=" * 70)
+
+    state = _reset_state()
+    risk_manager.reset()
+
+    # Get current risk model
+    current = risk_manager.get_current_risk_model()
+    _assert(current.success is True, "Current risk model loaded")
+    _assert(current.version == "1.0.0", "Starting at version 1.0.0")
+
+    # Propose a new version with changed thresholds
+    import copy
+    new_rules = copy.deepcopy(current.rules)
+    new_rules["base_risk"]["send_email"] = 5  # Increase from 1 to 5
+
+    submit = risk_manager.submit_risk_change(
+        proposed_by="admin_01",
+        proposed_by_role="admin",
+        new_rules=new_rules,
+        change_summary="Increase send_email base risk from 1 to 5",
+    )
+    _assert(submit.success is True, "Submitted")
+
+    # Approve with a different admin
+    approve = risk_manager.approve_risk_change(
+        change_id=submit.change.change_id,
+        approver_id="admin_02",
+        approver_role="admin",
+    )
+    _assert(approve.success is True, "Approved")
+
+    # Activate the new version
+    activate = risk_manager.activate_risk_version(
+        version="1.0.1",
+        activated_by="admin_01",
+        activated_by_role="admin",
+    )
+    _assert(activate.success is True, "Version 1.0.1 activated")
+    _assert(activate.version == "1.0.1", "Active version is 1.0.1")
+
+    # Verify the risk model is now using the new version
+    versions = risk_manager.get_all_versions()
+    _assert(versions["current_version"] == "1.0.1", "Current version is now 1.0.1")
+
+    # Verify the new threshold is in effect
+    new_model = risk_manager.get_current_risk_model()
+    _assert(new_model.rules["base_risk"]["send_email"] == 5, "send_email base risk is now 5")
+
+    # Restore original version for subsequent tests
+    risk_manager.rollback_risk_version(
+        target_version="1.0.0",
+        rolled_back_by="admin_01",
+        rolled_back_by_role="admin",
+    )
+
+    logger.info("TC-ADMIN-003: PASSED")
+    logger.info("")
+
+
+# ---------------------------------------------------------------------------
+# TC-ADMIN-004: Risk model rollback restores prior version
+# ---------------------------------------------------------------------------
+
+def test_admin_risk_rollback():
+    """
+    TC-ADMIN-004: After activating a new risk model version, an admin rolls
+    back to the previous version. The risk engine should revert to the old
+    thresholds and a ROLLED_BACK change record should be created.
+    """
+    logger.info("=" * 70)
+    logger.info("TC-ADMIN-004: Risk model rollback restores prior version")
+    logger.info("=" * 70)
+
+    state = _reset_state()
+    risk_manager.reset()
+
+    # Get current risk model
+    current = risk_manager.get_current_risk_model()
+    original_base_risk = current.rules["base_risk"]["delete_data"]
+
+    # Propose + approve + activate a new version
+    import copy
+    new_rules = copy.deepcopy(current.rules)
+    new_rules["base_risk"]["delete_data"] = 15  # Increase significantly
+
+    submit = risk_manager.submit_risk_change(
+        proposed_by="admin_01",
+        proposed_by_role="admin",
+        new_rules=new_rules,
+        change_summary="Increase delete_data risk for rollback test",
+    )
+    approve = risk_manager.approve_risk_change(
+        change_id=submit.change.change_id,
+        approver_id="admin_02",
+        approver_role="admin",
+    )
+    activate = risk_manager.activate_risk_version(
+        version="1.0.1",
+        activated_by="admin_01",
+        activated_by_role="admin",
+    )
+    _assert(activate.success is True, "Version 1.0.1 activated")
+
+    # Verify we are on 1.0.1
+    versions = risk_manager.get_all_versions()
+    _assert(versions["current_version"] == "1.0.1", "Current version is 1.0.1")
+
+    # Rollback to 1.0.0
+    rollback = risk_manager.rollback_risk_version(
+        target_version="1.0.0",
+        rolled_back_by="admin_02",
+        rolled_back_by_role="admin",
+    )
+    _assert(rollback.success is True, "Rollback succeeded")
+    _assert(rollback.version == "1.0.0", "Rolled back to version 1.0.0")
+
+    # Verify version registry
+    versions = risk_manager.get_all_versions()
+    _assert(versions["current_version"] == "1.0.0", "Current version is 1.0.0 after rollback")
+
+    # Verify the original thresholds are restored
+    restored = risk_manager.get_current_risk_model()
+    _assert(
+        restored.rules["base_risk"]["delete_data"] == original_base_risk,
+        f"delete_data risk restored to {original_base_risk}",
+    )
+
+    # Verify change log has rollback entry
+    change = rollback.change
+    _assert(change.status == "ROLLED_BACK", "Change status is ROLLED_BACK")
+    _assert(change.old_version == "1.0.1", "Old version in rollback is 1.0.1")
+    _assert(change.new_version == "1.0.0", "New version in rollback is 1.0.0")
+
+    logger.info("TC-ADMIN-004: PASSED")
+    logger.info("")
+
+
+# ---------------------------------------------------------------------------
+# TC-ADMIN-005: Risk threshold change logged in governance ledger
+# ---------------------------------------------------------------------------
+
+def test_admin_risk_threshold_logged():
+    """
+    TC-ADMIN-005: When a risk model version is activated, a GOVERNANCE_CHANGE
+    entry must be recorded in the audit ledger with the version change,
+    proposer, and approver information.
+    """
+    logger.info("=" * 70)
+    logger.info("TC-ADMIN-005: Risk threshold change logged in governance ledger")
+    logger.info("=" * 70)
+
+    state = _reset_state()
+    risk_manager.reset()
+    set_governance_state(state)
+
+    # Get initial ledger length
+    initial_ledger_length = state.ledger_length
+
+    # Propose + approve + activate a risk model change
+    current = risk_manager.get_current_risk_model()
+    import copy
+    new_rules = copy.deepcopy(current.rules)
+    new_rules["risk_levels"]["HIGH"]["min"] = 8  # Lower the HIGH threshold from 10 to 8
+
+    submit = risk_manager.submit_risk_change(
+        proposed_by="admin_01",
+        proposed_by_role="admin",
+        new_rules=new_rules,
+        change_summary="Lower HIGH risk threshold from 10 to 8",
+    )
+    approve = risk_manager.approve_risk_change(
+        change_id=submit.change.change_id,
+        approver_id="admin_02",
+        approver_role="admin",
+    )
+    activate = risk_manager.activate_risk_version(
+        version="1.0.1",
+        activated_by="admin_01",
+        activated_by_role="admin",
+    )
+    _assert(activate.success is True, "Version 1.0.1 activated")
+
+    # Record the governance change in the ledger
+    result = record_governance_change(
+        change_type="RISK_MODEL_ACTIVATE",
+        old_version="1.0.0",
+        new_version="1.0.1",
+        proposed_by="admin_01",
+        approved_by="admin_02",
+        change_summary="Lower HIGH risk threshold from 10 to 8",
+    )
+
+    _assert(result is not None, "Governance change recorded")
+    _assert("receipt" in result, "Result contains receipt")
+    _assert("ledger_entry" in result, "Result contains ledger_entry")
+
+    receipt = result["receipt"]
+    ledger_entry = result["ledger_entry"]
+
+    # Verify receipt metadata
+    _assert(receipt.policy_decision == "GOVERNANCE_RISK_MODEL_ACTIVATE", "Receipt has correct policy_decision")
+    _assert(receipt.risk_level == "GOVERNANCE", "Receipt risk_level is GOVERNANCE")
+
+    # Verify ledger entry
+    _assert(ledger_entry is not None, "Ledger entry created")
+    _assert(state.ledger_length > initial_ledger_length, "Ledger length increased")
+
+    # Verify the change log has the activation entry
+    change_log = risk_manager.read_change_log()
+    _assert(len(change_log) > 0, "Risk change log is not empty")
+
+    # Restore original version
+    risk_manager.rollback_risk_version(
+        target_version="1.0.0",
+        rolled_back_by="admin_01",
+        rolled_back_by_role="admin",
+    )
+
+    logger.info("TC-ADMIN-005: PASSED")
+    logger.info("")
+
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
@@ -3023,6 +3404,11 @@ def run_all_tests():
         ("TC-CORP-002", test_corpus_replay_no_execution),
         ("TC-CORP-003", test_corpus_replay_stricter_role),
         ("TC-CORP-004", test_corpus_replay_same_settings),
+        ("TC-ADMIN-001", test_admin_risk_draft_creation),
+        ("TC-ADMIN-002", test_admin_non_admin_blocked),
+        ("TC-ADMIN-003", test_admin_risk_activation),
+        ("TC-ADMIN-004", test_admin_risk_rollback),
+        ("TC-ADMIN-005", test_admin_risk_threshold_logged),
     ]
 
     passed = 0

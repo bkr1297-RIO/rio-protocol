@@ -9,11 +9,11 @@
     },
     "1.1": {
       "file": "policy_rules_v1_1.json",
-      "activated_at": "2026-03-25T21:11:52.890452+00:00",
+      "activated_at": "2026-03-25T21:42:10.704434+00:00",
       "activated_by": "admin_01",
       "description": "Add POL-011 for rollback test",
       "approved_by": "admin_02",
-      "approved_at": "2026-03-25T21:11:52.889000+00:00"
+      "approved_at": "2026-03-25T21:42:10.703000+00:00"
     }
   }
 }

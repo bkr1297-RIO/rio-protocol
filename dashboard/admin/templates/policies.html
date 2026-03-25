@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <h2>Policy Administration</h2>
+    <p class="subtitle">Manage policy versions, drafts, approvals, and activation</p>
+</div>
+
+<!-- Summary Cards -->
+<div class="summary-cards">
+    <div class="card">
+        <div class="card-label">Active Version</div>
+        <div class="card-value">v{{ current_version }}</div>
+    </div>
+    <div class="card">
+        <div class="card-label">Total Versions</div>
+        <div class="card-value">{{ versions | length }}</div>
+    </div>
+    <div class="card">
+        <div class="card-label">Pending Changes</div>
+        <div class="card-value">{{ pending_changes | length }}</div>
+    </div>
+    <div class="card">
+        <div class="card-label">Active Rules</div>
+        <div class="card-value">{{ current_rules | length if current_rules is iterable else 0 }}</div>
+    </div>
+</div>
+
+<!-- Pending Changes -->
+{% if pending_changes %}
+<div class="section">
+    <h3>Pending Changes</h3>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Change ID</th>
+                    <th>From</th>
+                    <th>To</th>
+                    <th>Proposed By</th>
+                    <th>Summary</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for change in pending_changes %}
+                <tr>
+                    <td><code>{{ change.change_id }}</code></td>
+                    <td>v{{ change.old_version }}</td>
+                    <td>v{{ change.new_version }}</td>
+                    <td>{{ change.proposed_by }}</td>
+                    <td>{{ change.change_summary }}</td>
+                    <td><span class="badge badge-proposed">{{ change.status }}</span></td>
+                    <td>
+                        <form method="post" action="/admin/policies/{{ change.change_id }}/approve" style="display:inline;">
+                            <input type="hidden" name="approver_id" value="admin_02">
+                            <input type="hidden" name="approver_role" value="admin">
+                            <button type="submit" class="btn btn-sm btn-approve">Approve</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<!-- Version Registry -->
+<div class="section">
+    <h3>Policy Versions</h3>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Version</th>
+                    <th>Description</th>
+                    <th>Approved By</th>
+                    <th>Activated By</th>
+                    <th>Activated At</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ver, info in versions.items() %}
+                <tr>
+                    <td><a href="/admin/policies/{{ ver }}">v{{ ver }}</a></td>
+                    <td>{{ info.description or info.get('description', '') }}</td>
+                    <td>{{ info.approved_by or info.get('approved_by', '') }}</td>
+                    <td>{{ info.activated_by or info.get('activated_by', '') }}</td>
+                    <td>{{ info.activated_at or info.get('activated_at', '') }}</td>
+                    <td>
+                        {% if ver == current_version %}
+                            <span class="badge badge-allow">ACTIVE</span>
+                        {% elif info.approved_by and not info.activated_at %}
+                            <span class="badge badge-proposed">APPROVED</span>
+                        {% else %}
+                            <span class="badge badge-inactive">INACTIVE</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="/admin/policies/{{ ver }}" class="btn btn-sm">View</a>
+                        {% if ver != current_version %}
+                            {% if info.approved_by %}
+                            <form method="post" action="/admin/policies/{{ ver }}/activate" style="display:inline;">
+                                <input type="hidden" name="activated_by" value="admin_01">
+                                <input type="hidden" name="activated_by_role" value="admin">
+                                <button type="submit" class="btn btn-sm btn-activate">Activate</button>
+                            </form>
+                            {% endif %}
+                            <form method="post" action="/admin/policies/{{ ver }}/rollback" style="display:inline;">
+                                <input type="hidden" name="rolled_back_by" value="admin_01">
+                                <input type="hidden" name="rolled_back_by_role" value="admin">
+                                <button type="submit" class="btn btn-sm btn-rollback">Rollback</button>
+                            </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Active Policy Rules -->
+<div class="section">
+    <h3>Active Policy Rules (v{{ current_version }})</h3>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Rule ID</th>
+                    <th>Action</th>
+                    <th>Role</th>
+                    <th>Condition</th>
+                    <th>Decision</th>
+                    <th>Priority</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if current_rules is mapping %}
+                    {% set rules_list = current_rules.get('rules', []) %}
+                {% elif current_rules is iterable %}
+                    {% set rules_list = current_rules %}
+                {% else %}
+                    {% set rules_list = [] %}
+                {% endif %}
+                {% for rule in rules_list %}
+                <tr>
+                    <td><code>{{ rule.rule_id }}</code></td>
+                    <td>{{ rule.action }}</td>
+                    <td>{{ rule.role or '*' }}</td>
+                    <td>{{ rule.condition or '—' }}</td>
+                    <td>
+                        <span class="badge badge-{{ rule.decision | lower }}">{{ rule.decision }}</span>
+                    </td>
+                    <td>{{ rule.priority }}</td>
+                    <td>{{ rule.description }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Create New Draft -->
+<div class="section">
+    <h3>Propose New Policy Version</h3>
+    <form method="post" action="/admin/policies/propose" class="admin-form">
+        <div class="form-group">
+            <label for="proposed_by">Proposed By (User ID)</label>
+            <input type="text" id="proposed_by" name="proposed_by" value="admin_01" required>
+        </div>
+        <div class="form-group">
+            <label for="proposed_by_role">Role</label>
+            <select id="proposed_by_role" name="proposed_by_role">
+                <option value="admin">admin</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="change_summary">Change Summary</label>
+            <input type="text" id="change_summary" name="change_summary" placeholder="Describe the policy change..." required>
+        </div>
+        <div class="form-group">
+            <label for="rules_json">Policy Rules (JSON)</label>
+            <textarea id="rules_json" name="rules_json" rows="12" class="code-input" required>{{ current_rules | tojson(indent=2) if current_rules is mapping else '{"rules": []}' }}</textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit Draft</button>
+    </form>
+</div>
+
+<!-- Change History -->
+{% if change_history %}
+<div class="section">
+    <h3>Change History</h3>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Change ID</th>
+                    <th>From</th>
+                    <th>To</th>
+                    <th>Proposed By</th>
+                    <th>Approved By</th>
+                    <th>Summary</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for change in change_history %}
+                <tr>
+                    <td><code>{{ change.change_id }}</code></td>
+                    <td>v{{ change.old_version }}</td>
+                    <td>v{{ change.new_version }}</td>
+                    <td>{{ change.proposed_by }}</td>
+                    <td>{{ change.approved_by or '—' }}</td>
+                    <td>{{ change.change_summary }}</td>
+                    <td>
+                        <span class="badge badge-{{ change.status | lower }}">{{ change.status }}</span>
+                    </td>
+                    <td>{{ change.created_at_iso[:19] if change.created_at_iso else '—' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

@@ -48,6 +48,8 @@ from runtime.approvals.approval_api import router as approval_router
 from runtime.approvals import approval_manager
 from runtime.governance.governance_api import router as governance_router
 from runtime.governance import policy_manager
+from dashboard.admin.policies import router as admin_policies_router
+from dashboard.admin.risk_models import router as admin_risk_models_router
 
 # ---------------------------------------------------------------------------
 # Logging
@@ -65,6 +67,8 @@ logger = logging.getLogger("rio.dashboard")
 app = FastAPI(title="RIO Audit Dashboard", version="1.0.0")
 app.include_router(approval_router, prefix="/api")
 app.include_router(governance_router, prefix="/api")
+app.include_router(admin_policies_router)
+app.include_router(admin_risk_models_router)
 
 DASHBOARD_DIR = os.path.dirname(os.path.abspath(__file__))
 app.mount("/static", StaticFiles(directory=os.path.join(DASHBOARD_DIR, "static")), name="static")

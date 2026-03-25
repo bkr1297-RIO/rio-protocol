@@ -35,6 +35,14 @@
                 <a href="/ledger" class="{{ 'active' if active_page == 'ledger' else '' }}">
                     <span class="icon">&#9733;</span> Ledger
                 </a>
+
+                <div class="nav-divider">Admin</div>
+                <a href="/admin/policies" class="{{ 'active' if active_page == 'admin_policies' else '' }}">
+                    <span class="icon">&#9998;</span> Policy Admin
+                </a>
+                <a href="/admin/risk-models" class="{{ 'active' if active_page == 'admin_risk' else '' }}">
+                    <span class="icon">&#9888;</span> Risk Model Admin
+                </a>
             </nav>
         </aside>
 
