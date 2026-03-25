@@ -179,7 +179,8 @@ rio-protocol/
 │   ├── verification_model.md          Verification model for protocol and ledger integrity
 │   ├── governance_learning_protocol.md Governance learning protocol specification
 │   ├── two_loop_architecture.md       Two-loop architecture (execution + learning)
-│   └── intent_translation_layer.md    Intent translation layer (universal grammar)
+│   ├── intent_translation_layer.md    Intent translation layer (universal grammar)
+│   └── master_protocol_index.md       Master index linking all specifications
 │
 ├── architecture/                      System architecture models
 │   └── 15_layer_model.md             15-layer system architecture
@@ -445,6 +446,7 @@ See [`spec/receipt_spec.md`](spec/receipt_spec.md) for receipt fields and verifi
 | Governance Learning Protocol | 1 | Complete |
 | Two-Loop Architecture | 1 | Complete |
 | Intent Translation Layer | 1 | Complete |
+| Master Protocol Index | 1 | Complete |
 | White Paper | 1 | Complete |
 
 ---
