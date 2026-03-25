@@ -1,88 +1,142 @@
-# Reference Architecture
+# RIO Reference Architecture
 
-**Version:** 1.0.0
+**Version:** 2.0.0
 **Status:** Core Specification
 **Category:** Architecture
 
 ---
 
-## Overview
+## 1. System Overview
 
-The RIO Reference Architecture describes the overall system architecture through which AI-generated requests are converted into authorized, verifiable, and auditable actions. The architecture defines the component roles, control boundaries, and data flow from initial goal formation through execution, receipt generation, ledger recording, and governance learning.
+RIO is a governed execution architecture that converts goals and intents into authorized, executed, attested, and permanently recorded actions through a controlled protocol. Every consequential action — regardless of whether it originates from an AI agent, an automated system, or a human-initiated workflow — must traverse the full protocol before it can affect any external system.
 
----
-
-## System Flow
-
-The end-to-end system flow proceeds through the following stages:
+The core flow proceeds through the following stages:
 
 ```
-Goal → Intent Formation → Intent Validation → Governed Execution Protocol → Receipt → Ledger → Learning
+Goal → Intent Formation → Intent Validation → Governed Execution Protocol → Receipt → Ledger → Audit → Learning
 ```
 
-| Stage | Description |
-|-------|-------------|
-| Goal | An AI agent, automated system, or human-initiated workflow identifies an objective that requires a real-world action |
-| Intent Formation | The raw goal is translated into a structured intent object with action type, target resource, parameters, and justification |
-| Intent Validation | The structured intent is validated against schema requirements, field completeness, and format constraints before entering the protocol |
-| Governed Execution Protocol | The validated intent passes through the 8-step runtime protocol: Intake, Classification, Structured Intent, Policy & Risk Check, Authorization, Execution Gate, Receipt/Attestation, Audit Ledger |
-| Receipt | A cryptographic receipt is generated for every decision (approved, denied, or blocked) linking intent, authorization, and execution result |
-| Ledger | The receipt is recorded as an append-only, hash-linked entry in the audit ledger |
-| Learning | Historical decision data from the Governed Corpus is analyzed to update risk models and policies through a governed change process |
+The architecture is organized into four functional layers that operate in sequence:
+
+**The Specification Layer** defines the rules. It contains schemas, constraints, invariants, and protocol definitions that govern what is permissible, how requests must be structured, and what properties the system must maintain. The specification layer does not execute anything — it provides the normative framework against which all runtime behavior is evaluated.
+
+**The Control Plane** enforces execution. It implements the 8-step Governed Execution Protocol (Intake, Classification, Structured Intent, Policy & Risk Check, Authorization, Execution Gate, Receipt/Attestation, Audit Ledger) and ensures that every request is processed according to the rules defined in the specification layer. The control plane is the runtime enforcement mechanism.
+
+**The Ledger** records history. Every decision — whether approved, denied, or blocked — produces a cryptographic receipt that is appended to an immutable, hash-linked audit ledger. The ledger provides the permanent, tamper-evident record of all governed actions.
+
+**The Audit Layer** verifies correctness. Independent auditors can verify the integrity of the system by recomputing hash chains, validating signatures, checking invariants, and reconstructing decision chains from the ledger. The audit layer operates independently of the runtime and does not depend on trust in any single component.
 
 ---
 
-## Component Roles
+## 2. System Planes
 
-The following components implement the system architecture. Each component has a defined responsibility and operates within explicit control boundaries.
+The RIO architecture is decomposed into eight system planes. Each plane has a defined responsibility and operates within explicit boundaries. No plane is trusted in isolation — system correctness depends on the interaction of all planes and the cryptographic verification that links them.
 
-| Component | Responsibility | Protocol Stage |
-|-----------|---------------|----------------|
-| Intake Service | Receives incoming requests, authenticates the requester, assigns request IDs, timestamps, and nonces | Step 1 — Intake |
-| Classification Engine | Classifies the request into action type and risk domain, assigns preliminary risk level | Step 2 — Classification |
-| Intent Normalizer | Converts the classified request into a canonical structured intent object with standardized fields | Step 3 — Structured Intent |
-| Policy Engine | Evaluates the canonical intent against organizational policies, regulatory constraints, and operational boundaries | Step 4 — Policy & Risk Check |
-| Risk Evaluator | Computes quantified risk scores based on action type, target resource, actor history, and contextual factors | Step 4 — Policy & Risk Check |
-| Authorization Service | Routes the request to the appropriate human or delegated authority, collects the authorization decision, and issues a signed authorization token | Step 5 — Authorization |
-| Execution Gate | Validates the authorization token (signature, expiration, single-use, intent binding, kill switch status) before releasing the action for execution | Step 6 — Execution Gate |
-| Execution Engine | Carries out the authorized action within the constraints and scope defined by the authorization token | Step 6 — Execution Gate |
-| Receipt Service | Generates a cryptographic receipt containing intent hash, decision hash, execution hash, timestamp, and ECDSA-secp256k1 signature | Step 7 — Receipt/Attestation |
-| Ledger Service | Appends the receipt as a hash-linked entry in the append-only audit ledger | Step 8 — Audit Ledger |
-| Learning Service | Reads historical decision data from the Governed Corpus and proposes updates to risk models and policies | Step 9 — Governance Learning |
+| Plane | Responsibility |
+|-------|----------------|
+| Specification Plane | Defines schemas, constraints, invariants, and protocol rules |
+| Intent Plane | Goal clarification, intent formation, validation, authorization |
+| Control Plane | Execution orchestration and enforcement |
+| Execution Plane | External systems perform actions |
+| Receipt Plane | Generates cryptographic proof of decisions and actions |
+| Ledger Plane | Stores immutable history (append-only ledger) |
+| Audit Plane | Independent verification and compliance review |
+| Learning Plane | Governance learning, risk tuning, policy updates |
 
----
-
-## Separation of Responsibilities
-
-The architecture enforces strict separation between the following functional domains:
-
-**Request Generation vs. Request Authorization.** AI agents and automated systems may generate requests, but they cannot authorize their own requests. Authorization requires a distinct entity (human approver or independent delegated authority) whose identity differs from the requester. This separation is enforced structurally by the protocol (INV-06), not by policy alone.
-
-**Policy Evaluation vs. Execution.** The Policy Engine determines whether a request is permissible. The Execution Gate determines whether the authorization is valid. The Execution Engine carries out the action. These three functions operate independently. A policy approval does not bypass authorization. An authorization does not bypass the execution gate.
-
-**Runtime Enforcement vs. Governance Learning.** The runtime protocol (Steps 1–8) enforces controls synchronously for every request. The learning loop (Step 9) operates asynchronously on historical data. Learning outputs (updated risk models, policy changes) must themselves pass through the governed change process before taking effect in the runtime. The learning loop cannot bypass, override, or weaken runtime controls.
-
-**Receipt Generation vs. Ledger Storage.** The Receipt Service generates cryptographic proofs. The Ledger Service stores them immutably. These are separate components with separate signing keys. A compromise of the Receipt Service does not grant write access to the ledger. A compromise of the Ledger Service does not grant the ability to forge receipts.
+The **Specification Plane** is static and changes only through the governed change process (meta-governance). The **Intent Plane** and **Control Plane** operate synchronously for every request. The **Execution Plane** interfaces with external systems under the constraints set by the Control Plane. The **Receipt Plane** and **Ledger Plane** operate as write-once, append-only stores. The **Audit Plane** operates independently and asynchronously. The **Learning Plane** operates asynchronously on historical data and redeploys updates through the governed change process.
 
 ---
 
-## Control Boundaries
+## 3. Reference Architecture Diagram
 
-The architecture defines three control boundaries:
+The following diagram shows the end-to-end flow from goal formation through governance learning:
 
-| Boundary | Inside | Outside | Enforcement |
-|----------|--------|---------|-------------|
-| Runtime Boundary | Intake, Classification, Intent Normalization, Policy, Risk, Authorization, Execution Gate | AI agents, external systems, execution targets | All requests must enter through Intake. All executions must exit through the Execution Gate. No direct path from requester to execution target exists. |
-| Audit Boundary | Receipt Service, Ledger Service, Governed Corpus | Runtime components, external systems | All runtime decisions produce receipts. All receipts are recorded in the ledger. The audit boundary is write-only from the runtime perspective — runtime components cannot modify or delete audit records. |
-| Learning Boundary | Learning Service, Governed Corpus (read), Policy/Risk model updates | Runtime enforcement, authorization decisions | Learning reads historical data and proposes changes. Changes are deployed through a governed change process that is itself subject to the protocol. Learning cannot directly modify runtime behavior. |
+```mermaid
+flowchart LR
+    Goal[Goal]
+    Intent[Intent Formation]
+    Validate[Intent Validation]
+    Intake[Intake]
+    Policy[Policy & Risk]
+    Auth[Authorization]
+    Gate[Execution Gate]
+    Exec[Execution System]
+    Receipt[Receipt]
+    Ledger[Audit Ledger]
+    Audit[Audit / Verification]
+    Learn[Governance Learning]
+
+    Goal --> Intent --> Validate --> Intake --> Policy --> Auth --> Gate --> Exec --> Receipt --> Ledger --> Audit --> Learn
+```
+
+![RIO Reference Architecture Diagram](../diagrams/reference_architecture.png)
+
+The diagram illustrates the linear flow of a single request through the system. In practice, the Learning stage feeds updated risk models and policies back into the Policy & Risk stage through the governed change process, creating a closed loop. The Audit stage can query any point in the chain independently.
 
 ---
 
-## Fundamental Rule
+## 4. Trust Boundaries
 
-> Agents may generate requests, but all real-world actions must pass through the Governed Execution Protocol.
+The architecture defines six trust boundaries. No single component is trusted end-to-end. The system relies on separation of duties, cryptographic verification, and independent audit to establish correctness.
 
-No component, agent, or system may execute a consequential action without traversing the full 8-step runtime protocol. This rule applies regardless of the requester's identity, the action's risk level, or the urgency of the request. The kill switch (EKS-0) provides the only mechanism to halt all execution globally, and even kill switch events are recorded in the audit ledger.
+| Trust Boundary | Inside | Outside | Enforcement Mechanism |
+|----------------|--------|---------|----------------------|
+| AI / Agent Boundary | AI agents, automated systems, goal generators | All protocol stages | Agents may generate requests but cannot authorize, execute, or attest. All agent output enters the protocol through Intake and is treated as untrusted input. |
+| Authorization Boundary | Human approvers, delegated policy authorities | Requesters, execution systems | Authorization requires a distinct identity from the requester (INV-06). Authorization tokens are signed, time-bound, and single-use. |
+| Execution Boundary | Execution Gate, Execution Engine | All other components | Execution proceeds only when the Execution Gate validates a signed, unexpired, unspent authorization token bound to the correct canonical intent. The kill switch (EKS-0) overrides all execution. |
+| Ledger Boundary | Ledger Service, append-only storage | Runtime components, external systems | The ledger accepts only append operations. No component can modify or delete ledger entries. The hash chain makes tampering detectable. |
+| Audit Boundary | Independent auditors, verification tools | All runtime components | Auditors operate with read-only access to the ledger and receipt store. They verify correctness by recomputing hashes and signatures using public keys from the key registry. |
+| Human Governance Boundary | Policy administrators, governance board | Automated systems, learning outputs | Changes to protocol rules, invariants, schemas, and policies require human governance approval. The learning loop proposes changes but cannot deploy them without governance review. |
+
+---
+
+## 5. Data Flow Summary
+
+The following data objects flow between protocol stages. Each object is produced by a specific stage and consumed by one or more downstream stages.
+
+| Data Object | Produced By | Consumed By | Description |
+|-------------|-------------|-------------|-------------|
+| Intent Data | Intent Formation | Intent Validation, Intake | Raw structured intent containing action type, target, parameters, and justification |
+| Canonical Intent | Structured Intent (Stage 3) | Policy & Risk, Authorization, Execution Gate | Normalized, validated, hashed intent object in canonical format |
+| Risk and Policy Decisions | Policy & Risk Check (Stage 4) | Authorization | Risk score, policy decision (permit/deny/escalate), constraints, required approval level |
+| Authorization Tokens | Authorization (Stage 5) | Execution Gate | Signed, time-bound, single-use tokens binding an approver's decision to a specific canonical intent |
+| Execution Results | Execution Engine (Stage 6) | Receipt Service | Outcome of the executed action, including status, result payload, and error information |
+| Receipts | Receipt Service (Stage 7) | Ledger Service, Governed Corpus | Cryptographic proof linking intent hash, authorization decision, execution result, and timestamps |
+| Ledger Entries | Ledger Service (Stage 8) | Audit, Governed Corpus | Hash-linked, append-only records containing receipt references and chain pointers |
+| Audit Queries | Audit Plane | Ledger, Receipt Store, Key Registry | Read-only queries to verify hash chains, signatures, invariants, and decision chain completeness |
+| Learning Signals | Learning Plane | Policy Engine, Risk Evaluator (via governance) | Proposed updates to risk models, policy rules, thresholds, and classification models based on historical decision data |
+
+---
+
+## 6. Verification Model
+
+System correctness can be verified independently by any party with read access to the ledger and receipt store. Verification does not require trust in any runtime component. The following verification methods are supported:
+
+**Receipt signature verification.** Every receipt carries an ECDSA-secp256k1 signature. An auditor retrieves the Receipt Service's public key from the key registry and independently verifies the signature over the receipt's canonical JSON representation. A valid signature proves the receipt was generated by the authorized Receipt Service and has not been modified.
+
+**Ledger hash chain integrity.** Each ledger entry contains a SHA-256 hash of the previous entry. An auditor recomputes all hashes from the genesis entry forward and verifies that each `previous_ledger_hash` matches. Any break in the chain indicates tampering, deletion, or reordering.
+
+**Invariant checks.** The 8 protocol invariants (INV-01 through INV-08) define properties that must hold for every governed action. An auditor can verify these invariants by examining decision chains: every action traversed all stages (INV-01), every action produced a receipt (INV-02), every receipt was recorded in the ledger (INV-03), the hash chain is unbroken (INV-04), and so on.
+
+**Test case execution.** The protocol test cases (TC-RIO-001 through TC-RIO-003) define expected behavior for allowed execution, denied execution, and kill switch scenarios. These tests can be executed against any implementation to verify conformance.
+
+**Independent audit review.** An auditor can reconstruct the full decision chain for any governed action by starting from a ledger entry, following the receipt reference to the receipt, then following the intent and authorization references to the original request. This reconstruction is deterministic and repeatable.
+
+---
+
+## 7. Learning Loop
+
+Governance Learning operates on historical ledger and receipt data stored in the Governed Corpus. It analyzes patterns in decision outcomes, risk scores, policy decisions, and execution results to propose updates to:
+
+**Risk models.** Updated risk scoring parameters based on observed outcomes. Actions that consistently produce adverse outcomes may receive higher risk scores. Actions with clean track records may be candidates for streamlined processing.
+
+**Policy rules.** New or modified policy rules based on observed patterns. Policies that produce excessive false positives or false negatives can be refined based on historical data.
+
+**Thresholds.** Adjusted approval thresholds, time limits, and escalation triggers based on operational experience.
+
+**Classification models.** Improved action type classification and risk domain assignment based on historical classification accuracy.
+
+Learning cannot bypass runtime enforcement. All proposed changes from the learning loop must be reviewed and approved through the governed change process (meta-governance) before they take effect in the runtime. The learning loop reads from the Governed Corpus and writes proposed changes to a staging area. Deployment of those changes into the live runtime requires human governance approval and follows the same protocol controls that apply to any other consequential action.
 
 ---
 
@@ -97,3 +151,5 @@ No component, agent, or system may execute a consequential action without traver
 | Protocol Invariants | `/spec/protocol_invariants.md` |
 | EKS-0 Kill Switch | `/safety/EKS-0_kill_switch.md` |
 | Governed Corpus | `/spec/governed_corpus.md` |
+| Threat Model | `/spec/threat_model.md` |
+| Protocol Test Matrix | `/spec/protocol_test_matrix.md` |
