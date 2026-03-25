@@ -160,7 +160,9 @@ rio-protocol/
 │   ├── identity_and_credentials.md   DID, Verifiable Credentials, trust registry
 │   ├── oracle_attestation.md         External signed attestations for risk/policy
 │   ├── cross_domain_verification.md  Cross-system receipt and ledger verification
-│   └── content_addressing_and_lineage.md  Content hashing and provenance chains
+│   ├── content_addressing_and_lineage.md  Content hashing and provenance chains
+│   ├── protocol_invariants.md         8 protocol invariants (INV-01 through INV-08)
+│   └── protocol_test_matrix.md        Test-to-invariant mapping
 │
 ├── schemas/                           JSON Schema 2020-12 definitions
 │   ├── canonical_request.json
@@ -196,6 +198,14 @@ rio-protocol/
 │
 ├── manifest/                          System configuration
 │   └── rio_system_manifest.json       Protocol stack, crypto, governance
+│
+├── tests/                             Protocol test cases
+│   ├── TC-RIO-001.md                  Allowed execution with receipt and ledger
+│   ├── TC-RIO-002.md                  Denied execution due to policy
+│   └── TC-RIO-003.md                  Kill switch blocks execution
+│
+├── safety/                            Safety mechanisms
+│   └── EKS-0_kill_switch.md           Global execution kill switch specification
 │
 ├── whitepaper/                        White paper (Markdown + PDF)
 ├── README.md
@@ -323,6 +333,9 @@ All diagrams include editable Mermaid source files (`.mmd`).
 | Protocol Standardization | 5 docs | Complete |
 | Core Protocol Mechanics | 5 docs | Complete |
 | Infrastructure Extensions | 4 docs | Complete |
+| Protocol Invariants | 8 invariants | Complete |
+| Protocol Test Cases | 3 tests | Complete |
+| Safety Mechanisms | 1 (EKS-0) | Complete |
 | White Paper | 1 | Complete |
 
 ---

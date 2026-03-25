@@ -138,3 +138,20 @@ A ninth, asynchronous Governance Learning loop updates risk and policy models ba
 ## Protocol Flow
 
 Intake → Classification → Structured Intent → Policy & Risk → Authorization → Execution Gate → Receipt → Audit Ledger → Learning
+
+
+---
+
+## Protocol Invariants
+
+The following invariants define safety and correctness properties that must never be violated by any implementation of the Governed Execution Protocol. These invariants apply across all runtime stages and are enforced by the runtime, authorization system, and execution gate.
+
+See `/spec/protocol_invariants.md` for the full invariant definitions.
+
+---
+
+## Safety Mechanisms
+
+The protocol includes a global execution halt mechanism (EKS-0 Kill Switch) that overrides normal authorization and execution behavior. When engaged, no new executions may proceed regardless of policy decisions. All kill switch events and blocked requests must still generate receipts and be written to the audit ledger.
+
+See `/safety/EKS-0_kill_switch.md` and `/tests/TC-RIO-003.md` for specification and test behavior.
