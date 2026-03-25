@@ -155,7 +155,11 @@ rio-protocol/
 │   ├── protocol_state_machine.md     Formal state transitions and terminal states
 │   ├── execution_envelope.md         Bounded execution model with kill switch
 │   ├── system_invariants.md          21 system invariants across 6 categories
-│   └── api_endpoints.md              REST API surface definition
+│   ├── api_endpoints.md              REST API surface definition
+│   ├── identity_and_credentials.md   DID, Verifiable Credentials, trust registry
+│   ├── oracle_attestation.md         External signed attestations for risk/policy
+│   ├── cross_domain_verification.md  Cross-system receipt and ledger verification
+│   └── content_addressing_and_lineage.md  Content hashing and provenance chains
 │
 ├── schemas/                           JSON Schema 2020-12 definitions
 │   ├── canonical_request.json
@@ -316,6 +320,7 @@ All diagrams include editable Mermaid source files (`.mmd`).
 | Role Model | 8 roles | Complete |
 | Protocol Standardization | 5 docs | Complete |
 | Core Protocol Mechanics | 5 docs | Complete |
+| Infrastructure Extensions | 4 docs | Complete |
 | White Paper | 1 | Complete |
 
 ---
