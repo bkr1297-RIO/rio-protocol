@@ -272,11 +272,14 @@ def run(
         # ---------------------------------------------------------------
         # Stage 5: Authorization
         # ---------------------------------------------------------------
+        # Extract approver role from raw_input or default to empty
+        approver_role = raw_input.get("approver_role", "")
         auth = authorization.authorize(
             intent=intent_obj,
             policy_result=policy_result,
             approver_id=approver_id,
             state=state,
+            approver_role=approver_role,
         )
         result.authorization = auth
         result.stages_completed.append("authorization")
@@ -330,7 +333,15 @@ def run(
         # ---------------------------------------------------------------
         # Stage 8: Ledger
         # ---------------------------------------------------------------
-        entry = ledger.append(rcpt, state)
+        # Pass IAM enrichment fields to ledger
+        iam_kwargs = {
+            "requested_by": intent_obj.requested_by,
+            "approved_by": auth.approver_id,
+            "requester_role": role,
+            "approver_role": getattr(auth, "approver_role", ""),
+            "authority_scope": getattr(auth, "authority_scope", ""),
+        }
+        entry = ledger.append(rcpt, state, **iam_kwargs)
         result.ledger_entry = entry
         result.stages_completed.append("ledger")
         logger.info(

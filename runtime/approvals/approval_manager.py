@@ -268,6 +268,7 @@ def approve(
         policy_result=policy_result_for_auth,
         approver_id=approver_id,
         state=state,
+        approver_role=approver_role,
     )
     result.authorization = auth
 

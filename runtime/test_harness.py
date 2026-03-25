@@ -40,6 +40,11 @@ Test Cases:
     TC-LEDG-002: Modify a past ledger entry → verification fails
     TC-LEDG-003: Delete an entry → verification fails
     TC-LEDG-004: Modify receipt → signature verification fails
+    TC-IAM-001: Employee cannot approve transfer
+    TC-IAM-002: Manager can approve transfer under limit
+    TC-IAM-003: Admin can approve anything
+    TC-IAM-004: Approver cannot be same as requester for high-risk
+    TC-IAM-005: Expired approval token rejected
 
 Run with: python -m runtime.test_harness
 """
@@ -60,6 +65,8 @@ from .governance import policy_manager
 from .governance.governance_ledger import record_governance_change, set_governance_state
 from . import receipt as receipt_module
 from . import verify_ledger
+from .iam import permissions as iam_permissions, users as iam_users
+from .iam.approval_workflow import check_authority
 
 # Configure logging
 logging.basicConfig(
@@ -78,6 +85,8 @@ def _reset_state() -> SystemState:
     """Create a fresh system state and reset the in-memory ledger."""
     ledger.reset()
     approval_manager.reset()
+    iam_permissions.reset()
+    iam_users.reset()
     return SystemState()
 
 
@@ -2352,6 +2361,359 @@ def test_ledger_tamper_receipt():
 
 
 # ---------------------------------------------------------------------------
+# TC-IAM-001: Employee cannot approve transfer
+# Protocol Steps Covered: 5 (Authorization with IAM authority check)
+# ---------------------------------------------------------------------------
+
+def test_iam_employee_cannot_approve_transfer():
+    """
+    TC-IAM-001: An employee (user_002) attempts to approve a transfer_funds
+    action. The IAM authority check must deny because employees have an
+    empty can_approve list.
+
+    Flow: Pipeline halts at REQUIRE_APPROVAL → employee tries to approve
+    via approval_manager → role check blocks them.
+    """
+    logger.info("=" * 70)
+    logger.info("TC-IAM-001: Employee cannot approve transfer")
+    logger.info("=" * 70)
+
+    state = _reset_state()
+
+    # Run pipeline — transfer_funds triggers REQUIRE_APPROVAL (ESCALATE)
+    result = run(
+        actor_id="user_005",  # Eve Davis, employee — requester
+        raw_input={
+            "action_type": "transfer_funds",
+            "target_resource": "bank_account",
+            "parameters": {
+                "amount": 5000,
+                "currency": "USD",
+                "recipient": "vendor_001",
+                "source_account": "ACC-001",
+            },
+            "requested_by": "user_005",
+            "justification": "TC-IAM-001: Employee approval attempt",
+            "approver_role": "employee",
+        },
+        approver_id="user_002",  # Bob Johnson, employee — approver
+        state=state,
+    )
+
+    # Pipeline should halt at REQUIRE_APPROVAL
+    _assert(result.pending_approval is True, "Pipeline halted at REQUIRE_APPROVAL")
+    _assert(result.approval is not None, "Approval request was created")
+
+    # Employee tries to approve — should be rejected by role check
+    approval_id = result.approval.approval_id
+    approve_result = approval_manager.approve(
+        approval_id=approval_id,
+        approver_id="user_002",
+        approver_role="employee",
+    )
+    _assert(approve_result.success is False, "Employee approval attempt failed")
+    _assert(
+        "not authorized to approve" in approve_result.error.lower()
+        or "employee" in approve_result.error.lower(),
+        f"Error mentions employee cannot approve (got: {approve_result.error})",
+    )
+
+    # Also verify directly via check_authority
+    authority = check_authority(
+        approver_id="user_002",
+        approver_role="employee",
+        requester_id="user_005",
+        action="transfer_funds",
+        parameters={"amount": 5000},
+    )
+    _assert(authority.authorized is False, "check_authority returns unauthorized")
+    _assert(
+        "not authorized to approve" in authority.error.lower(),
+        f"Error mentions not authorized (got: {authority.error})",
+    )
+
+    logger.info("TC-IAM-001: PASSED")
+    logger.info("")
+
+
+# ---------------------------------------------------------------------------
+# TC-IAM-002: Manager can approve transfer under limit
+# Protocol Steps Covered: 1-8 (full pipeline with IAM authority)
+# ---------------------------------------------------------------------------
+
+def test_iam_manager_approve_under_limit():
+    """
+    TC-IAM-002: A manager (user_001) approves a transfer_funds action with
+    amount=5000, which is under the manager's $10,000 approval limit.
+    The pipeline should succeed with full execution.
+    """
+    logger.info("=" * 70)
+    logger.info("TC-IAM-002: Manager can approve transfer under limit")
+    logger.info("=" * 70)
+
+    state = _reset_state()
+
+    result = run(
+        actor_id="user_002",  # Bob Johnson, employee — requester
+        raw_input={
+            "action_type": "transfer_funds",
+            "target_resource": "bank_account",
+            "parameters": {
+                "amount": 5000,
+                "currency": "USD",
+                "recipient": "vendor_002",
+                "source_account": "ACC-002",
+            },
+            "requested_by": "user_002",
+            "justification": "TC-IAM-002: Manager approval under limit",
+            "approver_role": "manager",
+        },
+        approver_id="user_001",  # Alice Smith, manager — approver
+        state=state,
+        action_handler=_action_handler,  # Provide handler so transfer_funds can execute
+    )
+
+    # transfer_funds with amount=5000 triggers REQUIRE_APPROVAL (POL-001: amount > 1000)
+    _assert(result.pending_approval is True, "Pipeline halted at REQUIRE_APPROVAL")
+    _assert(result.approval is not None, "Approval request was created")
+
+    # Manager approves via approval manager (no state kwarg — it uses stored context)
+    approval_id = result.approval.approval_id
+    approve_result = approval_manager.approve(
+        approval_id=approval_id,
+        approver_id="user_001",
+        approver_role="manager",
+    )
+    _assert(approve_result.success is True, "Manager approval succeeded")
+    _assert(
+        approve_result.execution_result.execution_status == ExecutionStatus.EXECUTED,
+        "Execution status is EXECUTED after manager approval",
+    )
+    _assert(approve_result.receipt is not None, "Receipt generated after approval")
+    _assert(approve_result.ledger_entry is not None, "Ledger entry created after approval")
+
+    # Verify manager authority directly
+    authority = check_authority(
+        approver_id="user_001",
+        approver_role="manager",
+        requester_id="user_002",
+        action="transfer_funds",
+        parameters={"amount": 5000},
+    )
+    _assert(authority.authorized is True, "Manager has authority to approve transfer at $5000")
+    _assert(
+        "manager" in authority.authority_scope.lower(),
+        f"Authority scope mentions manager (got: {authority.authority_scope})",
+    )
+
+    logger.info("TC-IAM-002: PASSED")
+    logger.info("")
+
+
+# ---------------------------------------------------------------------------
+# TC-IAM-003: Admin can approve anything
+# Protocol Steps Covered: 5 (Authorization with IAM authority check)
+# ---------------------------------------------------------------------------
+
+def test_iam_admin_approve_anything():
+    """
+    TC-IAM-003: An admin (user_003) can approve a transfer_funds action with
+    amount=50000, which exceeds the manager limit but admins have wildcard
+    authority with no limits.
+    """
+    logger.info("=" * 70)
+    logger.info("TC-IAM-003: Admin can approve anything")
+    logger.info("=" * 70)
+
+    state = _reset_state()
+
+    # Verify admin authority for a large transfer
+    authority = check_authority(
+        approver_id="user_003",  # Carol Williams, admin
+        approver_role="admin",
+        requester_id="user_002",  # Bob Johnson, employee
+        action="transfer_funds",
+        parameters={"amount": 50000},
+    )
+    _assert(authority.authorized is True, "Admin has authority to approve any transfer amount")
+    _assert(
+        "FULL_AUTHORITY" in authority.authority_scope,
+        f"Authority scope is FULL_AUTHORITY (got: {authority.authority_scope})",
+    )
+
+    # Verify admin can approve actions that managers cannot
+    # (e.g., system_shutdown — not in manager's can_approve list)
+    authority2 = check_authority(
+        approver_id="user_003",
+        approver_role="admin",
+        requester_id="user_002",
+        action="system_shutdown",
+        parameters={},
+    )
+    _assert(authority2.authorized is True, "Admin can approve system_shutdown")
+
+    # Verify manager CANNOT approve the $50,000 transfer (exceeds limit)
+    authority3 = check_authority(
+        approver_id="user_001",  # Alice Smith, manager
+        approver_role="manager",
+        requester_id="user_002",
+        action="transfer_funds",
+        parameters={"amount": 50000},
+    )
+    _assert(authority3.authorized is False, "Manager cannot approve $50,000 transfer (exceeds limit)")
+    _assert(
+        "exceeds" in authority3.error.lower() or "limit" in authority3.error.lower(),
+        f"Error mentions limit exceeded (got: {authority3.error})",
+    )
+
+    logger.info("TC-IAM-003: PASSED")
+    logger.info("")
+
+
+# ---------------------------------------------------------------------------
+# TC-IAM-004: Approver cannot be same as requester for high-risk
+# Protocol Steps Covered: 5 (Authorization with self-approval check)
+# ---------------------------------------------------------------------------
+
+def test_iam_self_approval_blocked():
+    """
+    TC-IAM-004: A manager (user_001) tries to both request and approve a
+    transfer_funds action. Self-approval must be blocked for high-risk
+    actions (transfer_funds is in self_approval_blocked_actions).
+    """
+    logger.info("=" * 70)
+    logger.info("TC-IAM-004: Approver cannot be same as requester for high-risk")
+    logger.info("=" * 70)
+
+    state = _reset_state()
+
+    # Direct authority check — self-approval for transfer_funds
+    authority = check_authority(
+        approver_id="user_001",  # Alice Smith, manager
+        approver_role="manager",
+        requester_id="user_001",  # Same person!
+        action="transfer_funds",
+        parameters={"amount": 500},
+    )
+    _assert(authority.authorized is False, "Self-approval blocked for transfer_funds")
+    _assert(
+        "self-approval" in authority.error.lower() or "self" in authority.error.lower(),
+        f"Error mentions self-approval (got: {authority.error})",
+    )
+
+    # Verify self-approval is also blocked for other high-risk actions
+    for action in ["delete_data", "deploy_code", "grant_access"]:
+        auth = check_authority(
+            approver_id="user_003",  # Admin
+            approver_role="admin",
+            requester_id="user_003",  # Same person!
+            action=action,
+            parameters={},
+        )
+        _assert(
+            auth.authorized is False,
+            f"Self-approval blocked for high-risk action '{action}'",
+        )
+
+    # Verify self-approval is NOT blocked for non-high-risk actions
+    auth_email = check_authority(
+        approver_id="user_001",
+        approver_role="manager",
+        requester_id="user_001",
+        action="send_email",
+        parameters={},
+    )
+    _assert(
+        auth_email.authorized is True,
+        "Self-approval is allowed for non-high-risk action 'send_email'",
+    )
+
+    logger.info("TC-IAM-004: PASSED")
+    logger.info("")
+
+
+# ---------------------------------------------------------------------------
+# TC-IAM-005: Expired approval token rejected
+# Protocol Steps Covered: 5 (Authorization token expiry)
+# ---------------------------------------------------------------------------
+
+def test_iam_expired_token_rejected():
+    """
+    TC-IAM-005: An authorization token that has expired must be rejected.
+    We test this by running the pipeline, then manipulating the token
+    expiration to simulate expiry.
+    """
+    logger.info("=" * 70)
+    logger.info("TC-IAM-005: Expired approval token rejected")
+    logger.info("=" * 70)
+
+    state = _reset_state()
+
+    # Run a normal pipeline to get an authorization token
+    result = run(
+        actor_id="user_002",  # Bob Johnson, employee
+        raw_input={
+            "action_type": "send_email",
+            "target_resource": "email_system",
+            "parameters": {
+                "recipient": "test@example.com",
+                "subject": "Token Expiry Test",
+                "body": "Testing token expiration.",
+            },
+            "requested_by": "user_002",
+            "justification": "TC-IAM-005: Token expiry test",
+            "approver_role": "manager",
+        },
+        approver_id="user_001",  # Alice Smith, manager
+        state=state,
+    )
+
+    _assert(result.success is True, "Pipeline reports success")
+    _assert(result.authorization is not None, "Authorization was created")
+
+    # Verify the token has a valid expiration timestamp
+    auth = result.authorization
+    _assert(
+        auth.expiration_timestamp > 0,
+        f"Token has expiration timestamp (got: {auth.expiration_timestamp})",
+    )
+
+    # Simulate token expiry by setting expiration to the past
+    import time
+    original_expiry = auth.expiration_timestamp
+    auth.expiration_timestamp = int((time.time() - 60) * 1000)  # 1 minute ago
+
+    # Check token expiry via authorization module
+    from runtime.authorization import check_token_expiry
+    valid, error = check_token_expiry(auth)
+    _assert(valid is False, "Expired token is rejected")
+    _assert(
+        "expired" in error.lower(),
+        f"Error mentions expiration (got: {error})",
+    )
+
+    # Restore and verify valid token passes
+    auth.expiration_timestamp = original_expiry
+    valid2, error2 = check_token_expiry(auth)
+    _assert(valid2 is True, "Non-expired token is accepted")
+    _assert(error2 == "", "No error for valid token")
+
+    # Also test via IAM approval_workflow
+    from runtime.iam.approval_workflow import is_token_expired
+    _assert(
+        is_token_expired(time.time() - 60) is True,
+        "is_token_expired returns True for past timestamp",
+    )
+    _assert(
+        is_token_expired(time.time() + 300) is False,
+        "is_token_expired returns False for future timestamp",
+    )
+
+    logger.info("TC-IAM-005: PASSED")
+    logger.info("")
+
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
@@ -2396,6 +2758,11 @@ def run_all_tests():
         ("TC-LEDG-002", test_ledger_tamper_entry),
         ("TC-LEDG-003", test_ledger_delete_entry),
         ("TC-LEDG-004", test_ledger_tamper_receipt),
+        ("TC-IAM-001", test_iam_employee_cannot_approve_transfer),
+        ("TC-IAM-002", test_iam_manager_approve_under_limit),
+        ("TC-IAM-003", test_iam_admin_approve_anything),
+        ("TC-IAM-004", test_iam_self_approval_blocked),
+        ("TC-IAM-005", test_iam_expired_token_rejected),
     ]
 
     passed = 0

@@ -1,0 +1,44 @@
+{
+  "roles": {
+    "intern": {
+      "description": "Temporary staff with minimal permissions",
+      "level": 1,
+      "can_request": ["send_email", "create_event"],
+      "can_approve": [],
+      "can_view_ledger": false
+    },
+    "employee": {
+      "description": "Regular staff member with standard operational permissions",
+      "level": 2,
+      "can_request": ["send_email", "create_event", "write_file", "read_file", "http_request"],
+      "can_approve": [],
+      "can_view_ledger": false
+    },
+    "manager": {
+      "description": "Team lead with approval authority for standard operations",
+      "level": 3,
+      "can_request": ["send_email", "create_event", "write_file", "read_file", "http_request", "transfer_funds"],
+      "can_approve": ["send_email", "create_event", "write_file", "read_file", "http_request", "transfer_funds", "deploy_code", "grant_access"],
+      "can_view_ledger": true,
+      "approval_limits": {
+        "transfer_funds": {"max_amount": 10000}
+      }
+    },
+    "admin": {
+      "description": "System administrator with full permissions and unlimited approval authority",
+      "level": 4,
+      "can_request": ["*"],
+      "can_approve": ["*"],
+      "can_view_ledger": true,
+      "approval_limits": {}
+    },
+    "auditor": {
+      "description": "Read-only access for compliance and audit purposes",
+      "level": 2,
+      "can_request": [],
+      "can_approve": [],
+      "can_view_ledger": true
+    }
+  },
+  "hierarchy": ["intern", "employee", "auditor", "manager", "admin"]
+}

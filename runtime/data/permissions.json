@@ -1,0 +1,56 @@
+{
+  "permissions": {
+    "intern": {
+      "can_request": ["send_email", "create_event"],
+      "can_approve": [],
+      "can_view_ledger": false,
+      "approval_limits": {}
+    },
+    "employee": {
+      "can_request": ["send_email", "create_event", "write_file", "read_file", "http_request"],
+      "can_approve": [],
+      "can_view_ledger": false,
+      "approval_limits": {}
+    },
+    "manager": {
+      "can_request": ["send_email", "create_event", "write_file", "read_file", "http_request", "transfer_funds"],
+      "can_approve": ["send_email", "create_event", "write_file", "read_file", "http_request", "transfer_funds", "deploy_code", "grant_access"],
+      "can_view_ledger": true,
+      "approval_limits": {
+        "transfer_funds": {
+          "max_amount": 10000,
+          "description": "Can approve transfers up to $10,000"
+        }
+      }
+    },
+    "admin": {
+      "can_request": ["*"],
+      "can_approve": ["*"],
+      "can_view_ledger": true,
+      "approval_limits": {},
+      "notes": "Wildcard (*) grants access to all current and future action types"
+    },
+    "auditor": {
+      "can_request": [],
+      "can_approve": [],
+      "can_view_ledger": true,
+      "approval_limits": {},
+      "notes": "Read-only access for compliance review"
+    }
+  },
+  "high_risk_actions": [
+    "transfer_funds",
+    "delete_data",
+    "deploy_code",
+    "grant_access",
+    "system_shutdown"
+  ],
+  "self_approval_blocked_actions": [
+    "transfer_funds",
+    "delete_data",
+    "deploy_code",
+    "grant_access"
+  ],
+  "token_ttl_ms": 300000,
+  "token_single_use": true
+}

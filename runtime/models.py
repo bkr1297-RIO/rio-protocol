@@ -164,6 +164,9 @@ class Authorization:
     expiration_timestamp: int = 0
     single_use: bool = True
     signature: str = ""
+    # IAM enrichment fields
+    approver_role: str = ""
+    authority_scope: str = ""
 
 
 # ---------------------------------------------------------------------------
@@ -228,3 +231,9 @@ class LedgerEntry:
     action: str = ""
     result_hash: str = ""
     receipt_signature: str = ""
+    # IAM enrichment fields
+    requested_by: str = ""
+    approved_by: str = ""
+    requester_role: str = ""
+    approver_role: str = ""
+    authority_scope: str = ""

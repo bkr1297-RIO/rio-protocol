@@ -80,7 +80,7 @@ def _load_public_key():
 _ledger: list[LedgerEntry] = []
 
 
-def append(receipt: Receipt, state: SystemState) -> LedgerEntry:
+def append(receipt: Receipt, state: SystemState, **kwargs) -> LedgerEntry:
     """
     Append a receipt to the audit ledger as a new entry.
 
@@ -119,6 +119,12 @@ def append(receipt: Receipt, state: SystemState) -> LedgerEntry:
         action=receipt.action_type,
         result_hash=receipt.result_hash,
         receipt_signature=receipt.signature,
+        # IAM enrichment fields (passed via kwargs or defaults)
+        requested_by=kwargs.get("requested_by", ""),
+        approved_by=kwargs.get("approved_by", ""),
+        requester_role=kwargs.get("requester_role", ""),
+        approver_role=kwargs.get("approver_role", ""),
+        authority_scope=kwargs.get("authority_scope", ""),
     )
 
     # Compute ledger hash over all fields

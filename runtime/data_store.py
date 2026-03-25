@@ -142,6 +142,12 @@ def write_ledger_entry(entry: LedgerEntry) -> None:
         "timestamp_iso": datetime.fromtimestamp(
             entry.timestamp / 1000, tz=timezone.utc
         ).isoformat(),
+        # IAM enrichment fields
+        "requested_by": getattr(entry, "requested_by", ""),
+        "approved_by": getattr(entry, "approved_by", ""),
+        "requester_role": getattr(entry, "requester_role", ""),
+        "approver_role": getattr(entry, "approver_role", ""),
+        "authority_scope": getattr(entry, "authority_scope", ""),
     }
     _append_jsonl(_LEDGER_FILE, record)
     logger.debug("Ledger entry %s written to data store", entry.ledger_entry_id)
