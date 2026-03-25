@@ -185,7 +185,23 @@ rio-protocol/
 ├── architecture/                      System architecture models
 │   └── 15_layer_model.md             15-layer system architecture
 │
-├── runtime/                           Runtime implementation (reserved)
+├── runtime/                           Reference runtime skeleton (Python)
+│   ├── __init__.py                    Package init with execution flow docs
+│   ├── models.py                      Data structures: Request, Intent, Authorization, Receipt, LedgerEntry
+│   ├── invariants.py                  Protocol invariant checks (INV-01 through INV-08)
+│   ├── state.py                       System state: kill switch, token registry, ledger head
+│   ├── kill_switch.py                 EKS-0 kill switch engage/disengage/check
+│   ├── intake.py                      Stage 1: Register and authenticate requests
+│   ├── classification.py              Stage 2: Classify action type and risk
+│   ├── intent_validation.py           Stage 3a: Validate required fields and schema
+│   ├── structured_intent.py           Stage 3b: Form canonical intent object
+│   ├── policy_risk.py                 Stage 4: Policy evaluation and risk scoring
+│   ├── authorization.py               Stage 5: Authorization decisions and token issuance
+│   ├── execution_gate.py              Stage 6: Final gate checks before execution
+│   ├── receipt.py                     Stage 7: Receipt generation, hashing, signing
+│   ├── ledger.py                      Stage 8: Append-only ledger with hash chain
+│   ├── verification.py                Verification of receipts, ledger, and invariants
+│   └── governance_learning.py         Stage 9: Asynchronous learning recommendations
 │
 ├── schemas/                           JSON Schema 2020-12 definitions
 │   ├── canonical_request.json
@@ -447,6 +463,7 @@ See [`spec/receipt_spec.md`](spec/receipt_spec.md) for receipt fields and verifi
 | Two-Loop Architecture | 1 | Complete |
 | Intent Translation Layer | 1 | Complete |
 | Master Protocol Index | 1 | Complete |
+| Runtime Skeleton | 15 Python modules | Complete |
 | White Paper | 1 | Complete |
 
 ---
