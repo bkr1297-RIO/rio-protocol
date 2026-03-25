@@ -170,7 +170,8 @@ rio-protocol/
 │   ├── canonical_intent_schema.json   Core schema: canonical intent (Stage 3)
 │   ├── authorization_token_schema.json Core schema: authorization token (Stage 5)
 │   ├── receipt_schema.json            Core schema: receipt (Stage 7)
-│   └── ledger_entry_schema.json       Core schema: ledger entry (Stage 8)
+│   ├── ledger_entry_schema.json       Core schema: ledger entry (Stage 8)
+│   └── protocol_blueprint_template.md Standard template for all protocol stages
 │
 ├── architecture/                      System architecture models
 │   └── 15_layer_model.md             15-layer system architecture
@@ -401,6 +402,7 @@ See [`spec/receipt_spec.md`](spec/receipt_spec.md) for receipt fields and verifi
 | Protocol Specifications | 15 | Complete |
 | JSON Schemas (original) | 8 | Complete |
 | Core Protocol Schemas | 4 | Complete |
+| Protocol Blueprint Template | 1 | Complete |
 | End-to-End Examples | 5 | Complete |
 | Architecture Diagrams | 5 | Complete |
 | Threat Model | 10 threats | Complete |
