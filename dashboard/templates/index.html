@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <h2>System Overview</h2>
+    <p>Real-time summary of the RIO governed execution system.</p>
+</div>
+
+<!-- Kill Switch Banner -->
+{% if system_state.kill_switch_active %}
+<div class="ks-banner active">
+    <div class="ks-label">
+        <span class="ks-dot"></span>
+        KILL SWITCH ENGAGED
+        {% if system_state.kill_switch_engaged_by %}
+            &mdash; by {{ system_state.kill_switch_engaged_by }}
+        {% endif %}
+    </div>
+    <form action="/api/kill-switch/disengage" method="POST" style="display:inline;">
+        <button type="submit" class="btn btn-success">Disengage Kill Switch</button>
+    </form>
+</div>
+{% else %}
+<div class="ks-banner inactive">
+    <div class="ks-label">
+        <span class="ks-dot"></span>
+        KILL SWITCH DISENGAGED &mdash; System operational
+    </div>
+    <form action="/api/kill-switch/engage" method="POST" style="display:inline;">
+        <button type="submit" class="btn btn-danger">Engage Kill Switch</button>
+    </form>
+</div>
+{% endif %}
+
+<!-- Summary Cards -->
+<div class="summary-grid">
+    <div class="summary-card">
+        <div class="label">Total Requests</div>
+        <div class="value gold">{{ stats.total_requests }}</div>
+    </div>
+    <div class="summary-card">
+        <div class="label">Allowed</div>
+        <div class="value green">{{ stats.allowed }}</div>
+    </div>
+    <div class="summary-card">
+        <div class="label">Denied</div>
+        <div class="value red">{{ stats.denied }}</div>
+    </div>
+    <div class="summary-card">
+        <div class="label">Executed</div>
+        <div class="value blue">{{ stats.executed }}</div>
+    </div>
+    <div class="summary-card">
+        <div class="label">Blocked</div>
+        <div class="value orange">{{ stats.blocked }}</div>
+    </div>
+    <div class="summary-card">
+        <div class="label">Ledger Length</div>
+        <div class="value gold">{{ system_state.ledger_length }}</div>
+    </div>
+    <div class="summary-card">
+        <div class="label">Policy Version</div>
+        <div class="value">{{ system_state.policy_version }}</div>
+    </div>
+    <div class="summary-card">
+        <div class="label">Risk Model Version</div>
+        <div class="value">{{ system_state.risk_model_version }}</div>
+    </div>
+</div>
+
+<!-- Recent Activity -->
+<div class="page-header">
+    <h2>Recent Activity</h2>
+    <p>Last 10 receipts processed by the system.</p>
+</div>
+
+{% if recent_receipts %}
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>Receipt ID</th>
+                <th>Action</th>
+                <th>Decision</th>
+                <th>Status</th>
+                <th>Risk</th>
+                <th>Timestamp</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in recent_receipts %}
+            <tr>
+                <td class="mono">{{ r.receipt_id[:12] }}...</td>
+                <td>{{ r.action_type }}</td>
+                <td><span class="badge badge-{{ r.decision | lower }}">{{ r.decision }}</span></td>
+                <td><span class="badge badge-{{ r.execution_status | lower | replace('_', '-') }}">{{ r.execution_status }}</span></td>
+                <td>
+                    {% if r.risk_score %}
+                        {{ "%.1f" | format(r.risk_score) }} ({{ r.risk_level }})
+                    {% else %}
+                        &mdash;
+                    {% endif %}
+                </td>
+                <td class="mono">{{ r.timestamp_iso }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="table-container">
+    <div class="empty-state">
+        <div class="icon">&#9671;</div>
+        <p>No activity yet. Run the pipeline to generate data.</p>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

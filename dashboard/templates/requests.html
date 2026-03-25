@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <h2>Requests</h2>
+    <p>All requests registered at the Intake stage. {{ requests | length }} total.</p>
+</div>
+
+{% if requests %}
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>Request ID</th>
+                <th>Action</th>
+                <th>Requester</th>
+                <th>Role</th>
+                <th>Target Resource</th>
+                <th>Decision</th>
+                <th>Risk Score</th>
+                <th>Execution Status</th>
+                <th>Timestamp</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for req in requests %}
+            <tr>
+                <td class="mono">{{ req.request_id[:12] }}...</td>
+                <td>{{ req.action_type }}</td>
+                <td>{{ req.actor_id }}</td>
+                <td>{{ req.role }}</td>
+                <td>{{ req.target_resource }}</td>
+                <td>
+                    {% if req.decision %}
+                        <span class="badge badge-{{ req.decision | lower }}">{{ req.decision }}</span>
+                    {% else %}
+                        <span class="badge" style="opacity:.5">PENDING</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if req.risk_score is not none %}
+                        {{ "%.1f" | format(req.risk_score) }}
+                    {% else %}
+                        &mdash;
+                    {% endif %}
+                </td>
+                <td>
+                    {% if req.execution_status %}
+                        <span class="badge badge-{{ req.execution_status | lower | replace('_', '-') }}">{{ req.execution_status }}</span>
+                    {% else %}
+                        &mdash;
+                    {% endif %}
+                </td>
+                <td class="mono">{{ req.timestamp_iso }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="table-container">
+    <div class="empty-state">
+        <div class="icon">&#9654;</div>
+        <p>No requests recorded yet.</p>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

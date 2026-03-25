@@ -1,3 +1,7 @@
 # Connector output logs (generated at runtime)
 *.log
 test_output.txt
+# Runtime data files (generated at runtime, not committed)
+*.jsonl
+system_state.json
+

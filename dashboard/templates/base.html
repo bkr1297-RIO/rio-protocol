@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title | default("RIO Audit Dashboard") }}</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <h1>RIO</h1>
+                <p>Audit Dashboard</p>
+            </div>
+            <nav>
+                <a href="/" class="{{ 'active' if active_page == 'home' else '' }}">
+                    <span class="icon">&#9632;</span> Overview
+                </a>
+                <a href="/requests" class="{{ 'active' if active_page == 'requests' else '' }}">
+                    <span class="icon">&#9654;</span> Requests
+                </a>
+                <a href="/receipts" class="{{ 'active' if active_page == 'receipts' else '' }}">
+                    <span class="icon">&#9830;</span> Receipts
+                </a>
+                <a href="/ledger" class="{{ 'active' if active_page == 'ledger' else '' }}">
+                    <span class="icon">&#9733;</span> Ledger
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

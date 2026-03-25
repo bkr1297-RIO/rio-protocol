@@ -33,6 +33,7 @@ from . import (
     receipt as receipt_module,
     ledger,
     verification,
+    data_store,
 )
 from .invariants import (
     check_inv_01_completeness,
@@ -123,6 +124,10 @@ def run(
         result.stages_completed.append("intake")
         logger.info("STAGE 1 COMPLETE — intake — request_id=%s", req.request_id)
 
+        # Persist request to JSONL data store
+        role = raw_input.get("role", "employee")
+        data_store.write_request(req, role=role)
+
         # ---------------------------------------------------------------
         # Stage 2: Classification
         # ---------------------------------------------------------------
@@ -177,6 +182,18 @@ def run(
             entry = ledger.append(rcpt, state)
             result.ledger_entry = entry
             result.stages_completed.append("ledger")
+
+            # Persist receipt and ledger entry to JSONL data store
+            data_store.write_receipt(rcpt)
+            data_store.write_ledger_entry(entry)
+            data_store.write_system_state(
+                kill_switch_active=state.kill_switch_active,
+                kill_switch_engaged_by=state.kill_switch_engaged_by,
+                kill_switch_engaged_at=state.kill_switch_engaged_at,
+                policy_version=state.policy_version,
+                risk_model_version=state.risk_model_version,
+                ledger_length=state.ledger_length,
+            )
 
             result.error = f"Intent validation failed: {validation.errors}"
             result.stage_failed = "intent_validation"
@@ -278,6 +295,21 @@ def run(
             "STAGE 8 COMPLETE — ledger — entry_id=%s chain_length=%d",
             entry.ledger_entry_id,
             state.ledger_length,
+        )
+
+        # ---------------------------------------------------------------
+        # Persist to JSONL data store (for Audit Dashboard)
+        # ---------------------------------------------------------------
+        connector_id = getattr(exec_result, "connector_id", "")
+        data_store.write_receipt(rcpt, connector_id=connector_id)
+        data_store.write_ledger_entry(entry)
+        data_store.write_system_state(
+            kill_switch_active=state.kill_switch_active,
+            kill_switch_engaged_by=state.kill_switch_engaged_by,
+            kill_switch_engaged_at=state.kill_switch_engaged_at,
+            policy_version=state.policy_version,
+            risk_model_version=state.risk_model_version,
+            ledger_length=state.ledger_length,
         )
 
         # ---------------------------------------------------------------

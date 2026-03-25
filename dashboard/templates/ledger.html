@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <h2>Audit Ledger</h2>
+    <p>Append-only hash-chained ledger of all governed actions. {{ entries | length }} entries.</p>
+</div>
+
+{% if entries %}
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Ledger Entry ID</th>
+                <th>Receipt ID</th>
+                <th>Previous Hash</th>
+                <th>Entry Hash</th>
+                <th>Signature</th>
+                <th>Timestamp</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for e in entries %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td class="mono">{{ e.ledger_entry_id[:12] }}...</td>
+                <td class="mono">{{ e.receipt_id[:12] }}...</td>
+                <td class="mono hash" title="{{ e.previous_ledger_hash }}">
+                    {% if e.previous_ledger_hash %}
+                        {{ e.previous_ledger_hash[:16] }}...
+                    {% else %}
+                        <em style="color:var(--color-gold);">GENESIS</em>
+                    {% endif %}
+                </td>
+                <td class="mono hash" title="{{ e.ledger_hash }}">{{ e.ledger_hash[:16] }}...</td>
+                <td class="mono hash" title="{{ e.ledger_signature }}">{{ e.ledger_signature[:20] }}...</td>
+                <td class="mono">{{ e.timestamp_iso }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="table-container">
+    <div class="empty-state">
+        <div class="icon">&#9733;</div>
+        <p>Ledger is empty. No entries have been recorded.</p>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
