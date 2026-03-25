@@ -46,6 +46,8 @@ from runtime import data_store, kill_switch
 from runtime.state import SystemState
 from runtime.approvals.approval_api import router as approval_router
 from runtime.approvals import approval_manager
+from runtime.governance.governance_api import router as governance_router
+from runtime.governance import policy_manager
 
 # ---------------------------------------------------------------------------
 # Logging
@@ -62,6 +64,7 @@ logger = logging.getLogger("rio.dashboard")
 # ---------------------------------------------------------------------------
 app = FastAPI(title="RIO Audit Dashboard", version="1.0.0")
 app.include_router(approval_router, prefix="/api")
+app.include_router(governance_router, prefix="/api")
 
 DASHBOARD_DIR = os.path.dirname(os.path.abspath(__file__))
 app.mount("/static", StaticFiles(directory=os.path.join(DASHBOARD_DIR, "static")), name="static")
@@ -207,6 +210,37 @@ async def approvals_page(request: Request):
         "title": "RIO Audit Dashboard — Approvals",
         "active_page": "approvals",
         "approvals": approvals,
+    })
+
+
+@app.get("/governance", response_class=HTMLResponse)
+async def governance_page(request: Request):
+    """Policy governance page."""
+    versions_data = policy_manager.get_all_versions()
+    current_policy = policy_manager.get_current_policy()
+    change_log = policy_manager.read_change_log()
+    change_log.reverse()  # Most recent first
+    pending = policy_manager.get_pending_changes()
+
+    return templates.TemplateResponse("governance.html", {
+        "request": request,
+        "title": "RIO Audit Dashboard \u2014 Governance",
+        "active_page": "governance",
+        "current_version": versions_data.get("current_version", "1.0"),
+        "versions": versions_data.get("versions", {}),
+        "rules": current_policy.rules if current_policy.success else [],
+        "change_log": change_log,
+        "pending_changes": [
+            {
+                "change_id": c.change_id,
+                "old_version": c.old_version,
+                "new_version": c.new_version,
+                "proposed_by": c.proposed_by,
+                "change_summary": c.change_summary,
+                "created_at_iso": c.created_at_iso,
+            }
+            for c in pending
+        ],
     })
 
 

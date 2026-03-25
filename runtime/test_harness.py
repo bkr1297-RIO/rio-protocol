@@ -26,6 +26,11 @@ Test Cases:
     TC-APPR-002: Manager approves → execution happens → receipt → ledger
     TC-APPR-003: Manager denies → no execution → denial receipt → ledger
     TC-APPR-004: Non-manager cannot approve
+    TC-GOV-001: Create new policy version via submit + approve
+    TC-GOV-002: Activate new policy version and verify rules change
+    TC-GOV-003: Rollback policy version to previous
+    TC-GOV-004: Policy change recorded in ledger (GOVERNANCE_CHANGE)
+    TC-GOV-005: Non-admin cannot change policy
 
 Run with: python -m runtime.test_harness
 """
@@ -42,6 +47,8 @@ from .models import Decision, ExecutionStatus
 from .pipeline import PipelineResult, run
 from .state import SystemState
 from .approvals import approval_queue, approval_manager
+from .governance import policy_manager
+from .governance.governance_ledger import record_governance_change, set_governance_state
 
 # Configure logging
 logging.basicConfig(
@@ -1232,6 +1239,382 @@ def test_non_manager_cannot_approve():
 
 
 # ---------------------------------------------------------------------------
+# TC-GOV-001: Create new policy version via submit + approve
+# ---------------------------------------------------------------------------
+
+def test_governance_create_version():
+    """
+    TC-GOV-001: An admin proposes a new policy version with modified rules.
+    A second admin approves it. The new version is registered but not yet active.
+    """
+    logger.info("=" * 70)
+    logger.info("TC-GOV-001: Create new policy version via submit + approve")
+    logger.info("=" * 70)
+
+    state = _reset_state()
+    policy_manager.reset()
+
+    # Get current policy
+    current = policy_manager.get_current_policy()
+    _assert(current.success is True, "Current policy loaded")
+    _assert(current.version == "1.0", f"Current version is 1.0 (got: {current.version})")
+
+    # Propose a new version with an additional rule
+    new_rules = list(current.rules) + [
+        {
+            "id": "POL-009",
+            "description": "Bulk data export requires approval",
+            "action": "export_data",
+            "decision": "REQUIRE_APPROVAL",
+            "priority": 10,
+        }
+    ]
+
+    submit_result = policy_manager.submit_policy_change(
+        proposed_by="admin_01",
+        proposed_by_role="admin",
+        new_rules=new_rules,
+        change_summary="Add POL-009: Bulk data export requires approval",
+    )
+    _assert(submit_result.success is True, "Policy change submitted")
+    _assert(submit_result.change.status == "PROPOSED", "Status is PROPOSED")
+    _assert(submit_result.version == "1.1", f"New version is 1.1 (got: {submit_result.version})")
+
+    change_id = submit_result.change.change_id
+
+    # Approve with a different admin (no self-approval)
+    approve_result = policy_manager.approve_policy_change(
+        change_id=change_id,
+        approver_id="admin_02",
+        approver_role="admin",
+    )
+    _assert(approve_result.success is True, "Policy change approved")
+    _assert(approve_result.change.status == "APPROVED", "Status is APPROVED")
+    _assert(approve_result.change.approved_by == "admin_02", "Approved by admin_02")
+
+    # Version should be registered but not yet active
+    versions = policy_manager.get_all_versions()
+    _assert("1.1" in versions["versions"], "Version 1.1 exists in registry")
+    _assert(versions["current_version"] == "1.0", "Current version is still 1.0")
+
+    logger.info("TC-GOV-001: PASSED")
+    logger.info("")
+
+
+# ---------------------------------------------------------------------------
+# TC-GOV-002: Activate new policy version and verify rules change
+# ---------------------------------------------------------------------------
+
+def test_governance_activate_version():
+    """
+    TC-GOV-002: After creating and approving a new policy version,
+    an admin activates it. The policy engine should now use the new rules.
+    """
+    logger.info("=" * 70)
+    logger.info("TC-GOV-002: Activate new policy version and verify rules change")
+    logger.info("=" * 70)
+
+    state = _reset_state()
+    policy_manager.reset()
+
+    # Get current rules count
+    current = policy_manager.get_current_policy()
+    original_count = len(current.rules)
+    _assert(current.version == "1.0", "Starting at version 1.0")
+
+    # Propose + approve a new version
+    new_rules = list(current.rules) + [
+        {
+            "id": "POL-010",
+            "description": "System shutdown requires admin approval",
+            "action": "system_shutdown",
+            "decision": "REQUIRE_APPROVAL",
+            "priority": 15,
+        }
+    ]
+
+    submit = policy_manager.submit_policy_change(
+        proposed_by="admin_01",
+        proposed_by_role="admin",
+        new_rules=new_rules,
+        change_summary="Add POL-010: System shutdown requires approval",
+    )
+    _assert(submit.success is True, "Submitted")
+
+    approve = policy_manager.approve_policy_change(
+        change_id=submit.change.change_id,
+        approver_id="admin_02",
+        approver_role="admin",
+    )
+    _assert(approve.success is True, "Approved")
+
+    # Activate the new version
+    activate = policy_manager.activate_policy_version(
+        version="1.1",
+        activated_by="admin_01",
+        activated_by_role="admin",
+    )
+    _assert(activate.success is True, "Version 1.1 activated")
+    _assert(activate.version == "1.1", "Active version is 1.1")
+    _assert(len(activate.rules) == original_count + 1, f"Rules count increased by 1")
+
+    # Verify the policy engine is now using the new version
+    versions = policy_manager.get_all_versions()
+    _assert(versions["current_version"] == "1.1", "Current version is now 1.1")
+
+    # Verify the new rule exists
+    new_policy = policy_manager.get_current_policy()
+    rule_ids = [r["id"] for r in new_policy.rules]
+    _assert("POL-010" in rule_ids, "POL-010 is in the active rules")
+
+    # Restore original version for subsequent tests
+    policy_manager.rollback_policy_version(
+        target_version="1.0",
+        rolled_back_by="admin_01",
+        rolled_back_by_role="admin",
+    )
+
+    logger.info("TC-GOV-002: PASSED")
+    logger.info("")
+
+
+# ---------------------------------------------------------------------------
+# TC-GOV-003: Rollback policy version to previous
+# ---------------------------------------------------------------------------
+
+def test_governance_rollback_version():
+    """
+    TC-GOV-003: After activating a new policy version, an admin rolls back
+    to the previous version. The policy engine should revert to the old rules.
+    """
+    logger.info("=" * 70)
+    logger.info("TC-GOV-003: Rollback policy version to previous")
+    logger.info("=" * 70)
+
+    state = _reset_state()
+    policy_manager.reset()
+
+    # Propose + approve + activate a new version
+    current = policy_manager.get_current_policy()
+    original_count = len(current.rules)
+
+    new_rules = list(current.rules) + [
+        {
+            "id": "POL-011",
+            "description": "Test rule for rollback",
+            "action": "test_action",
+            "decision": "DENY",
+            "priority": 5,
+        }
+    ]
+
+    submit = policy_manager.submit_policy_change(
+        proposed_by="admin_01",
+        proposed_by_role="admin",
+        new_rules=new_rules,
+        change_summary="Add POL-011 for rollback test",
+    )
+    approve = policy_manager.approve_policy_change(
+        change_id=submit.change.change_id,
+        approver_id="admin_02",
+        approver_role="admin",
+    )
+    activate = policy_manager.activate_policy_version(
+        version="1.1",
+        activated_by="admin_01",
+        activated_by_role="admin",
+    )
+    _assert(activate.success is True, "Version 1.1 activated")
+
+    # Verify we are on 1.1
+    versions = policy_manager.get_all_versions()
+    _assert(versions["current_version"] == "1.1", "Current version is 1.1")
+
+    # Rollback to 1.0
+    rollback = policy_manager.rollback_policy_version(
+        target_version="1.0",
+        rolled_back_by="admin_02",
+        rolled_back_by_role="admin",
+    )
+    _assert(rollback.success is True, "Rollback succeeded")
+    _assert(rollback.version == "1.0", "Rolled back to version 1.0")
+    _assert(len(rollback.rules) == original_count, "Rule count matches original")
+
+    # Verify version registry
+    versions = policy_manager.get_all_versions()
+    _assert(versions["current_version"] == "1.0", "Current version is 1.0 after rollback")
+
+    # Verify change log has rollback entry
+    change = rollback.change
+    _assert(change.status == "ROLLED_BACK", "Change status is ROLLED_BACK")
+    _assert(change.old_version == "1.1", "Old version in rollback is 1.1")
+    _assert(change.new_version == "1.0", "New version in rollback is 1.0")
+
+    logger.info("TC-GOV-003: PASSED")
+    logger.info("")
+
+
+# ---------------------------------------------------------------------------
+# TC-GOV-004: Policy change recorded in ledger (GOVERNANCE_CHANGE)
+# ---------------------------------------------------------------------------
+
+def test_governance_change_in_ledger():
+    """
+    TC-GOV-004: When a policy version is activated, a GOVERNANCE_CHANGE
+    entry must be recorded in the audit ledger with the version change,
+    proposer, and approver information.
+    """
+    logger.info("=" * 70)
+    logger.info("TC-GOV-004: Policy change recorded in ledger (GOVERNANCE_CHANGE)")
+    logger.info("=" * 70)
+
+    state = _reset_state()
+    policy_manager.reset()
+    set_governance_state(state)
+
+    # Record initial ledger length
+    initial_length = state.ledger_length
+
+    # Record a governance change directly
+    result = record_governance_change(
+        change_type="ACTIVATE",
+        old_version="1.0",
+        new_version="1.1",
+        proposed_by="admin_01",
+        approved_by="admin_02",
+        change_summary="Activate v1.1 with new approval threshold",
+        change_id="POL-CHG-TEST-001",
+    )
+
+    # Verify receipt was created
+    receipt = result["receipt"]
+    _assert(receipt is not None, "Governance receipt was created")
+    _assert(receipt.receipt_hash != "", "Receipt hash is non-empty")
+    _assert(receipt.action_type == "GOVERNANCE_CHANGE", "Action type is GOVERNANCE_CHANGE")
+    _assert(receipt.policy_decision == "GOVERNANCE_ACTIVATE", "Policy decision is GOVERNANCE_ACTIVATE")
+    _assert(receipt.risk_level == "GOVERNANCE", "Risk level is GOVERNANCE")
+
+    # Verify ledger entry was created
+    ledger_entry = result["ledger_entry"]
+    _assert(ledger_entry is not None, "Ledger entry was created")
+    _assert(ledger_entry.ledger_hash != "", "Ledger hash is non-empty")
+    _assert(state.ledger_length == initial_length + 1, "Ledger length increased by 1")
+
+    # Verify hash chain integrity
+    _assert(ledger.verify_chain(), "Ledger hash chain is intact after governance change")
+
+    # Record a second governance change (rollback)
+    result2 = record_governance_change(
+        change_type="ROLLBACK",
+        old_version="1.1",
+        new_version="1.0",
+        proposed_by="admin_02",
+        approved_by="admin_02",
+        change_summary="Emergency rollback to v1.0",
+        change_id="POL-CHG-TEST-002",
+    )
+
+    _assert(result2["receipt"].policy_decision == "GOVERNANCE_ROLLBACK", "Rollback receipt has correct policy_decision")
+    _assert(state.ledger_length == initial_length + 2, "Ledger length increased by 2")
+    _assert(ledger.verify_chain(), "Ledger hash chain intact after two governance changes")
+
+    logger.info("TC-GOV-004: PASSED")
+    logger.info("")
+
+
+# ---------------------------------------------------------------------------
+# TC-GOV-005: Non-admin cannot change policy
+# ---------------------------------------------------------------------------
+
+def test_governance_non_admin_blocked():
+    """
+    TC-GOV-005: Non-admin roles (employee, manager, intern) cannot submit,
+    approve, activate, or rollback policy changes.
+    """
+    logger.info("=" * 70)
+    logger.info("TC-GOV-005: Non-admin cannot change policy")
+    logger.info("=" * 70)
+
+    state = _reset_state()
+    policy_manager.reset()
+
+    current = policy_manager.get_current_policy()
+
+    # Employee cannot propose
+    result = policy_manager.submit_policy_change(
+        proposed_by="employee_01",
+        proposed_by_role="employee",
+        new_rules=current.rules,
+        change_summary="Unauthorized change attempt",
+    )
+    _assert(result.success is False, "Employee cannot propose policy changes")
+    _assert("not authorized" in result.error.lower(), "Error mentions authorization")
+
+    # Manager cannot propose
+    result2 = policy_manager.submit_policy_change(
+        proposed_by="manager_01",
+        proposed_by_role="manager",
+        new_rules=current.rules,
+        change_summary="Unauthorized change attempt",
+    )
+    _assert(result2.success is False, "Manager cannot propose policy changes")
+
+    # Intern cannot propose
+    result3 = policy_manager.submit_policy_change(
+        proposed_by="intern_01",
+        proposed_by_role="intern",
+        new_rules=current.rules,
+        change_summary="Unauthorized change attempt",
+    )
+    _assert(result3.success is False, "Intern cannot propose policy changes")
+
+    # Create a valid proposal for testing approve/activate/rollback blocks
+    submit = policy_manager.submit_policy_change(
+        proposed_by="admin_01",
+        proposed_by_role="admin",
+        new_rules=current.rules,
+        change_summary="Valid proposal for testing",
+    )
+    _assert(submit.success is True, "Admin can propose")
+    change_id = submit.change.change_id
+
+    # Employee cannot approve
+    approve_result = policy_manager.approve_policy_change(
+        change_id=change_id,
+        approver_id="employee_01",
+        approver_role="employee",
+    )
+    _assert(approve_result.success is False, "Employee cannot approve policy changes")
+
+    # Manager cannot approve (only admin can)
+    approve_result2 = policy_manager.approve_policy_change(
+        change_id=change_id,
+        approver_id="manager_01",
+        approver_role="manager",
+    )
+    _assert(approve_result2.success is False, "Manager cannot approve policy changes")
+
+    # Employee cannot activate
+    activate_result = policy_manager.activate_policy_version(
+        version="1.1",
+        activated_by="employee_01",
+        activated_by_role="employee",
+    )
+    _assert(activate_result.success is False, "Employee cannot activate policy versions")
+
+    # Employee cannot rollback
+    rollback_result = policy_manager.rollback_policy_version(
+        target_version="1.0",
+        rolled_back_by="employee_01",
+        rolled_back_by_role="employee",
+    )
+    _assert(rollback_result.success is False, "Employee cannot rollback policy versions")
+
+    logger.info("TC-GOV-005: PASSED")
+    logger.info("")
+
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
@@ -1262,6 +1645,11 @@ def run_all_tests():
         ("TC-APPR-002", test_approval_approved),
         ("TC-APPR-003", test_approval_denied),
         ("TC-APPR-004", test_non_manager_cannot_approve),
+        ("TC-GOV-001", test_governance_create_version),
+        ("TC-GOV-002", test_governance_activate_version),
+        ("TC-GOV-003", test_governance_rollback_version),
+        ("TC-GOV-004", test_governance_change_in_ledger),
+        ("TC-GOV-005", test_governance_non_admin_blocked),
     ]
 
     passed = 0
