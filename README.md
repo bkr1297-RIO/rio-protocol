@@ -175,7 +175,11 @@ rio-protocol/
 │   ├── reference_architecture.md      Reference architecture: components, boundaries, flow
 │   ├── canonical_intent_schema.md     Canonical intent format (human-readable spec)
 │   ├── receipt_protocol.md            Receipt structure, hash chain, verification
-│   └── audit_ledger_protocol.md       Append-only ledger model and audit procedures
+│   ├── audit_ledger_protocol.md       Append-only ledger model and audit procedures
+│   ├── verification_model.md          Verification model for protocol and ledger integrity
+│   ├── governance_learning_protocol.md Governance learning protocol specification
+│   ├── two_loop_architecture.md       Two-loop architecture (execution + learning)
+│   └── intent_translation_layer.md    Intent translation layer (universal grammar)
 │
 ├── architecture/                      System architecture models
 │   └── 15_layer_model.md             15-layer system architecture
@@ -390,6 +394,14 @@ See [`spec/governed_corpus.md`](spec/governed_corpus.md) for the full specificat
 
 ---
 
+## Intent Translation Layer
+
+RIO is designed to sit under an Intent Translation Layer that maps canonical intents to specific external systems and APIs while preserving a common governed execution model. The Intent Translation Layer translates human/agent goals into structured intents, maps those intents to system-specific actions, and normalizes execution results for receipt generation.
+
+See [`spec/intent_translation_layer.md`](spec/intent_translation_layer.md) for the full specification and [`spec/two_loop_architecture.md`](spec/two_loop_architecture.md) for the two-loop architecture that defines the relationship between the execution loop and the learning loop.
+
+---
+
 ## Ledger & Receipts
 
 Every protocol decision — whether approved, denied, or blocked — produces a cryptographic receipt (Stage 7) and an append-only ledger entry (Stage 8). Receipts contain intent hash, decision hash, execution hash, timestamp, and ECDSA-secp256k1 signature. Ledger entries are hash-linked to form a tamper-evident chain. There are no silent failures and no unrecorded decisions.
@@ -429,6 +441,10 @@ See [`spec/receipt_spec.md`](spec/receipt_spec.md) for receipt fields and verifi
 | 15-Layer Architecture | 1 | Complete |
 | Runtime Flow | 1 | Complete |
 | 8-Step to 15-Protocol Mapping | 1 | Complete |
+| Verification Model | 1 | Complete |
+| Governance Learning Protocol | 1 | Complete |
+| Two-Loop Architecture | 1 | Complete |
+| Intent Translation Layer | 1 | Complete |
 | White Paper | 1 | Complete |
 
 ---

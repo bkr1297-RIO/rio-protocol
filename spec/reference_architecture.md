@@ -140,6 +140,22 @@ Learning cannot bypass runtime enforcement. All proposed changes from the learni
 
 ---
 
+## Two-Loop Architecture
+
+RIO operates as two coupled loops: the Execution Loop, which controls and records actions in real time through the 8-step Governed Execution Protocol, and the Learning Loop, which analyzes historical data from the Governed Corpus to improve future governance without bypassing runtime controls. The two loops are structurally separated and coupled only through the ledger and the governed change process.
+
+See `/spec/two_loop_architecture.md` for the full specification.
+
+---
+
+## Intent Translation Layer
+
+The Intent Translation Layer is the orchestration grammar that sits above the Governed Execution Protocol and translates between human/agent goals, canonical intents, system-specific actions, and normalized execution results. It ensures that every request entering the protocol is in a standard format and that every execution result is normalized for receipt generation, regardless of the source, target, or transport.
+
+See `/spec/intent_translation_layer.md` for the full specification.
+
+---
+
 ## References
 
 | Document | Path |
@@ -153,3 +169,5 @@ Learning cannot bypass runtime enforcement. All proposed changes from the learni
 | Governed Corpus | `/spec/governed_corpus.md` |
 | Threat Model | `/spec/threat_model.md` |
 | Protocol Test Matrix | `/spec/protocol_test_matrix.md` |
+| Two-Loop Architecture | `/spec/two_loop_architecture.md` |
+| Intent Translation Layer | `/spec/intent_translation_layer.md` |
