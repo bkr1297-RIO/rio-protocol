@@ -145,7 +145,17 @@ rio-protocol/
 │   ├── threat_model.md                10 threats with mitigations
 │   ├── verification_tests.md          12 verification test cases
 │   ├── constraint_vs_policy.md        Policy vs. constraint distinction
-│   └── role_model.md                  8 roles with separation rules
+│   ├── role_model.md                  8 roles with separation rules
+│   ├── intent_ontology.md             Standard action naming convention
+│   ├── policy_language.md             Policy rule structure and priority
+│   ├── receipt_spec.md                Canonical receipt fields and verification
+│   ├── ledger_interoperability.md     Hash chain verification and anchoring
+│   ├── governance_learning.md         Learning inputs and policy update workflow
+│   ├── protocol_flow.md              Full protocol flow reference (11 steps)
+│   ├── protocol_state_machine.md     Formal state transitions and terminal states
+│   ├── execution_envelope.md         Bounded execution model with kill switch
+│   ├── system_invariants.md          21 system invariants across 6 categories
+│   └── api_endpoints.md              REST API surface definition
 │
 ├── schemas/                           JSON Schema 2020-12 definitions
 │   ├── canonical_request.json
@@ -304,6 +314,8 @@ All diagrams include editable Mermaid source files (`.mmd`).
 | System Manifest | 1 | Complete |
 | Governed Action Pattern | 1 | Complete |
 | Role Model | 8 roles | Complete |
+| Protocol Standardization | 5 docs | Complete |
+| Core Protocol Mechanics | 5 docs | Complete |
 | White Paper | 1 | Complete |
 
 ---
