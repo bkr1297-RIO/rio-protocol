@@ -142,6 +142,69 @@ python -m runtime.test_harness
 
 ---
 
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                        EXTERNAL REQUESTERS                        │
+│            AI Agents  ·  Automated Workflows  ·  Humans           │
+└───────────────────────────────┬─────────────────────────────────────┘
+                                │
+                                ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                       RIO CONTROL PLANE                           │
+│                                                                   │
+│  ┌──────────┐  ┌──────────────┐  ┌───────────────┐  ┌──────────┐ │
+│  │  Intake   │→│Classification │→│Structured     │→│ Policy & │ │
+│  │  (Stage 1)│  │  (Stage 2)   │  │Intent (Stg 3) │  │Risk (4)  │ │
+│  └──────────┘  └──────────────┘  └───────────────┘  └────┬─────┘ │
+│                                                          │       │
+│                                                          ▼       │
+│  ┌──────────┐  ┌──────────────┐  ┌───────────────┐  ┌──────────┐ │
+│  │  Ledger  │←│   Receipt    │←│Execution Gate │←│Authorize │ │
+│  │  (Stage 8)│  │  (Stage 7)   │  │  (Stage 6)    │  │ (Stg 5)  │ │
+│  └──────────┘  └──────────────┘  └───────┬───────┘  └──────────┘ │
+│                                          │                       │
+└──────────────────────────────────────────┼───────────────────────┘
+                                           │
+                                           ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                       EXECUTION TARGETS                           │
+│         Payment APIs  ·  Email  ·  Databases  ·  Deployments      │
+└─────────────────────────────────────────────────────────────────────┘
+                                           │
+                                           ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                    AUDIT & ATTESTATION                            │
+│    Receipts  ·  Hash-Chain Ledger  ·  Governed Corpus  ·  Replay  │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+The system is organized into four zones. External requesters submit action requests. The RIO Control Plane evaluates policy, computes risk, obtains authorization, and gates execution. Execution targets receive dispatched actions through adapters. The Audit & Attestation layer records every decision with cryptographic receipts and a tamper-evident ledger.
+
+---
+
+## Documentation
+
+The `docs/` directory contains detailed documentation for each subsystem:
+
+| Document | Description |
+|----------|-------------|
+| [System Overview](docs/SYSTEM_OVERVIEW.md) | What RIO is, what problem it solves, and why governance is needed |
+| [Architecture](docs/ARCHITECTURE.md) | Spec layer, runtime layer, adapters, ledger, corpus, dashboard |
+| [Execution Flow](docs/EXECUTION_FLOW.md) | Step-by-step pipeline: Request → Policy → Risk → Auth → Gate → Adapter → Receipt → Ledger |
+| [Ledger and Receipts](docs/LEDGER_AND_RECEIPTS.md) | Hash chain, signatures, verification process |
+| [Policy and Risk](docs/POLICY_AND_RISK.md) | Policy engine, risk engine, versioning, thresholds |
+| [Identity and Approvals](docs/IDENTITY_AND_APPROVALS.md) | Users, roles, permissions, approval workflow, authorization tokens |
+| [Simulation and Learning](docs/SIMULATION_AND_LEARNING.md) | Governed corpus, replay engine, policy improvement loop |
+| [Threat Model Summary](docs/THREAT_MODEL_SUMMARY.md) | Six critical threats with mitigations and residual risks |
+| [Enterprise Use Cases](docs/ENTERPRISE_USE_CASES.md) | Invoice payment, data deletion, deployment, access provisioning, agent-to-agent |
+| [Glossary](docs/GLOSSARY.md) | Definitions of all key terms |
+
+**Recommended reading order:** Start with System Overview, then Architecture, then Execution Flow. The remaining documents can be read in any order based on interest.
+
+---
+
 ## The Problem
 
 AI agents and automated systems can propose and execute consequential actions — payments, data deletions, code deployments, access grants — at machine speed. Without a governance layer between intent and execution, there is no mechanism to enforce authorization, verify compliance, or produce an audit trail. The result is uncontrolled execution with no accountability.
@@ -410,6 +473,18 @@ rio-protocol/
 │   ├── Dockerfile                     Container image definition
 │   └── docker-compose.yml             Multi-service orchestration
 │
+├── docs/                              System documentation
+│   ├── SYSTEM_OVERVIEW.md             What RIO is and why it exists
+│   ├── ARCHITECTURE.md                Component architecture with diagram
+│   ├── EXECUTION_FLOW.md              Step-by-step pipeline walkthrough
+│   ├── LEDGER_AND_RECEIPTS.md         Cryptographic audit system
+│   ├── POLICY_AND_RISK.md             Policy engine, risk engine, versioning
+│   ├── IDENTITY_AND_APPROVALS.md      Users, roles, permissions, approvals
+│   ├── SIMULATION_AND_LEARNING.md     Corpus, replay, policy improvement
+│   ├── THREAT_MODEL_SUMMARY.md        Security threats and mitigations
+│   ├── ENTERPRISE_USE_CASES.md        Real-world governance scenarios
+│   └── GLOSSARY.md                    Key terms and definitions
+│
 ├── diagrams/                          Diagram source files (reserved)
 ├── whitepaper/                        White paper (Markdown + PDF)
 │
@@ -597,6 +672,19 @@ See [`spec/receipt_spec.md`](spec/receipt_spec.md) for receipt fields and verifi
 
 ---
 
+## Contributing
+
+Contributions are welcome. Please follow these guidelines:
+
+1. **Fork and branch.** Create a feature branch from `main` for your changes.
+2. **Follow existing patterns.** New runtime modules should follow the same structure as existing ones (docstring, imports, class/function definitions, logging).
+3. **Write tests.** Every new feature or bug fix should include test cases in `runtime/test_harness.py`. Run the full suite with `python -m runtime.test_harness` and confirm all tests pass before submitting.
+4. **Update documentation.** If your change affects system behavior, update the relevant document in `docs/`. If it affects the protocol specification, update the relevant file in `spec/`.
+5. **Governance changes.** Changes to policy rules, risk models, or governance workflows must follow the governed change process described in [Policy and Risk](docs/POLICY_AND_RISK.md).
+6. **Commit messages.** Use clear, descriptive commit messages that explain what changed and why.
+
+---
+
 ## Status
 
 | Component | Count | Status |
@@ -645,6 +733,7 @@ See [`spec/receipt_spec.md`](spec/receipt_spec.md) for receipt fields and verifi
 | Governed Corpus + Replay | 2 modules | Complete |
 | Test Harness | 47 tests (12 suites) | Complete |
 | Packaging (pip, Docker, Make) | 3 methods | Complete |
+| System Documentation | 10 documents | Complete |
 
 ---
 
