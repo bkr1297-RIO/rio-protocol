@@ -45,6 +45,7 @@ _REQUESTS_FILE = os.path.join(_DATA_DIR, "requests.jsonl")
 _RECEIPTS_FILE = os.path.join(_DATA_DIR, "receipts.jsonl")
 _LEDGER_FILE = os.path.join(_DATA_DIR, "ledger.jsonl")
 _STATE_FILE = os.path.join(_DATA_DIR, "system_state.json")
+_APPROVALS_FILE = os.path.join(_DATA_DIR, "approvals.jsonl")
 
 
 def _ensure_data_dir() -> None:
@@ -218,9 +219,22 @@ def read_system_state() -> Dict[str, Any]:
         return json.load(fh)
 
 
+def write_approval(approval) -> None:
+    """Persist an approval record to approvals.jsonl."""
+    from .approvals.approval_queue import to_dict
+    record = to_dict(approval)
+    _append_jsonl(_APPROVALS_FILE, record)
+    logger.debug("Approval %s written to data store", approval.approval_id)
+
+
+def read_approvals() -> List[Dict[str, Any]]:
+    """Read all approval records."""
+    return _read_jsonl(_APPROVALS_FILE)
+
+
 def clear_data_files() -> None:
     """Remove all JSONL data files. For testing only."""
-    for f in [_REQUESTS_FILE, _RECEIPTS_FILE, _LEDGER_FILE, _STATE_FILE]:
+    for f in [_REQUESTS_FILE, _RECEIPTS_FILE, _LEDGER_FILE, _STATE_FILE, _APPROVALS_FILE]:
         if os.path.exists(f):
             os.remove(f)
     logger.info("Data store files cleared")

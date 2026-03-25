@@ -10,6 +10,7 @@ Pages:
     /requests   — Table of all intake requests
     /receipts   — Table of all cryptographic receipts
     /ledger     — Table of all ledger entries (hash chain)
+    /approvals  — Human approval queue with approve/deny controls
 
 API Endpoints:
     POST /api/kill-switch/engage    — Engage the EKS-0 kill switch
@@ -43,6 +44,8 @@ if PROJECT_ROOT not in sys.path:
 
 from runtime import data_store, kill_switch
 from runtime.state import SystemState
+from runtime.approvals.approval_api import router as approval_router
+from runtime.approvals import approval_manager
 
 # ---------------------------------------------------------------------------
 # Logging
@@ -58,6 +61,7 @@ logger = logging.getLogger("rio.dashboard")
 # App setup
 # ---------------------------------------------------------------------------
 app = FastAPI(title="RIO Audit Dashboard", version="1.0.0")
+app.include_router(approval_router, prefix="/api")
 
 DASHBOARD_DIR = os.path.dirname(os.path.abspath(__file__))
 app.mount("/static", StaticFiles(directory=os.path.join(DASHBOARD_DIR, "static")), name="static")
@@ -80,7 +84,7 @@ def _sync_state_from_disk() -> None:
     _runtime_state.ledger_length = state_data.get("ledger_length", 0)
 
 
-def _compute_stats(receipts: list[dict]) -> dict:
+def _compute_stats(receipts: list[dict], approvals: list[dict] | None = None) -> dict:
     """Compute summary statistics from receipt records."""
     requests_data = data_store.read_requests()
     total = len(requests_data)
@@ -92,6 +96,9 @@ def _compute_stats(receipts: list[dict]) -> dict:
         if r.get("execution_status") in ("BLOCKED", "KILL_SWITCH_BLOCKED")
     )
     failed = sum(1 for r in receipts if r.get("execution_status") == "FAILED")
+    pending_approvals = 0
+    if approvals:
+        pending_approvals = sum(1 for a in approvals if a.get("status") == "PENDING")
     return {
         "total_requests": total,
         "allowed": allowed,
@@ -99,6 +106,7 @@ def _compute_stats(receipts: list[dict]) -> dict:
         "executed": executed,
         "blocked": blocked,
         "failed": failed,
+        "pending_approvals": pending_approvals,
     }
 
 
@@ -133,7 +141,8 @@ async def home(request: Request):
     """System overview page."""
     _sync_state_from_disk()
     receipts = data_store.read_receipts()
-    stats = _compute_stats(receipts)
+    approvals = data_store.read_approvals()
+    stats = _compute_stats(receipts, approvals)
     recent = list(reversed(receipts))[:10]  # Most recent first
 
     return templates.TemplateResponse("index.html", {
@@ -180,6 +189,24 @@ async def receipts_page(request: Request):
         "title": "RIO Audit Dashboard — Receipts",
         "active_page": "receipts",
         "receipts": receipts,
+    })
+
+
+@app.get("/approvals", response_class=HTMLResponse)
+async def approvals_page(request: Request):
+    """Approvals queue page."""
+    # Read approvals from JSONL, deduplicate by approval_id (keep latest)
+    raw_approvals = data_store.read_approvals()
+    seen = {}
+    for a in raw_approvals:
+        seen[a.get("approval_id", "")] = a
+    approvals = sorted(seen.values(), key=lambda a: a.get("created_at", 0), reverse=True)
+
+    return templates.TemplateResponse("approvals.html", {
+        "request": request,
+        "title": "RIO Audit Dashboard — Approvals",
+        "active_page": "approvals",
+        "approvals": approvals,
     })
 
 

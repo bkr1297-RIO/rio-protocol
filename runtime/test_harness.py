@@ -22,6 +22,10 @@ Test Cases:
     TC-CONN-003: Kill switch ON — connector not called
     TC-CONN-004: File connector — write_file creates file
     TC-CONN-005: HTTP connector — simulated request logged
+    TC-APPR-001: Action requires approval → added to approval queue
+    TC-APPR-002: Manager approves → execution happens → receipt → ledger
+    TC-APPR-003: Manager denies → no execution → denial receipt → ledger
+    TC-APPR-004: Non-manager cannot approve
 
 Run with: python -m runtime.test_harness
 """
@@ -33,10 +37,11 @@ import logging
 import os
 import sys
 
-from . import ledger, kill_switch
+from . import ledger, kill_switch, data_store
 from .models import Decision, ExecutionStatus
 from .pipeline import PipelineResult, run
 from .state import SystemState
+from .approvals import approval_queue, approval_manager
 
 # Configure logging
 logging.basicConfig(
@@ -54,6 +59,7 @@ logger = logging.getLogger("rio.test_harness")
 def _reset_state() -> SystemState:
     """Create a fresh system state and reset the in-memory ledger."""
     ledger.reset()
+    approval_manager.reset()
     return SystemState()
 
 
@@ -962,6 +968,270 @@ def test_http_connector_simulated():
 
 
 # ---------------------------------------------------------------------------
+# TC-APPR-001: Action requires approval → added to approval queue
+# ---------------------------------------------------------------------------
+
+def test_approval_queue_created():
+    """
+    TC-APPR-001: An employee deploys code (deploy_code). Policy rule POL-006
+    returns REQUIRE_APPROVAL. The pipeline halts with pending_approval=True
+    and an approval request is created in the queue.
+    """
+    logger.info("=" * 70)
+    logger.info("TC-APPR-001: Action requires approval → added to approval queue")
+    logger.info("=" * 70)
+
+    state = _reset_state()
+
+    result = run(
+        actor_id="dev_charlie",
+        raw_input={
+            "action_type": "deploy_code",
+            "target_resource": "production_server",
+            "parameters": {"repository": "rio-app", "branch": "main", "environment": "production"},
+            "requested_by": "dev_charlie",
+            "justification": "Release v2.1.0 to production",
+            "role": "employee",
+        },
+        approver_id="manager_diana",
+        state=state,
+        action_handler=_action_handler,
+    )
+
+    # Pipeline should halt at approval queue
+    _assert(result.pending_approval is True, "Pipeline reports pending_approval")
+    _assert(result.approval is not None, "Approval request was created")
+    _assert(result.approval.status == "PENDING", "Approval status is PENDING")
+    _assert(result.approval.action == "deploy_code", "Approval action is deploy_code")
+    _assert(result.approval.requester == "dev_charlie", "Approval requester is dev_charlie")
+    _assert(result.approval.role == "employee", "Approval role is employee")
+    _assert(result.approval.policy_rule_id == "POL-006", "Matched policy rule POL-006")
+
+    # Pipeline should NOT have reached execution, receipt, or ledger
+    _assert(result.execution_result is None, "No execution result (pipeline halted)")
+    _assert(result.receipt is None, "No receipt (pipeline halted)")
+    _assert(result.ledger_entry is None, "No ledger entry (pipeline halted)")
+
+    # Approval should be in the queue
+    _assert("approval_queue" in result.stages_completed, "Approval queue stage completed")
+    pending = approval_queue.get_pending()
+    _assert(len(pending) >= 1, "At least one pending approval in queue")
+    _assert(pending[0].approval_id == result.approval.approval_id, "Pending approval matches")
+
+    logger.info("TC-APPR-001: PASSED")
+    logger.info("")
+
+
+# ---------------------------------------------------------------------------
+# TC-APPR-002: Manager approves → execution happens → receipt → ledger
+# ---------------------------------------------------------------------------
+
+def test_approval_approved():
+    """
+    TC-APPR-002: An employee's deploy_code request goes to the approval queue.
+    A manager approves it. The pipeline resumes: authorization → execution →
+    receipt → ledger. All artifacts are produced.
+    """
+    logger.info("=" * 70)
+    logger.info("TC-APPR-002: Manager approves → execution → receipt → ledger")
+    logger.info("=" * 70)
+
+    state = _reset_state()
+
+    # Step 1: Submit request → goes to approval queue
+    result = run(
+        actor_id="dev_charlie",
+        raw_input={
+            "action_type": "deploy_code",
+            "target_resource": "staging_server",
+            "parameters": {"repository": "rio-app", "branch": "release/2.2", "environment": "staging"},
+            "requested_by": "dev_charlie",
+            "justification": "Deploy v2.2.0 to staging",
+            "role": "employee",
+        },
+        approver_id="manager_diana",
+        state=state,
+        action_handler=_action_handler,
+    )
+
+    _assert(result.pending_approval is True, "Request is pending approval")
+    approval_id = result.approval.approval_id
+
+    # Step 2: Manager approves
+    approval_result = approval_manager.approve(
+        approval_id=approval_id,
+        approver_id="manager_diana",
+        approver_role="manager",
+    )
+
+    _assert(approval_result.success is True, "Approval action succeeded")
+    _assert(approval_result.error == "", "No error from approval")
+
+    # Verify approval status updated
+    approval = approval_queue.get(approval_id)
+    _assert(approval.status == "APPROVED", "Approval status is APPROVED")
+    _assert(approval.resolved_by == "manager_diana", "Resolved by manager_diana")
+
+    # Verify execution happened
+    _assert(approval_result.execution_result is not None, "Execution result exists")
+    _assert(
+        approval_result.execution_result.execution_status == ExecutionStatus.EXECUTED,
+        "Execution status is EXECUTED",
+    )
+
+    # Verify receipt generated
+    _assert(approval_result.receipt is not None, "Receipt was generated")
+    _assert(approval_result.receipt.receipt_hash != "", "Receipt hash is non-empty")
+    _assert(approval_result.receipt.policy_decision == "APPROVED_BY_HUMAN", "Policy decision is APPROVED_BY_HUMAN")
+
+    # Verify ledger entry
+    _assert(approval_result.ledger_entry is not None, "Ledger entry was created")
+    _assert(ledger.verify_chain(), "Ledger hash chain is intact")
+
+    logger.info("TC-APPR-002: PASSED")
+    logger.info("")
+
+
+# ---------------------------------------------------------------------------
+# TC-APPR-003: Manager denies → no execution → denial receipt → ledger
+# ---------------------------------------------------------------------------
+
+def test_approval_denied():
+    """
+    TC-APPR-003: An employee's deploy_code request goes to the approval queue.
+    A manager denies it. No execution happens. A denial receipt and ledger
+    entry are generated.
+    """
+    logger.info("=" * 70)
+    logger.info("TC-APPR-003: Manager denies → denial receipt → ledger")
+    logger.info("=" * 70)
+
+    state = _reset_state()
+
+    # Step 1: Submit request → goes to approval queue
+    result = run(
+        actor_id="dev_charlie",
+        raw_input={
+            "action_type": "deploy_code",
+            "target_resource": "production_server",
+            "parameters": {"repository": "rio-app", "branch": "beta", "environment": "production"},
+            "requested_by": "dev_charlie",
+            "justification": "Deploy beta to production",
+            "role": "employee",
+        },
+        approver_id="manager_diana",
+        state=state,
+        action_handler=_action_handler,
+    )
+
+    _assert(result.pending_approval is True, "Request is pending approval")
+    approval_id = result.approval.approval_id
+
+    # Step 2: Manager denies
+    denial_result = approval_manager.deny(
+        approval_id=approval_id,
+        denier_id="manager_diana",
+        denier_role="manager",
+    )
+
+    _assert(denial_result.success is False, "Denial result success is False (denied)")
+    _assert(denial_result.error == "", "No error from denial")
+
+    # Verify approval status updated
+    approval = approval_queue.get(approval_id)
+    _assert(approval.status == "DENIED", "Approval status is DENIED")
+    _assert(approval.resolved_by == "manager_diana", "Resolved by manager_diana")
+
+    # Verify NO execution happened
+    _assert(
+        denial_result.execution_result is None,
+        "No execution result (denied — action not executed)",
+    )
+
+    # Verify denial receipt generated
+    _assert(denial_result.receipt is not None, "Denial receipt was generated")
+    _assert(denial_result.receipt.receipt_hash != "", "Receipt hash is non-empty")
+    _assert(denial_result.receipt.policy_decision == "DENIED_BY_HUMAN", "Policy decision is DENIED_BY_HUMAN")
+    _assert(
+        denial_result.receipt.execution_status == ExecutionStatus.BLOCKED,
+        "Execution status is BLOCKED",
+    )
+
+    # Verify ledger entry
+    _assert(denial_result.ledger_entry is not None, "Ledger entry was created")
+    _assert(ledger.verify_chain(), "Ledger hash chain is intact")
+
+    logger.info("TC-APPR-003: PASSED")
+    logger.info("")
+
+
+# ---------------------------------------------------------------------------
+# TC-APPR-004: Non-manager cannot approve
+# ---------------------------------------------------------------------------
+
+def test_non_manager_cannot_approve():
+    """
+    TC-APPR-004: An employee (non-manager) attempts to approve a pending
+    request. The approval is rejected because only manager/admin roles
+    can approve.
+    """
+    logger.info("=" * 70)
+    logger.info("TC-APPR-004: Non-manager cannot approve")
+    logger.info("=" * 70)
+
+    state = _reset_state()
+
+    # Step 1: Submit request → goes to approval queue
+    result = run(
+        actor_id="dev_charlie",
+        raw_input={
+            "action_type": "deploy_code",
+            "target_resource": "production_server",
+            "parameters": {"repository": "rio-app", "branch": "release/2.3", "environment": "production"},
+            "requested_by": "dev_charlie",
+            "justification": "Deploy v2.3.0",
+            "role": "employee",
+        },
+        approver_id="manager_diana",
+        state=state,
+        action_handler=_action_handler,
+    )
+
+    _assert(result.pending_approval is True, "Request is pending approval")
+    approval_id = result.approval.approval_id
+
+    # Step 2: Employee tries to approve — should be rejected
+    bad_result = approval_manager.approve(
+        approval_id=approval_id,
+        approver_id="dev_eve",
+        approver_role="employee",
+    )
+
+    _assert(bad_result.success is False, "Non-manager approval rejected")
+    _assert("not authorized" in bad_result.error, "Error mentions not authorized")
+
+    # Verify approval is still PENDING
+    approval = approval_queue.get(approval_id)
+    _assert(approval.status == "PENDING", "Approval still PENDING after rejected attempt")
+
+    # Step 3: Also test that intern cannot approve
+    bad_result_2 = approval_manager.approve(
+        approval_id=approval_id,
+        approver_id="intern_frank",
+        approver_role="intern",
+    )
+
+    _assert(bad_result_2.success is False, "Intern approval rejected")
+    _assert("not authorized" in bad_result_2.error, "Error mentions not authorized")
+
+    # Approval still PENDING
+    _assert(approval.status == "PENDING", "Approval still PENDING after intern attempt")
+
+    logger.info("TC-APPR-004: PASSED")
+    logger.info("")
+
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
@@ -988,6 +1258,10 @@ def run_all_tests():
         ("TC-CONN-003", test_kill_switch_blocks_connector),
         ("TC-CONN-004", test_file_connector_write),
         ("TC-CONN-005", test_http_connector_simulated),
+        ("TC-APPR-001", test_approval_queue_created),
+        ("TC-APPR-002", test_approval_approved),
+        ("TC-APPR-003", test_approval_denied),
+        ("TC-APPR-004", test_non_manager_cannot_approve),
     ]
 
     passed = 0

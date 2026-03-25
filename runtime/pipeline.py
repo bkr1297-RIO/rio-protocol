@@ -3,11 +3,16 @@ RIO Runtime — Governed Execution Pipeline
 
 Orchestrates the full 8-step Governed Execution Protocol by chaining each stage
 in strict order. No stage may be skipped. Every request — whether approved, denied,
-or blocked — produces a receipt and a ledger entry.
+blocked, or pending approval — produces a receipt and a ledger entry.
 
 Execution flow:
     Intake → Classification → Intent Validation → Structured Intent →
-    Policy & Risk → Authorization → Execution Gate → Receipt → Ledger
+    Policy & Risk → [REQUIRE_APPROVAL → Approval Queue] or Authorization →
+    Execution Gate → Receipt → Ledger
+
+When the policy engine returns ESCALATE (REQUIRE_APPROVAL), the pipeline halts
+and creates an approval request. The pipeline resumes when a human approver
+acts on the request via the approval_manager.
 
 The pipeline enforces all protocol invariants (INV-01 through INV-08) and
 logs every stage transition for auditability.
@@ -35,6 +40,8 @@ from . import (
     verification,
     data_store,
 )
+from .approvals import approval_manager
+from .approvals.approval_queue import ApprovalRequest
 from .invariants import (
     check_inv_01_completeness,
     check_inv_02_receipt_completeness,
@@ -70,7 +77,9 @@ class PipelineResult:
     execution_result: Optional[execution_gate.ExecutionResult] = None
     receipt: Optional[Receipt] = None
     ledger_entry: Optional[LedgerEntry] = None
+    approval: Optional[ApprovalRequest] = None
     success: bool = False
+    pending_approval: bool = False
     error: str = ""
     stage_failed: str = ""
     stages_completed: list[str] = field(default_factory=list)
@@ -92,6 +101,10 @@ def run(
     This is the primary entry point for the RIO runtime. Every request enters
     here and traverses all stages in order. No stage is skipped — even denied
     or blocked requests produce receipts and ledger entries.
+
+    When the policy decision is ESCALATE (REQUIRE_APPROVAL), the pipeline halts
+    and returns a PipelineResult with pending_approval=True and an approval
+    object. The pipeline resumes when a human approver acts on the request.
 
     Args:
         actor_id: Identity of the requesting actor.
@@ -226,6 +239,35 @@ def run(
             policy_result.decision.value,
             policy_result.risk_score,
         )
+
+        # ---------------------------------------------------------------
+        # REQUIRE_APPROVAL check — halt pipeline if escalation needed
+        # ---------------------------------------------------------------
+        if policy_result.decision == Decision.ESCALATE:
+            logger.info(
+                "PIPELINE HALTED — REQUIRE_APPROVAL — creating approval request for intent %s",
+                intent_obj.intent_id,
+            )
+
+            approval = approval_manager.create_approval_request(
+                intent=intent_obj,
+                policy_result=policy_result,
+                role=role,
+                state=state,
+                action_handler=action_handler,
+            )
+
+            result.approval = approval
+            result.pending_approval = True
+            result.stages_completed.append("approval_queue")
+            result.duration_ms = int((time.time() - start_time) * 1000)
+
+            logger.info(
+                "PIPELINE END — PENDING_APPROVAL — approval_id=%s request_id=%s",
+                approval.approval_id,
+                req.request_id,
+            )
+            return result
 
         # ---------------------------------------------------------------
         # Stage 5: Authorization

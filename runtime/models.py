@@ -36,6 +36,7 @@ class Decision(Enum):
     ALLOW = "ALLOW"
     DENY = "DENY"
     ESCALATE = "ESCALATE"
+    REQUIRE_APPROVAL = "REQUIRE_APPROVAL"
 
 
 class ExecutionStatus(Enum):
@@ -44,6 +45,7 @@ class ExecutionStatus(Enum):
     BLOCKED = "BLOCKED"
     FAILED = "FAILED"
     KILL_SWITCH_BLOCKED = "KILL_SWITCH_BLOCKED"
+    PENDING_APPROVAL = "PENDING_APPROVAL"
 
 
 class IntentStatus(Enum):
@@ -53,6 +55,7 @@ class IntentStatus(Enum):
     DENIED = "denied"
     APPROVED = "approved"
     EXECUTED = "executed"
+    PENDING_APPROVAL = "pending_approval"
 
 
 # ---------------------------------------------------------------------------
