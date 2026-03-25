@@ -36,6 +36,10 @@ Test Cases:
     TC-ADPT-003: file write stays inside sandbox
     TC-ADPT-004: http request to non-whitelisted domain is blocked
     TC-ADPT-005: kill switch blocks adapter execution
+    TC-LEDG-001: Valid ledger passes verification
+    TC-LEDG-002: Modify a past ledger entry → verification fails
+    TC-LEDG-003: Delete an entry → verification fails
+    TC-LEDG-004: Modify receipt → signature verification fails
 
 Run with: python -m runtime.test_harness
 """
@@ -54,6 +58,8 @@ from .state import SystemState
 from .approvals import approval_queue, approval_manager
 from .governance import policy_manager
 from .governance.governance_ledger import record_governance_change, set_governance_state
+from . import receipt as receipt_module
+from . import verify_ledger
 
 # Configure logging
 logging.basicConfig(
@@ -2036,6 +2042,316 @@ def test_adapter_kill_switch():
 
 
 # ---------------------------------------------------------------------------
+# TC-LEDG-001: Valid ledger passes verification
+# ---------------------------------------------------------------------------
+
+def test_ledger_valid_verification():
+    """
+    TC-LEDG-001: Run the pipeline to generate a valid receipt and ledger
+    entry, then persist them to JSONL and run the verification CLI.
+    The verification must pass all checks.
+    """
+    logger.info("=" * 70)
+    logger.info("TC-LEDG-001: Valid ledger passes verification")
+    logger.info("=" * 70)
+
+    # Clear old data files to get a clean single-segment chain
+    data_store.clear_data_files()
+    state = _reset_state()
+
+    result = run(
+        actor_id="user_alice",
+        raw_input={
+            "action_type": "send_email",
+            "target_resource": "email_system",
+            "parameters": {
+                "recipient": "test@example.com",
+                "subject": "Ledger Verification Test",
+                "body": "Testing tamper-evident ledger.",
+            },
+            "requested_by": "user_alice",
+            "justification": "TC-LEDG-001",
+        },
+        approver_id="manager_bob",
+        state=state,
+    )
+
+    _assert(result.success is True, "Pipeline reports success")
+    _assert(result.receipt is not None, "Receipt was generated")
+    _assert(result.receipt.signature != "", "Receipt has RSA signature")
+    _assert(result.ledger_entry is not None, "Ledger entry was created")
+    _assert(result.ledger_entry.ledger_signature != "", "Ledger entry has RSA signature")
+
+    # Verify in-memory chain
+    _assert(ledger.verify_chain(), "In-memory ledger hash chain is intact")
+    _assert(ledger.verify_entry_signature(result.ledger_entry), "In-memory ledger entry signature valid")
+
+    # Verify receipt signature
+    _assert(receipt_module.verify_receipt_signature(result.receipt), "Receipt RSA signature valid")
+
+    # Run the persisted file verification CLI
+    overall_pass, results = verify_ledger.run_full_verification()
+    _assert(overall_pass is True, f"Persisted ledger verification PASS ({sum(1 for r in results if r.passed)}/{len(results)} checks)")
+
+    logger.info("TC-LEDG-001: PASSED")
+    logger.info("")
+
+
+# ---------------------------------------------------------------------------
+# TC-LEDG-002: Modify a past ledger entry -> verification fails
+# ---------------------------------------------------------------------------
+
+def test_ledger_tamper_entry():
+    """
+    TC-LEDG-002: Run the pipeline to generate a valid ledger, then tamper
+    with a ledger entry in the JSONL file. The verification CLI must
+    detect the hash mismatch and report FAIL.
+    """
+    logger.info("=" * 70)
+    logger.info("TC-LEDG-002: Modify a past ledger entry -> verification fails")
+    logger.info("=" * 70)
+
+    # Clear and generate fresh data
+    data_store.clear_data_files()
+    state = _reset_state()
+
+    result = run(
+        actor_id="user_alice",
+        raw_input={
+            "action_type": "send_email",
+            "target_resource": "email_system",
+            "parameters": {
+                "recipient": "tamper@example.com",
+                "subject": "Tamper Test",
+                "body": "Original body.",
+            },
+            "requested_by": "user_alice",
+            "justification": "TC-LEDG-002",
+        },
+        approver_id="manager_bob",
+        state=state,
+    )
+
+    _assert(result.success is True, "Pipeline reports success")
+
+    # Verify clean state first
+    overall_pass, _ = verify_ledger.run_full_verification()
+    _assert(overall_pass is True, "Verification passes before tampering")
+
+    # Tamper with the ledger JSONL file — change the decision field
+    ledger_file = os.path.join(os.path.dirname(__file__), "data", "ledger.jsonl")
+    with open(ledger_file, "r") as fh:
+        lines = fh.readlines()
+
+    _assert(len(lines) >= 1, "Ledger file has at least 1 entry")
+
+    # Modify the last entry's decision field
+    entry = json.loads(lines[-1])
+    original_decision = entry["decision"]
+    entry["decision"] = "TAMPERED_DECISION"
+    lines[-1] = json.dumps(entry) + "\n"
+
+    with open(ledger_file, "w") as fh:
+        fh.writelines(lines)
+
+    # Verification must now FAIL
+    tampered_pass, tampered_results = verify_ledger.run_full_verification()
+    _assert(tampered_pass is False, "Verification FAILS after tampering with ledger entry")
+
+    # Check that the failure is specifically a hash mismatch
+    hash_failures = [r for r in tampered_results if r.check == "ledger_hash" and not r.passed]
+    _assert(len(hash_failures) >= 1, f"At least 1 hash mismatch detected (got {len(hash_failures)})")
+
+    # Restore original for other tests
+    entry["decision"] = original_decision
+    lines[-1] = json.dumps(entry) + "\n"
+    with open(ledger_file, "w") as fh:
+        fh.writelines(lines)
+
+    # Verify restoration
+    restored_pass, _ = verify_ledger.run_full_verification()
+    _assert(restored_pass is True, "Verification passes after restoring original entry")
+
+    logger.info("TC-LEDG-002: PASSED")
+    logger.info("")
+
+
+# ---------------------------------------------------------------------------
+# TC-LEDG-003: Delete an entry -> verification fails
+# ---------------------------------------------------------------------------
+
+def test_ledger_delete_entry():
+    """
+    TC-LEDG-003: Run the pipeline to generate two ledger entries, then
+    delete one from the JSONL file. The verification CLI must detect
+    the broken chain and report FAIL.
+    """
+    logger.info("=" * 70)
+    logger.info("TC-LEDG-003: Delete an entry -> verification fails")
+    logger.info("=" * 70)
+
+    # Clear and generate fresh data with two entries
+    data_store.clear_data_files()
+    state = _reset_state()
+
+    # First action
+    result1 = run(
+        actor_id="user_alice",
+        raw_input={
+            "action_type": "send_email",
+            "target_resource": "email_system",
+            "parameters": {
+                "recipient": "first@example.com",
+                "subject": "First Entry",
+                "body": "First ledger entry.",
+            },
+            "requested_by": "user_alice",
+            "justification": "TC-LEDG-003 first",
+        },
+        approver_id="manager_bob",
+        state=state,
+    )
+    _assert(result1.success is True, "First pipeline run succeeded")
+
+    # Second action (same state to continue the chain)
+    result2 = run(
+        actor_id="user_alice",
+        raw_input={
+            "action_type": "send_email",
+            "target_resource": "email_system",
+            "parameters": {
+                "recipient": "second@example.com",
+                "subject": "Second Entry",
+                "body": "Second ledger entry.",
+            },
+            "requested_by": "user_alice",
+            "justification": "TC-LEDG-003 second",
+        },
+        approver_id="manager_bob",
+        state=state,
+    )
+    _assert(result2.success is True, "Second pipeline run succeeded")
+
+    # Verify clean state
+    overall_pass, _ = verify_ledger.run_full_verification()
+    _assert(overall_pass is True, "Verification passes before deletion")
+
+    # Delete the first entry from the ledger JSONL
+    ledger_file = os.path.join(os.path.dirname(__file__), "data", "ledger.jsonl")
+    with open(ledger_file, "r") as fh:
+        lines = fh.readlines()
+
+    _assert(len(lines) >= 2, f"Ledger has at least 2 entries (got {len(lines)})")
+
+    # Save original, then delete first entry
+    original_lines = list(lines)
+    deleted_lines = lines[1:]  # Remove first entry
+
+    with open(ledger_file, "w") as fh:
+        fh.writelines(deleted_lines)
+
+    # Verification must now FAIL — the second entry's previous_hash
+    # points to the deleted first entry
+    deleted_pass, deleted_results = verify_ledger.run_full_verification()
+    _assert(deleted_pass is False, "Verification FAILS after deleting a ledger entry")
+
+    # The remaining entry should have a non-empty previous_hash that
+    # doesn't match anything (since the genesis was deleted)
+    chain_failures = [r for r in deleted_results if r.check == "hash_chain" and not r.passed]
+    _assert(len(chain_failures) >= 1, f"At least 1 chain break detected (got {len(chain_failures)})")
+
+    # Restore original
+    with open(ledger_file, "w") as fh:
+        fh.writelines(original_lines)
+
+    # Verify restoration
+    restored_pass, _ = verify_ledger.run_full_verification()
+    _assert(restored_pass is True, "Verification passes after restoring deleted entry")
+
+    logger.info("TC-LEDG-003: PASSED")
+    logger.info("")
+
+
+# ---------------------------------------------------------------------------
+# TC-LEDG-004: Modify receipt -> signature verification fails
+# ---------------------------------------------------------------------------
+
+def test_ledger_tamper_receipt():
+    """
+    TC-LEDG-004: Run the pipeline to generate a valid receipt, then tamper
+    with the receipt in the JSONL file. The verification CLI must detect
+    the invalid signature and report FAIL.
+    """
+    logger.info("=" * 70)
+    logger.info("TC-LEDG-004: Modify receipt -> signature verification fails")
+    logger.info("=" * 70)
+
+    # Clear and generate fresh data
+    data_store.clear_data_files()
+    state = _reset_state()
+
+    result = run(
+        actor_id="user_alice",
+        raw_input={
+            "action_type": "send_email",
+            "target_resource": "email_system",
+            "parameters": {
+                "recipient": "receipt-tamper@example.com",
+                "subject": "Receipt Tamper Test",
+                "body": "Testing receipt signature verification.",
+            },
+            "requested_by": "user_alice",
+            "justification": "TC-LEDG-004",
+        },
+        approver_id="manager_bob",
+        state=state,
+    )
+
+    _assert(result.success is True, "Pipeline reports success")
+
+    # Verify clean state
+    overall_pass, _ = verify_ledger.run_full_verification()
+    _assert(overall_pass is True, "Verification passes before tampering")
+
+    # Tamper with the receipt JSONL file — change the execution_status
+    receipts_file = os.path.join(os.path.dirname(__file__), "data", "receipts.jsonl")
+    with open(receipts_file, "r") as fh:
+        lines = fh.readlines()
+
+    _assert(len(lines) >= 1, "Receipts file has at least 1 entry")
+
+    # Modify the last receipt's execution_status
+    receipt_record = json.loads(lines[-1])
+    original_status = receipt_record["execution_status"]
+    receipt_record["execution_status"] = "TAMPERED_STATUS"
+    lines[-1] = json.dumps(receipt_record) + "\n"
+
+    with open(receipts_file, "w") as fh:
+        fh.writelines(lines)
+
+    # Verification must now FAIL — receipt hash won't match
+    tampered_pass, tampered_results = verify_ledger.run_full_verification()
+    _assert(tampered_pass is False, "Verification FAILS after tampering with receipt")
+
+    # Check that the failure includes a receipt hash mismatch
+    receipt_hash_failures = [r for r in tampered_results if r.check == "receipt_hash" and not r.passed]
+    _assert(len(receipt_hash_failures) >= 1, f"At least 1 receipt hash mismatch detected (got {len(receipt_hash_failures)})")
+
+    # Restore original
+    receipt_record["execution_status"] = original_status
+    lines[-1] = json.dumps(receipt_record) + "\n"
+    with open(receipts_file, "w") as fh:
+        fh.writelines(lines)
+
+    # Verify restoration
+    restored_pass, _ = verify_ledger.run_full_verification()
+    _assert(restored_pass is True, "Verification passes after restoring original receipt")
+
+    logger.info("TC-LEDG-004: PASSED")
+    logger.info("")
+
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
@@ -2076,6 +2392,10 @@ def run_all_tests():
         ("TC-ADPT-003", test_adapter_file_sandbox),
         ("TC-ADPT-004", test_adapter_http_whitelist),
         ("TC-ADPT-005", test_adapter_kill_switch),
+        ("TC-LEDG-001", test_ledger_valid_verification),
+        ("TC-LEDG-002", test_ledger_tamper_entry),
+        ("TC-LEDG-003", test_ledger_delete_entry),
+        ("TC-LEDG-004", test_ledger_tamper_receipt),
     ]
 
     passed = 0

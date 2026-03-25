@@ -207,6 +207,11 @@ class LedgerEntry:
 
     Produced by: Stage 9 — Ledger
     Consumed by: Auditors, Governed Corpus, Cross-domain verification
+
+    The entry_hash is computed as:
+        SHA-256(entry_id + receipt_id + receipt_hash + request_id + intent_id +
+                authorization_id + decision + action + result_hash +
+                receipt_signature + previous_hash + timestamp)
     """
     ledger_entry_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     receipt_id: str = ""
@@ -215,3 +220,11 @@ class LedgerEntry:
     timestamp: int = field(default_factory=lambda: int(time.time() * 1000))
     ledger_signature: str = ""
     ledger_hash: str = ""
+    # Enhanced fields for full hash chain coverage
+    request_id: str = ""
+    intent_id: str = ""
+    authorization_id: str = ""
+    decision: str = ""
+    action: str = ""
+    result_hash: str = ""
+    receipt_signature: str = ""

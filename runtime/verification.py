@@ -5,6 +5,9 @@ Provides verification functions for receipts, ledger hash chain integrity,
 and protocol invariant compliance. Used by auditors, continuous monitoring,
 and the governance learning loop.
 
+Now uses real RSA-PSS signature verification via the receipt and ledger
+modules instead of placeholder logic.
+
 Spec reference: /spec/verification_model.md
 Related invariants: INV-02, INV-03, INV-04
 """
@@ -19,6 +22,7 @@ from typing import Any
 
 from .models import Authorization, Intent, LedgerEntry, Receipt
 from . import ledger as ledger_module
+from . import receipt as receipt_module
 
 logger = logging.getLogger("rio.verification")
 
@@ -33,10 +37,7 @@ class VerificationResult:
 
 def verify_receipt_signature(receipt: Receipt) -> VerificationResult:
     """
-    Verify the cryptographic signature on a receipt.
-
-    In a production implementation, this would verify the ECDSA-secp256k1
-    signature against the system's public attestation key.
+    Verify the RSA-PSS signature on a receipt using the public key.
 
     Args:
         receipt: The receipt to verify.
@@ -51,19 +52,20 @@ def verify_receipt_signature(receipt: Receipt) -> VerificationResult:
             details=f"Receipt {receipt.receipt_id} has no signature",
         )
 
-    # Placeholder verification — production would verify ECDSA signature
-    expected_prefix = f"sig:{receipt.receipt_hash[:32]}"
-    if receipt.signature == expected_prefix:
+    # Use real RSA verification from receipt module
+    is_valid = receipt_module.verify_receipt_signature(receipt)
+
+    if is_valid:
         return VerificationResult(
             check_name="receipt_signature",
             passed=True,
-            details=f"Receipt {receipt.receipt_id} signature valid",
+            details=f"Receipt {receipt.receipt_id} RSA-PSS signature valid",
         )
     else:
         return VerificationResult(
             check_name="receipt_signature",
             passed=False,
-            details=f"Receipt {receipt.receipt_id} signature mismatch",
+            details=f"Receipt {receipt.receipt_id} RSA-PSS signature INVALID",
         )
 
 
@@ -136,6 +138,37 @@ def verify_ledger_chain() -> VerificationResult:
             passed=False,
             details="Ledger hash chain integrity check FAILED",
         )
+
+
+def verify_ledger_signatures() -> VerificationResult:
+    """
+    Verify the RSA-PSS signatures on all ledger entries.
+
+    Returns:
+        A VerificationResult indicating pass or fail.
+    """
+    entries = ledger_module.get_ledger()
+    if not entries:
+        return VerificationResult(
+            check_name="ledger_signatures",
+            passed=True,
+            details="Ledger is empty — no signatures to verify",
+        )
+
+    for i, entry in enumerate(entries):
+        is_valid = ledger_module.verify_entry_signature(entry)
+        if not is_valid:
+            return VerificationResult(
+                check_name="ledger_signatures",
+                passed=False,
+                details=f"Ledger entry {i} ({entry.ledger_entry_id}) RSA-PSS signature INVALID",
+            )
+
+    return VerificationResult(
+        check_name="ledger_signatures",
+        passed=True,
+        details=f"All {len(entries)} ledger entry signatures verified",
+    )
 
 
 def verify_completeness(
@@ -211,6 +244,7 @@ def run_full_verification(
     results.append(verify_receipt_hash(receipt))
     results.append(verify_receipt_signature(receipt))
     results.append(verify_ledger_chain())
+    results.append(verify_ledger_signatures())
 
     passed = sum(1 for r in results if r.passed)
     total = len(results)

@@ -7,6 +7,16 @@ linking each entry to the previous one. Rejects all update and delete operations
 The ledger is the immutable record of all governed actions and is the source
 of truth for audit, compliance, forensics, and governance learning.
 
+Each ledger entry is signed with the same RSA-2048 private key used for
+receipt signing (``runtime/keys/private_key.pem``).  The entry hash is
+computed as:
+
+    entry_hash = SHA-256(
+        entry_id + receipt_id + receipt_hash + request_id + intent_id +
+        authorization_id + decision + action + result_hash +
+        previous_hash + timestamp
+    )
+
 Spec reference: /spec/audit_ledger_protocol.md, /spec/09_audit_ledger.md
 Protocol stage: Step 8 of the 8-step Governed Execution Protocol
 Related invariants: INV-03 (Ledger Completeness), INV-04 (Hash Chain Integrity)
@@ -14,12 +24,17 @@ Related invariants: INV-03 (Ledger Completeness), INV-04 (Hash Chain Integrity)
 
 from __future__ import annotations
 
+import base64
 import hashlib
 import json
 import logging
+import os
 import time
 import uuid
 from typing import Any
+
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import padding
 
 from .models import LedgerEntry, Receipt
 from .state import SystemState
@@ -27,8 +42,39 @@ from .state import SystemState
 logger = logging.getLogger("rio.ledger")
 
 # ---------------------------------------------------------------------------
-# In-memory ledger store (reference skeleton)
-# In production, this would be a durable append-only store.
+# Key management (reuses the same key pair as receipt.py)
+# ---------------------------------------------------------------------------
+
+_KEYS_DIR = os.path.join(os.path.dirname(__file__), "keys")
+_PRIVATE_KEY_PATH = os.path.join(_KEYS_DIR, "private_key.pem")
+_PUBLIC_KEY_PATH = os.path.join(_KEYS_DIR, "public_key.pem")
+
+_private_key = None
+_public_key = None
+
+
+def _load_private_key():
+    """Load the RSA private key from disk (lazy, cached)."""
+    global _private_key
+    if _private_key is not None:
+        return _private_key
+    with open(_PRIVATE_KEY_PATH, "rb") as fh:
+        _private_key = serialization.load_pem_private_key(fh.read(), password=None)
+    return _private_key
+
+
+def _load_public_key():
+    """Load the RSA public key from disk (lazy, cached)."""
+    global _public_key
+    if _public_key is not None:
+        return _public_key
+    with open(_PUBLIC_KEY_PATH, "rb") as fh:
+        _public_key = serialization.load_pem_public_key(fh.read())
+    return _public_key
+
+
+# ---------------------------------------------------------------------------
+# In-memory ledger store
 # ---------------------------------------------------------------------------
 
 _ledger: list[LedgerEntry] = []
@@ -65,12 +111,20 @@ def append(receipt: Receipt, state: SystemState) -> LedgerEntry:
         receipt_hash=receipt.receipt_hash,
         previous_ledger_hash=previous_hash,
         timestamp=now,
+        # Enhanced fields from receipt for richer hash chain
+        request_id=receipt.request_id,
+        intent_id=receipt.intent_id,
+        authorization_id=receipt.authorization_id,
+        decision=receipt.decision.value,
+        action=receipt.action_type,
+        result_hash=receipt.result_hash,
+        receipt_signature=receipt.signature,
     )
 
-    # Compute ledger hash
+    # Compute ledger hash over all fields
     entry.ledger_hash = _compute_ledger_hash(entry)
 
-    # Sign ledger entry
+    # Sign ledger entry with RSA private key
     entry.ledger_signature = _sign_ledger_entry(entry)
 
     # Append to ledger (append-only — no update, no delete)
@@ -91,25 +145,12 @@ def append(receipt: Receipt, state: SystemState) -> LedgerEntry:
 
 
 def get_ledger() -> list[LedgerEntry]:
-    """
-    Return the full ledger (read-only copy).
-
-    Returns:
-        A copy of all ledger entries in append order.
-    """
+    """Return the full ledger (read-only copy)."""
     return list(_ledger)
 
 
 def get_entry_by_receipt(receipt_id: str) -> LedgerEntry | None:
-    """
-    Look up a ledger entry by receipt ID.
-
-    Args:
-        receipt_id: The receipt ID to search for.
-
-    Returns:
-        The matching LedgerEntry, or None if not found.
-    """
+    """Look up a ledger entry by receipt ID."""
     for entry in _ledger:
         if entry.receipt_id == receipt_id:
             return entry
@@ -161,29 +202,89 @@ def verify_chain() -> bool:
     return True
 
 
+def verify_entry_signature(entry: LedgerEntry) -> bool:
+    """
+    Verify the RSA-PSS signature on a ledger entry using the public key.
+
+    Args:
+        entry: The ledger entry whose signature to verify.
+
+    Returns:
+        True if the signature is valid, False otherwise.
+    """
+    if not entry.ledger_signature:
+        return False
+
+    public_key = _load_public_key()
+    try:
+        signature_bytes = base64.b64decode(entry.ledger_signature)
+        public_key.verify(
+            signature_bytes,
+            entry.ledger_hash.encode("utf-8"),
+            padding.PSS(
+                mgf=padding.MGF1(hashes.SHA256()),
+                salt_length=padding.PSS.MAX_LENGTH,
+            ),
+            hashes.SHA256(),
+        )
+        return True
+    except Exception:
+        return False
+
+
 def reset() -> None:
-    """
-    Reset the in-memory ledger. For testing only.
-    In production, the ledger is never cleared.
-    """
+    """Reset the in-memory ledger. For testing only."""
     _ledger.clear()
 
 
+# ---------------------------------------------------------------------------
+# Hash computation
+# ---------------------------------------------------------------------------
+
 def _compute_ledger_hash(entry: LedgerEntry) -> str:
     """
-    Compute the ledger entry hash.
+    Compute the ledger entry hash over all fields.
 
-    Formula: SHA-256(receipt_hash + previous_ledger_hash + timestamp)
+    Formula: SHA-256(
+        entry_id + receipt_id + receipt_hash + request_id + intent_id +
+        authorization_id + decision + action + result_hash +
+        receipt_signature + previous_hash + timestamp
+    )
     """
-    data = f"{entry.receipt_hash}{entry.previous_ledger_hash}{entry.timestamp}"
+    data = (
+        f"{entry.ledger_entry_id}"
+        f"{entry.receipt_id}"
+        f"{entry.receipt_hash}"
+        f"{entry.request_id}"
+        f"{entry.intent_id}"
+        f"{entry.authorization_id}"
+        f"{entry.decision}"
+        f"{entry.action}"
+        f"{entry.result_hash}"
+        f"{entry.receipt_signature}"
+        f"{entry.previous_ledger_hash}"
+        f"{entry.timestamp}"
+    )
     return hashlib.sha256(data.encode("utf-8")).hexdigest()
 
 
+# ---------------------------------------------------------------------------
+# RSA Signing
+# ---------------------------------------------------------------------------
+
 def _sign_ledger_entry(entry: LedgerEntry) -> str:
     """
-    Sign the ledger entry hash.
+    Sign the ledger entry hash with the RSA-2048 private key.
 
-    In a production implementation, this would use ECDSA-secp256k1.
-    This reference skeleton returns a placeholder signature.
+    Returns a base64-encoded RSA-PSS signature of the ledger_hash.
     """
-    return f"ledger_sig:{entry.ledger_hash[:32]}"
+    private_key = _load_private_key()
+    signature_bytes = private_key.sign(
+        entry.ledger_hash.encode("utf-8"),
+        padding.PSS(
+            mgf=padding.MGF1(hashes.SHA256()),
+            salt_length=padding.PSS.MAX_LENGTH,
+        ),
+        hashes.SHA256(),
+    )
+    return base64.b64encode(signature_bytes).decode("utf-8")
