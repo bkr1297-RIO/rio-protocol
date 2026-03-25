@@ -1,0 +1,67 @@
+{
+  "version": "1.0.0",
+  "description": "RIO Policy Rules — defines authorization constraints per action type, role, and condition.",
+  "rules": [
+    {
+      "id": "POL-001",
+      "description": "Fund transfers over 1000 require approval",
+      "action": "transfer_funds",
+      "condition": "amount > 1000",
+      "decision": "REQUIRE_APPROVAL",
+      "priority": 10
+    },
+    {
+      "id": "POL-002",
+      "description": "All data deletion requires approval",
+      "action": "delete_data",
+      "decision": "REQUIRE_APPROVAL",
+      "priority": 10
+    },
+    {
+      "id": "POL-003",
+      "description": "Interns cannot transfer funds",
+      "role": "intern",
+      "action": "transfer_funds",
+      "decision": "DENY",
+      "priority": 20
+    },
+    {
+      "id": "POL-004",
+      "description": "Interns cannot delete data",
+      "role": "intern",
+      "action": "delete_data",
+      "decision": "DENY",
+      "priority": 20
+    },
+    {
+      "id": "POL-005",
+      "description": "Interns cannot grant access",
+      "role": "intern",
+      "action": "grant_access",
+      "decision": "DENY",
+      "priority": 20
+    },
+    {
+      "id": "POL-006",
+      "description": "Code deployment requires approval",
+      "action": "deploy_code",
+      "decision": "REQUIRE_APPROVAL",
+      "priority": 10
+    },
+    {
+      "id": "POL-007",
+      "description": "Access grants require approval",
+      "action": "grant_access",
+      "decision": "REQUIRE_APPROVAL",
+      "priority": 10
+    },
+    {
+      "id": "POL-008",
+      "description": "Fund transfers under 1000 allowed for non-interns",
+      "action": "transfer_funds",
+      "condition": "amount <= 1000",
+      "decision": "ALLOW",
+      "priority": 5
+    }
+  ]
+}

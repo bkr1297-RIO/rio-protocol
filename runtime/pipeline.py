@@ -200,7 +200,9 @@ def run(
         # ---------------------------------------------------------------
         # Stage 4: Policy & Risk
         # ---------------------------------------------------------------
-        policy_result = policy_risk.evaluate(intent_obj)
+        # Extract role from raw_input or default to 'employee'
+        role = raw_input.get("role", "employee")
+        policy_result = policy_risk.evaluate(intent_obj, role=role)
         result.stages_completed.append("policy_risk")
         logger.info(
             "STAGE 4 COMPLETE — policy_risk — decision=%s risk_score=%.2f",
@@ -251,6 +253,13 @@ def run(
             result_data=exec_result.result_data,
             previous_receipt_hash=state.ledger_head_hash,
         )
+        # Propagate risk and policy fields to receipt
+        rcpt.risk_score = policy_result.risk_score
+        rcpt.risk_level = policy_result.risk_level
+        rcpt.policy_rule_id = policy_result.policy_rule_id
+        rcpt.policy_decision = policy_result.decision.value
+        # Recompute receipt hash with updated fields
+        rcpt = receipt_module.rehash_receipt(rcpt)
         result.receipt = rcpt
         result.stages_completed.append("receipt")
         logger.info(

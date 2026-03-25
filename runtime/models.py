@@ -134,6 +134,8 @@ class PolicyRiskResult:
     intent_id: str = ""
     decision: Decision = Decision.DENY
     risk_score: float = 0.0
+    risk_level: str = ""
+    policy_rule_id: str = ""
     policy_ids: list[str] = field(default_factory=list)
     constraints: dict[str, Any] = field(default_factory=dict)
     reason: str = ""
@@ -181,6 +183,10 @@ class Receipt:
     action_type: str = ""
     execution_status: ExecutionStatus = ExecutionStatus.BLOCKED
     execution_timestamp: int = field(default_factory=lambda: int(time.time() * 1000))
+    risk_score: float = 0.0
+    risk_level: str = ""
+    policy_rule_id: str = ""
+    policy_decision: str = ""
     result_hash: str = ""
     previous_receipt_hash: str = ""
     receipt_hash: str = ""

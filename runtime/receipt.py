@@ -128,3 +128,28 @@ def _sign_receipt(receipt: Receipt) -> str:
     This reference skeleton returns a placeholder signature.
     """
     return f"sig:{receipt.receipt_hash[:32]}"
+
+
+def rehash_receipt(receipt: Receipt) -> Receipt:
+    """
+    Recompute the receipt hash and signature after field updates.
+
+    Used when additional fields (risk_score, risk_level, policy_rule_id,
+    policy_decision) are populated after initial receipt generation.
+
+    Args:
+        receipt: The Receipt with updated fields.
+
+    Returns:
+        The same Receipt with recomputed hash and signature.
+    """
+    receipt.receipt_hash = _compute_receipt_hash(receipt)
+    receipt.signature = _sign_receipt(receipt)
+
+    logger.info(
+        "Receipt %s rehashed — new hash=%s",
+        receipt.receipt_id,
+        receipt.receipt_hash[:16] + "...",
+    )
+
+    return receipt

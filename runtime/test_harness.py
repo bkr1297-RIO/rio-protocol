@@ -83,7 +83,7 @@ def test_tc_rio_001():
         raw_input={
             "action_type": "read_data",
             "target_resource": "report_server",
-            "parameters": {"report_id": "RPT-2026-001"},
+            "parameters": {"dataset": "quarterly_reports", "report_id": "RPT-2026-001"},
             "requested_by": "user_alice",
             "justification": "Quarterly review",
         },
@@ -160,11 +160,13 @@ def test_tc_rio_002():
             "action_type": "delete_data",
             "target_resource": "production_database",
             "parameters": {
-                "table": "customer_records",
+                "dataset": "customer_records",
                 "scope": "all",
+                "approval_authority": "data_governance_board",
             },
             "requested_by": "intern_user_04",
             "justification": "Cleanup request",
+            "role": "intern",
         },
         approver_id="finance_manager",
         state=state,
@@ -224,7 +226,7 @@ def test_tc_rio_003():
         raw_input={
             "action_type": "read_data",
             "target_resource": "report_server",
-            "parameters": {"report_id": "RPT-2026-002"},
+            "parameters": {"dataset": "daily_reports", "report_id": "RPT-2026-002"},
             "requested_by": "user_alice",
             "justification": "Routine check",
         },
@@ -319,7 +321,7 @@ def test_token_replay_blocked():
         raw_input={
             "action_type": "read_data",
             "target_resource": "report_server",
-            "parameters": {"report_id": "RPT-001"},
+            "parameters": {"dataset": "reports", "report_id": "RPT-001"},
             "requested_by": "user_alice",
             "justification": "First request",
         },
@@ -335,7 +337,7 @@ def test_token_replay_blocked():
         raw_input={
             "action_type": "read_data",
             "target_resource": "report_server",
-            "parameters": {"report_id": "RPT-002"},
+            "parameters": {"dataset": "reports", "report_id": "RPT-002"},
             "requested_by": "user_alice",
             "justification": "Second request",
         },
@@ -418,7 +420,7 @@ def test_ledger_hash_chain():
             raw_input={
                 "action_type": "read_data",
                 "target_resource": f"resource_{i}",
-                "parameters": {"index": i},
+                "parameters": {"dataset": f"dataset_{i}", "index": i},
                 "requested_by": f"user_{i}",
                 "justification": f"Request {i}",
             },
@@ -448,6 +450,160 @@ def test_ledger_hash_chain():
 
 
 # ---------------------------------------------------------------------------
+# TC-POLICY-001: Policy engine denies intern transfer_funds > 1000
+# ---------------------------------------------------------------------------
+
+def test_policy_engine_deny():
+    """
+    TC-POLICY-001: An intern attempts a transfer_funds action with amount > 1000.
+    The Policy Engine should match the deny rule and block the request.
+    The receipt should contain the policy_rule_id and risk_score.
+    """
+    logger.info("=" * 70)
+    logger.info("TC-POLICY-001: Policy engine denies intern transfer_funds > 1000")
+    logger.info("=" * 70)
+
+    state = _reset_state()
+
+    result = run(
+        actor_id="intern_user_04",
+        raw_input={
+            "action_type": "transfer_funds",
+            "target_resource": "payment_system",
+            "parameters": {
+                "amount": 5000,
+                "currency": "EUR",
+                "recipient": "Vendor_X",
+                "source_account": "Berlin_Office_Account",
+            },
+            "requested_by": "intern_user_04",
+            "justification": "Office supplies invoice",
+            "role": "intern",
+        },
+        approver_id="finance_manager",
+        state=state,
+        action_handler=_action_handler,
+    )
+
+    # Verify execution was blocked
+    _assert(result.success is False, "Pipeline reports failure (denied by policy)")
+
+    # Verify receipt exists
+    _assert(result.receipt is not None, "Receipt was generated")
+    _assert(result.receipt.receipt_hash != "", "Receipt hash is non-empty")
+
+    # Verify risk and policy fields on receipt
+    _assert(result.receipt.risk_score > 0, f"Receipt has risk_score={result.receipt.risk_score}")
+    _assert(result.receipt.risk_level != "", f"Receipt has risk_level={result.receipt.risk_level}")
+    _assert(result.receipt.policy_rule_id != "", f"Receipt has policy_rule_id={result.receipt.policy_rule_id}")
+    _assert(result.receipt.policy_decision != "", f"Receipt has policy_decision={result.receipt.policy_decision}")
+
+    # Verify ledger entry
+    _assert(result.ledger_entry is not None, "Ledger entry was created")
+    _assert(ledger.verify_chain(), "Ledger hash chain is intact")
+
+    logger.info("TC-POLICY-001: PASSED")
+    logger.info("")
+
+
+# ---------------------------------------------------------------------------
+# TC-RISK-001: Risk engine computes correct score and level
+# ---------------------------------------------------------------------------
+
+def test_risk_engine_scoring():
+    """
+    TC-RISK-001: Verify that the Risk Engine correctly computes risk scores
+    based on action type, role, amount, and target resource.
+    A low-risk read_data by an admin should have a low score.
+    A high-risk transfer_funds by an intern should have a high score.
+    """
+    logger.info("=" * 70)
+    logger.info("TC-RISK-001: Risk engine computes correct score and level")
+    logger.info("=" * 70)
+
+    from .policy.risk_engine import compute_risk
+
+    # Low risk: admin reading data
+    low_result = compute_risk(
+        action_type="read_data",
+        parameters={},
+        role="admin",
+        target_resource="email_system",
+    )
+    _assert(low_result.risk_level == "LOW", f"Admin read_data is LOW risk (score={low_result.risk_score})")
+    _assert(low_result.risk_score < 5, f"Score {low_result.risk_score} < 5")
+
+    # High risk: intern transferring large amount
+    high_result = compute_risk(
+        action_type="transfer_funds",
+        parameters={"amount": 50000},
+        role="intern",
+        target_resource="payment_system",
+    )
+    _assert(high_result.risk_level == "HIGH", f"Intern transfer 50k is HIGH risk (score={high_result.risk_score})")
+    _assert(high_result.risk_score >= 10, f"Score {high_result.risk_score} >= 10")
+
+    # Verify components are populated
+    _assert("base_risk" in high_result.components, "Components include base_risk")
+    _assert("role_risk" in high_result.components, "Components include role_risk")
+    _assert("amount_risk" in high_result.components, "Components include amount_risk")
+    _assert("system_target_risk" in high_result.components, "Components include system_target_risk")
+
+    logger.info("TC-RISK-001: PASSED")
+    logger.info("")
+
+
+# ---------------------------------------------------------------------------
+# TC-INTENT-001: Intent requirements matrix validates required parameters
+# ---------------------------------------------------------------------------
+
+def test_intent_requirements_validation():
+    """
+    TC-INTENT-001: Verify that the Intent Requirements Matrix correctly
+    identifies missing required parameters for specific action types.
+    """
+    logger.info("=" * 70)
+    logger.info("TC-INTENT-001: Intent requirements matrix validates required parameters")
+    logger.info("=" * 70)
+
+    from .policy.intent_requirements import validate_intent_fields, get_required_fields
+
+    # transfer_funds requires: amount, currency, recipient, source_account
+    required = get_required_fields("transfer_funds")
+    _assert("amount" in required, "transfer_funds requires 'amount'")
+    _assert("currency" in required, "transfer_funds requires 'currency'")
+    _assert("recipient" in required, "transfer_funds requires 'recipient'")
+    _assert("source_account" in required, "transfer_funds requires 'source_account'")
+
+    # Valid parameters — should pass
+    valid, missing = validate_intent_fields("transfer_funds", {
+        "amount": 5000,
+        "currency": "EUR",
+        "recipient": "Vendor_X",
+        "source_account": "Berlin_Office_Account",
+    })
+    _assert(valid is True, "Valid transfer_funds parameters pass validation")
+    _assert(len(missing) == 0, "No missing fields")
+
+    # Missing parameters — should fail
+    invalid, missing = validate_intent_fields("transfer_funds", {
+        "amount": 5000,
+        # Missing currency, recipient, source_account
+    })
+    _assert(invalid is False, "Incomplete transfer_funds parameters fail validation")
+    _assert("currency" in missing, "Missing 'currency' detected")
+    _assert("recipient" in missing, "Missing 'recipient' detected")
+    _assert("source_account" in missing, "Missing 'source_account' detected")
+
+    # Unknown action type — should pass (no requirements defined)
+    unknown_valid, unknown_missing = validate_intent_fields("unknown_action", {})
+    _assert(unknown_valid is True, "Unknown action type passes (no requirements)")
+
+    logger.info("TC-INTENT-001: PASSED")
+    logger.info("")
+
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
@@ -466,6 +622,9 @@ def run_all_tests():
         ("TC-EXTRA-002", test_token_replay_blocked),
         ("TC-EXTRA-003", test_validation_failure_produces_receipt),
         ("TC-EXTRA-004", test_ledger_hash_chain),
+        ("TC-POLICY-001", test_policy_engine_deny),
+        ("TC-RISK-001", test_risk_engine_scoring),
+        ("TC-INTENT-001", test_intent_requirements_validation),
     ]
 
     passed = 0
