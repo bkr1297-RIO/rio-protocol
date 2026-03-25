@@ -1,0 +1,43 @@
+{
+  "mode": "simulated",
+  "allowed_actions": [
+    "send_email",
+    "create_event",
+    "read_file",
+    "write_file",
+    "append_file",
+    "http_request"
+  ],
+  "whitelisted_domains": [
+    "api.example.com",
+    "api.internal.rio",
+    "hooks.slack.com",
+    "api.github.com",
+    "api.stripe.com"
+  ],
+  "sandbox_path": "runtime/data/sandbox",
+  "email": {
+    "simulated_log": "runtime/data/sent_emails.log",
+    "live_stub": {
+      "provider": "smtp",
+      "host": "",
+      "port": 587,
+      "username": "",
+      "password": "",
+      "from_address": "rio@example.com"
+    }
+  },
+  "calendar": {
+    "simulated_log": "runtime/data/calendar_events.log",
+    "live_stub": {
+      "provider": "google",
+      "credentials_path": "",
+      "calendar_id": "primary"
+    }
+  },
+  "http": {
+    "simulated_log": "runtime/data/http_requests.log",
+    "timeout_seconds": 30,
+    "max_retries": 3
+  }
+}

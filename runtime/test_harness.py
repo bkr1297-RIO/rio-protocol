@@ -3,8 +3,8 @@ RIO Runtime — Test Harness
 
 Implements the protocol test cases defined in /tests/TC-RIO-001.md,
 /tests/TC-RIO-002.md, and /tests/TC-RIO-003.md, plus additional
-scenarios for invariant enforcement, edge cases, and connector
-integration.
+scenarios for invariant enforcement, edge cases, connector
+integration, approval workflows, governance, and adapter execution.
 
 Test Cases:
     TC-RIO-001: Allowed execution with receipt and ledger
@@ -31,6 +31,11 @@ Test Cases:
     TC-GOV-003: Rollback policy version to previous
     TC-GOV-004: Policy change recorded in ledger (GOVERNANCE_CHANGE)
     TC-GOV-005: Non-admin cannot change policy
+    TC-ADPT-001: send_email executes through adapter and logs result
+    TC-ADPT-002: create_event executes through adapter
+    TC-ADPT-003: file write stays inside sandbox
+    TC-ADPT-004: http request to non-whitelisted domain is blocked
+    TC-ADPT-005: kill switch blocks adapter execution
 
 Run with: python -m runtime.test_harness
 """
@@ -673,8 +678,8 @@ def test_email_connector_allowed():
         "Execution status is EXECUTED",
     )
     _assert(
-        result.execution_result.connector_id == "email",
-        f"Connector ID is 'email' (got: {result.execution_result.connector_id})",
+        result.execution_result.adapter_id == "email",
+        f"Adapter ID is 'email' (got: {result.execution_result.adapter_id})",
     )
 
     # Verify email log file was written
@@ -684,7 +689,9 @@ def test_email_connector_allowed():
     _assert(len(lines) >= 1, f"Email log has at least 1 entry (got {len(lines)})")
 
     record = json.loads(lines[-1])
-    _assert(record["recipient"] == "bob@example.com", "Email recipient matches")
+    # Adapter uses 'to' field; connector used 'recipient'
+    email_to = record.get("to", record.get("recipient", ""))
+    _assert(email_to == "bob@example.com", "Email recipient matches")
     _assert(record["subject"] == "Quarterly Report", "Email subject matches")
 
     # Verify receipt and ledger
@@ -756,8 +763,8 @@ def test_email_connector_denied():
 
     # Verify the connector_id is empty (connector was never resolved)
     _assert(
-        result.execution_result.connector_id == "",
-        f"Connector ID is empty (got: '{result.execution_result.connector_id}')",
+        result.execution_result.adapter_id == "",
+        f"Adapter ID is empty (got: '{result.execution_result.adapter_id}')",
     )
 
     # Receipt and ledger should still exist
@@ -850,8 +857,8 @@ def test_file_connector_write():
 
     state = _reset_state()
 
-    # Clean up any previous test file
-    test_file = os.path.join(os.path.dirname(__file__), "data", "test_output.txt")
+    # Clean up any previous test file — adapter writes to data/sandbox/
+    test_file = os.path.join(os.path.dirname(__file__), "data", "sandbox", "test_output.txt")
     if os.path.exists(test_file):
         os.remove(test_file)
 
@@ -879,8 +886,8 @@ def test_file_connector_write():
         "Execution status is EXECUTED",
     )
     _assert(
-        result.execution_result.connector_id == "file",
-        f"Connector ID is 'file' (got: {result.execution_result.connector_id})",
+        result.execution_result.adapter_id == "file",
+        f"Adapter ID is 'file' (got: {result.execution_result.adapter_id})",
     )
 
     # Verify the file was created
@@ -950,8 +957,8 @@ def test_http_connector_simulated():
         "Execution status is EXECUTED",
     )
     _assert(
-        result.execution_result.connector_id == "http",
-        f"Connector ID is 'http' (got: {result.execution_result.connector_id})",
+        result.execution_result.adapter_id == "http",
+        f"Adapter ID is 'http' (got: {result.execution_result.adapter_id})",
     )
 
     # Verify HTTP log file was written
@@ -1615,6 +1622,420 @@ def test_governance_non_admin_blocked():
 
 
 # ---------------------------------------------------------------------------
+# TC-ADPT-001: send_email executes through adapter and logs result
+# Protocol Steps Covered: 1–8 (full pipeline with adapter execution)
+# ---------------------------------------------------------------------------
+
+def test_adapter_email():
+    """
+    TC-ADPT-001: An allowed send_email action routes through the email
+    adapter, logs a structured record, and returns an external_reference.
+    """
+    logger.info("=" * 70)
+    logger.info("TC-ADPT-001: send_email executes through adapter and logs result")
+    logger.info("=" * 70)
+
+    state = _reset_state()
+
+    # Clean up any previous email log
+    email_log = os.path.join(os.path.dirname(__file__), "data", "sent_emails.log")
+    if os.path.exists(email_log):
+        os.remove(email_log)
+
+    result = run(
+        actor_id="user_alice",
+        raw_input={
+            "action_type": "send_email",
+            "target_resource": "email_system",
+            "parameters": {
+                "recipient": "cto@example.com",
+                "subject": "Adapter Test Email",
+                "body": "This email was sent through the adapter layer.",
+            },
+            "requested_by": "user_alice",
+            "justification": "Testing adapter-based email execution",
+        },
+        approver_id="manager_bob",
+        state=state,
+    )
+
+    _assert(result.success is True, "Pipeline reports success")
+    _assert(
+        result.execution_result.execution_status == ExecutionStatus.EXECUTED,
+        "Execution status is EXECUTED",
+    )
+    _assert(
+        result.execution_result.adapter_id == "email",
+        f"Adapter ID is 'email' (got: {result.execution_result.adapter_id})",
+    )
+    _assert(
+        result.execution_result.external_reference != "",
+        f"External reference is non-empty (got: {result.execution_result.external_reference})",
+    )
+    _assert(
+        result.execution_result.external_reference.startswith("SIM-"),
+        f"External reference starts with SIM- (got: {result.execution_result.external_reference})",
+    )
+
+    # Verify email log file was written with adapter format
+    _assert(os.path.exists(email_log), "sent_emails.log file exists")
+    with open(email_log, "r") as fh:
+        lines = fh.readlines()
+    _assert(len(lines) >= 1, f"Email log has at least 1 entry (got {len(lines)})")
+
+    record = json.loads(lines[-1])
+    _assert(record["to"] == "cto@example.com", "Email 'to' field matches")
+    _assert(record["subject"] == "Adapter Test Email", "Email subject matches")
+    _assert(record["mode"] == "simulated", "Mode is simulated")
+    _assert("message_id" in record, "Record has message_id")
+    _assert("intent_id" in record, "Record has intent_id")
+    _assert("authorization_id" in record, "Record has authorization_id")
+
+    # Verify result_data contains adapter metadata
+    rd = result.execution_result.result_data
+    _assert(rd.get("adapter_id") == "email", "result_data has adapter_id=email")
+    _assert(rd.get("mode") == "simulated", "result_data has mode=simulated")
+    _assert("external_reference" in rd, "result_data has external_reference")
+
+    # Verify receipt and ledger
+    _assert(result.receipt is not None, "Receipt was generated")
+    _assert(result.ledger_entry is not None, "Ledger entry was created")
+    _assert(ledger.verify_chain(), "Ledger hash chain is intact")
+
+    logger.info("TC-ADPT-001: PASSED")
+    logger.info("")
+
+
+# ---------------------------------------------------------------------------
+# TC-ADPT-002: create_event executes through adapter
+# Protocol Steps Covered: 1–8 (full pipeline with calendar adapter)
+# ---------------------------------------------------------------------------
+
+def test_adapter_calendar():
+    """
+    TC-ADPT-002: An allowed create_event action routes through the
+    calendar adapter and logs a structured event record.
+    """
+    logger.info("=" * 70)
+    logger.info("TC-ADPT-002: create_event executes through adapter")
+    logger.info("=" * 70)
+
+    state = _reset_state()
+
+    # Clean up any previous calendar log
+    cal_log = os.path.join(os.path.dirname(__file__), "data", "calendar_events.log")
+    if os.path.exists(cal_log):
+        os.remove(cal_log)
+
+    result = run(
+        actor_id="user_alice",
+        raw_input={
+            "action_type": "create_event",
+            "target_resource": "calendar_system",
+            "parameters": {
+                "title": "RIO Architecture Review",
+                "time": "2026-04-01T14:00:00Z",
+                "duration": "60m",
+                "location": "Conference Room A",
+                "attendees": ["bob@example.com", "carol@example.com"],
+            },
+            "requested_by": "user_alice",
+            "justification": "Quarterly architecture review meeting",
+        },
+        approver_id="manager_bob",
+        state=state,
+    )
+
+    _assert(result.success is True, "Pipeline reports success")
+    _assert(
+        result.execution_result.execution_status == ExecutionStatus.EXECUTED,
+        "Execution status is EXECUTED",
+    )
+    _assert(
+        result.execution_result.adapter_id == "calendar",
+        f"Adapter ID is 'calendar' (got: {result.execution_result.adapter_id})",
+    )
+    _assert(
+        result.execution_result.external_reference.startswith("EVT-"),
+        f"External reference starts with EVT- (got: {result.execution_result.external_reference})",
+    )
+
+    # Verify calendar log file was written
+    _assert(os.path.exists(cal_log), "calendar_events.log file exists")
+    with open(cal_log, "r") as fh:
+        lines = fh.readlines()
+    _assert(len(lines) >= 1, f"Calendar log has at least 1 entry (got {len(lines)})")
+
+    record = json.loads(lines[-1])
+    _assert(record["title"] == "RIO Architecture Review", "Event title matches")
+    _assert(record["time"] == "2026-04-01T14:00:00Z", "Event time matches")
+    _assert(record["duration"] == "60m", "Event duration matches")
+    _assert(record["mode"] == "simulated", "Mode is simulated")
+    _assert("event_id" in record, "Record has event_id")
+
+    # Verify receipt and ledger
+    _assert(result.receipt is not None, "Receipt was generated")
+    _assert(result.ledger_entry is not None, "Ledger entry was created")
+    _assert(ledger.verify_chain(), "Ledger hash chain is intact")
+
+    logger.info("TC-ADPT-002: PASSED")
+    logger.info("")
+
+
+# ---------------------------------------------------------------------------
+# TC-ADPT-003: file write stays inside sandbox
+# Protocol Steps Covered: Adapter sandbox enforcement
+# ---------------------------------------------------------------------------
+
+def test_adapter_file_sandbox():
+    """
+    TC-ADPT-003: A write_file action through the file adapter creates
+    the file inside the sandbox directory. A path traversal attempt
+    (e.g., ../../../etc/passwd) is blocked by the adapter.
+    """
+    logger.info("=" * 70)
+    logger.info("TC-ADPT-003: file write stays inside sandbox")
+    logger.info("=" * 70)
+
+    state = _reset_state()
+
+    # --- Part A: Valid write inside sandbox ---
+    sandbox_dir = os.path.join(os.path.dirname(__file__), "data", "sandbox")
+    test_file = os.path.join(sandbox_dir, "adapter_test.txt")
+    if os.path.exists(test_file):
+        os.remove(test_file)
+
+    result = run(
+        actor_id="user_alice",
+        raw_input={
+            "action_type": "write_file",
+            "target_resource": "file_system",
+            "parameters": {
+                "operation": "write_file",
+                "filename": "adapter_test.txt",
+                "content": "Adapter sandbox write test — TC-ADPT-003",
+            },
+            "requested_by": "user_alice",
+            "justification": "Testing adapter sandbox enforcement",
+        },
+        approver_id="manager_bob",
+        state=state,
+    )
+
+    _assert(result.success is True, "Pipeline reports success for valid write")
+    _assert(
+        result.execution_result.adapter_id == "file",
+        f"Adapter ID is 'file' (got: {result.execution_result.adapter_id})",
+    )
+    _assert(os.path.exists(test_file), "File was created inside sandbox")
+    with open(test_file, "r") as fh:
+        content = fh.read()
+    _assert(
+        content == "Adapter sandbox write test — TC-ADPT-003",
+        "File content matches expected value",
+    )
+
+    # --- Part B: Path traversal attempt ---
+    state2 = _reset_state()
+
+    traversal_result = run(
+        actor_id="user_alice",
+        raw_input={
+            "action_type": "write_file",
+            "target_resource": "file_system",
+            "parameters": {
+                "operation": "write_file",
+                "filename": "../../../etc/malicious.txt",
+                "content": "This should be blocked",
+            },
+            "requested_by": "user_alice",
+            "justification": "Path traversal test",
+        },
+        approver_id="manager_bob",
+        state=state2,
+    )
+
+    # The pipeline should succeed (no crash) but the adapter should fail
+    _assert(
+        traversal_result.execution_result.execution_status == ExecutionStatus.FAILED,
+        "Path traversal write was blocked (FAILED status)",
+    )
+    _assert(
+        "path_traversal" in str(traversal_result.execution_result.result_data)
+        or "traversal" in str(traversal_result.execution_result.result_data).lower(),
+        "Result mentions path traversal",
+    )
+
+    # Clean up
+    if os.path.exists(test_file):
+        os.remove(test_file)
+
+    logger.info("TC-ADPT-003: PASSED")
+    logger.info("")
+
+
+# ---------------------------------------------------------------------------
+# TC-ADPT-004: http request to non-whitelisted domain is blocked
+# Protocol Steps Covered: Adapter domain whitelist enforcement
+# ---------------------------------------------------------------------------
+
+def test_adapter_http_whitelist():
+    """
+    TC-ADPT-004: An http_request to a non-whitelisted domain is blocked
+    by the HTTP adapter. A request to a whitelisted domain succeeds.
+    """
+    logger.info("=" * 70)
+    logger.info("TC-ADPT-004: http request to non-whitelisted domain is blocked")
+    logger.info("=" * 70)
+
+    state = _reset_state()
+
+    # --- Part A: Non-whitelisted domain (should be blocked) ---
+    result = run(
+        actor_id="user_alice",
+        raw_input={
+            "action_type": "http_request",
+            "target_resource": "http_gateway",
+            "parameters": {
+                "url": "https://evil-domain.com/api/steal",
+                "method": "POST",
+                "body": {"data": "sensitive"},
+            },
+            "requested_by": "user_alice",
+            "justification": "Testing domain whitelist",
+        },
+        approver_id="manager_bob",
+        state=state,
+    )
+
+    _assert(
+        result.execution_result.execution_status == ExecutionStatus.FAILED,
+        "Non-whitelisted domain request was blocked (FAILED status)",
+    )
+    _assert(
+        "domain_not_whitelisted" in str(result.execution_result.result_data)
+        or "not whitelisted" in str(result.execution_result.result_data).lower(),
+        "Result mentions domain not whitelisted",
+    )
+
+    # --- Part B: Whitelisted domain (should succeed) ---
+    state2 = _reset_state()
+
+    http_log = os.path.join(os.path.dirname(__file__), "data", "http_requests.log")
+    if os.path.exists(http_log):
+        os.remove(http_log)
+
+    result2 = run(
+        actor_id="user_alice",
+        raw_input={
+            "action_type": "http_request",
+            "target_resource": "http_gateway",
+            "parameters": {
+                "url": "https://api.example.com/v1/status",
+                "method": "GET",
+            },
+            "requested_by": "user_alice",
+            "justification": "Testing whitelisted domain",
+        },
+        approver_id="manager_bob",
+        state=state2,
+    )
+
+    _assert(result2.success is True, "Whitelisted domain request succeeded")
+    _assert(
+        result2.execution_result.execution_status == ExecutionStatus.EXECUTED,
+        "Execution status is EXECUTED for whitelisted domain",
+    )
+    _assert(
+        result2.execution_result.adapter_id == "http",
+        f"Adapter ID is 'http' (got: {result2.execution_result.adapter_id})",
+    )
+
+    logger.info("TC-ADPT-004: PASSED")
+    logger.info("")
+
+
+# ---------------------------------------------------------------------------
+# TC-ADPT-005: kill switch blocks adapter execution
+# Protocol Steps Covered: INV-08 enforcement at adapter layer
+# ---------------------------------------------------------------------------
+
+def test_adapter_kill_switch():
+    """
+    TC-ADPT-005: When the kill switch is engaged, the execution gate
+    blocks before the adapter is ever called. Verify no adapter side
+    effects occur.
+    """
+    logger.info("=" * 70)
+    logger.info("TC-ADPT-005: kill switch blocks adapter execution")
+    logger.info("=" * 70)
+
+    state = _reset_state()
+
+    # Engage kill switch
+    kill_switch.engage(state, actor_id="admin_01", reason="TC-ADPT-005 test")
+    _assert(state.kill_switch_active is True, "Kill switch is engaged")
+
+    # Clean up any previous email log
+    email_log = os.path.join(os.path.dirname(__file__), "data", "sent_emails.log")
+    if os.path.exists(email_log):
+        os.remove(email_log)
+
+    result = run(
+        actor_id="user_alice",
+        raw_input={
+            "action_type": "send_email",
+            "target_resource": "email_system",
+            "parameters": {
+                "recipient": "blocked@example.com",
+                "subject": "This should not be sent",
+                "body": "Kill switch is engaged.",
+            },
+            "requested_by": "user_alice",
+            "justification": "Testing kill switch with adapter",
+        },
+        approver_id="manager_bob",
+        state=state,
+    )
+
+    # Verify execution was blocked at the gate level
+    _assert(
+        result.execution_result.execution_status == ExecutionStatus.KILL_SWITCH_BLOCKED,
+        "Execution status is KILL_SWITCH_BLOCKED",
+    )
+
+    # Verify adapter was never called (no side effects)
+    _assert(
+        result.execution_result.adapter_id == "",
+        f"Adapter ID is empty (got: '{result.execution_result.adapter_id}')",
+    )
+    _assert(
+        result.execution_result.external_reference == "",
+        "No external reference (adapter never called)",
+    )
+
+    # Verify no email was logged
+    if os.path.exists(email_log):
+        with open(email_log, "r") as fh:
+            lines = fh.readlines()
+        _assert(len(lines) == 0, "No emails logged when kill switch is engaged")
+    else:
+        _assert(True, "No email log file (adapter never called)")
+
+    # Verify no tokens consumed
+    _assert(
+        len(state.consumed_tokens) == 0,
+        "No tokens consumed (execution was blocked)",
+    )
+
+    # Disengage for cleanup
+    kill_switch.disengage(state, actor_id="admin_01", reason="TC-ADPT-005 cleanup")
+
+    logger.info("TC-ADPT-005: PASSED")
+    logger.info("")
+
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
@@ -1650,6 +2071,11 @@ def run_all_tests():
         ("TC-GOV-003", test_governance_rollback_version),
         ("TC-GOV-004", test_governance_change_in_ledger),
         ("TC-GOV-005", test_governance_non_admin_blocked),
+        ("TC-ADPT-001", test_adapter_email),
+        ("TC-ADPT-002", test_adapter_calendar),
+        ("TC-ADPT-003", test_adapter_file_sandbox),
+        ("TC-ADPT-004", test_adapter_http_whitelist),
+        ("TC-ADPT-005", test_adapter_kill_switch),
     ]
 
     passed = 0
