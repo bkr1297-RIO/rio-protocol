@@ -401,7 +401,10 @@ rio-protocol/
 │   ├── two_loop_architecture.md       Two-loop architecture (superseded by three_loop_architecture.md)
 │   ├── intent_translation_layer.md    Intent translation layer (universal grammar)
 │   ├── master_protocol_index.md       Master index linking all specifications
-│   └── rio_gateway_protocol_v1.0.json RIO Gateway Protocol Spec (Sovereign Gate Edition)
+│   ├── rio_gateway_protocol_v1.0.json RIO Gateway Protocol Spec (Sovereign Gate Edition)
+│   ├── RIO_Protocol_Specification_v1.0.md  Canonical Protocol Specification (101K chars)
+│   ├── RIO_Protocol_Specification_v1.0.json Canonical Protocol Specification (structured JSON)
+│   └── Independent_Verifier_Spec.md       Independent verifier formal specification
 │
 ├── architecture/                      System architecture models
 │   └── 15_layer_model.md             15-layer system architecture
@@ -457,7 +460,16 @@ rio-protocol/
 │   ├── authorization_record_example.json
 │   ├── execution_record_example.json
 │   ├── attestation_record_example.json
-│   └── receipt_example.json
+│   ├── receipt_example.json
+│   ├── example_intent.json             Gateway example intent
+│   ├── example_receipt_v2.json         Gateway example receipt
+│   ├── example_ledger.json             Gateway example ledger
+│   ├── example_verification_result.json Gateway example verification result
+│   └── gateway/                        Gateway-specific examples
+│       ├── example_intent.json
+│       ├── example_receipt_v2.json
+│       ├── example_ledger.json
+│       └── example_verification_result.json
 │
 ├── reference-architecture/            Architecture diagrams and patterns
 │   ├── 01_system_overview.png
@@ -498,8 +510,19 @@ rio-protocol/
 ├── security/                          Security and threat model documentation
 │   └── README.md                      Threat model, kill switch, fail-closed behavior, trust boundaries
 │
-├── verification/                      Independent verifier
-│   └── README.md                      Standalone verification tool (WS4 agent output)
+├── verification/                      Independent verifier (Ed25519 reference impl)
+│   ├── __init__.py                    Package exports (verify_receipt, verify_ledger)
+│   ├── models.py                      Protocol constants, signed fields, result types
+│   ├── hash_utils.py                  SHA-256 hash functions (canonical JSON)
+│   ├── crypto_utils.py                Ed25519 key loading and signature verification
+│   ├── schema_validator.py            Receipt (22-field) and ledger entry validation
+│   ├── receipt_verifier.py            7-check receipt verification
+│   ├── ledger_verifier.py             4-check ledger chain verification
+│   ├── cli.py                         CLI: verify-receipt, verify-ledger, verify-all
+│   ├── __main__.py                    Entry point for python -m verification.cli
+│   ├── requirements.txt               Single dependency: cryptography>=41.0.0
+│   ├── tests/test_verifier.py         32 tests + 13 subtests (all passing)
+│   └── README.md                      Package docs, CLI reference, PASS/FAIL criteria
 │
 ├── safety/                            Safety mechanisms
 │   └── EKS-0_kill_switch.md           Global execution kill switch specification
@@ -522,6 +545,29 @@ rio-protocol/
 │   ├── Dockerfile                     Container image definition
 │   └── docker-compose.yml             Multi-service orchestration
 │
+├── sdk/                               Protocol SDKs (zero-dependency)
+│   ├── README.md                      SDK overview, installation, API reference
+│   ├── python/                        Python SDK
+│   │   ├── setup.py                   pip install configuration
+│   │   └── rio_sdk/                   Package source
+│   │       ├── __init__.py            Package init and exports
+│   │       ├── verifier.py            Receipt + ledger verification (4 checks)
+│   │       ├── conformance.py         Conformance test runner (7 vectors)
+│   │       └── compliance.py          Compliance level checker (L1/L2/L3)
+│   ├── javascript/                    JavaScript SDK
+│   │   ├── package.json               npm package configuration
+│   │   └── src/                       Package source
+│   │       ├── index.js               Package entry point and exports
+│   │       ├── verifier.js            Receipt + ledger verification
+│   │       └── conformance.js         Conformance test runner
+│   └── examples/                      SDK usage examples
+│       ├── python_verify.py           Python verification example
+│       ├── python_conformance.py      Python conformance + compliance example
+│       └── javascript_verify.js       JavaScript verification example
+│
+├── tools/                             Protocol tooling
+│   └── check_compliance.py            Compliance level validator (L0/L1/L2/L3)
+│
 ├── docs/                              System documentation
 │   ├── SYSTEM_OVERVIEW.md             What RIO is and why it exists
 │   ├── ARCHITECTURE.md                Component architecture with diagram
@@ -532,7 +578,22 @@ rio-protocol/
 │   ├── SIMULATION_AND_LEARNING.md     Corpus, replay, policy improvement
 │   ├── THREAT_MODEL_SUMMARY.md        Security threats and mitigations
 │   ├── ENTERPRISE_USE_CASES.md        Real-world governance scenarios
-│   └── GLOSSARY.md                    Key terms and definitions
+│   ├── GLOSSARY.md                    Key terms and definitions
+│   ├── QUICKSTART.md                  Clone-to-verify quickstart (Ed25519 verifier)
+│   ├── QUICKSTART_sdk.md              SDK-specific quickstart guide
+│   ├── QUICKSTART_gateway.md          Gateway-specific quickstart (ECDSA secp256k1)
+│   ├── CONFORMANCE.md                 Conformance level definitions (L1/L2/L3)
+│   ├── CONFORMANCE_sdk.md             SDK conformance guide
+│   ├── CONFORMANCE_gateway.md         Gateway conformance guide
+│   ├── COMPLIANCE_BADGES.md           Compliance badge definitions and usage
+│   ├── VERSIONING.md                  Protocol versioning policy (SemVer 2.0.0)
+│   ├── PROTOCOL_CHANGE_TEMPLATE.md    Protocol Change Proposal (PCP) template
+│   ├── VERIFICATION_OUTPUT_EXAMPLE.md Verification output examples and diagnosis
+│   └── adoption/                      Regulatory and adoption documentation
+│       ├── REGULATORY_MAPPING.md      EU AI Act, NIST AI RMF, SOC 2 mapping
+│       ├── CERTIFICATION_CRITERIA.md  Conformance level certification criteria
+│       ├── IMPLEMENTATION_GUIDE.md    Step-by-step adoption guide
+│       └── QUICKSTART.md              Minimal viable deployment guide
 │
 ├── diagrams/                          Diagram source files (reserved)
 ├── whitepaper/                        White paper (Markdown + PDF)

@@ -42,6 +42,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `docs/VERSIONING.md` — Protocol versioning policy: SemVer 2.0.0, breaking change definitions, backward compatibility guarantees, deprecation policy, and version lifecycle.
   - `docs/PROTOCOL_CHANGE_TEMPLATE.md` — Protocol Change Proposal (PCP) template with all required sections: abstract, motivation, specification, backward compatibility, test vectors, security considerations, and conformance impact.
   - `docs/VERIFICATION_OUTPUT_EXAMPLE.md` — Complete verification output examples for both the reference implementation (Ed25519, 7+4 checks) and gateway (ECDSA secp256k1, 9 checks) verifiers, with PASS/FAIL examples and failure diagnosis guide.
+- **Complete Protocol Specification (Markdown + JSON):** `spec/RIO_Protocol_Specification_v1.0.md` replaced with comprehensive 101K-character canonical specification. Structured JSON version added as `spec/RIO_Protocol_Specification_v1.0.json`.
+- **Python SDK:** `sdk/python/rio_sdk/` — Zero-dependency Python package for receipt verification, conformance testing, and compliance level checking. Includes `verifier.py` (4 checks: receipt hash, execution ledger chain, post-exec ledger hash, HMAC signatures), `conformance.py` (7 test vectors), `compliance.py` (L1/L2/L3 assessment), and `setup.py` for pip installation.
+- **JavaScript SDK:** `sdk/javascript/src/` — Zero-dependency Node.js package for receipt verification and conformance testing. Includes `verifier.js`, `conformance.js`, `index.js`, and `package.json`.
+- **SDK Examples:** `sdk/examples/` — Working examples in Python and JavaScript demonstrating receipt verification, conformance testing, and tamper detection.
+- **SDK Documentation:** `sdk/README.md` — SDK installation, usage, and API reference for both Python and JavaScript.
+- **SDK Quickstart & Conformance Guides:** `docs/QUICKSTART_sdk.md` and `docs/CONFORMANCE_sdk.md` — SDK-specific quickstart and conformance documentation.
+- **Updated Demo & Tests:** `demo/demo_verify_sdk.py` and `tests/conformance/run_conformance_sdk.py` — SDK-integrated verification demo and conformance test runner.
 
 ---
 
