@@ -29,6 +29,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `examples/quickstart/` — Four real, cryptographically valid example files: `example_intent.json`, `example_receipt_v2.json`, `example_ledger.json`, `example_verification_result.json`.
   - `tests/conformance/` — Six named conformance test vectors for external implementers: `valid_receipt.json`, `valid_ledger.json`, `tampered_receipt.json`, `tampered_ledger.json`, `missing_fields_receipt.json`, `invalid_signature_receipt.json`.
   - `verification/README.md` — Expanded with complete CLI command examples, exit code reference, PASS/FAIL criteria, output modes, and what FAIL looks like.
+- **WS6 Gateway Artifacts:** Agent-produced artifacts for the production gateway verification path:
+  - `docs/QUICKSTART_gateway.md` — Gateway-specific quickstart using ECDSA secp256k1, HMAC-SHA256, and pipe-delimited hashing.
+  - `docs/CONFORMANCE_gateway.md` — Gateway conformance guide with 13 Level 1, 14 Level 2, and 8 Level 3 requirements.
+  - `examples/gateway/` — Four cryptographically valid gateway example files (intent, receipt, ledger, verification result). All hashes independently verified.
+  - `demo/demo_verify.py` — Standalone gateway verifier (4 checks: receipt hash, execution ledger chain, post-execution ledger hash, HMAC signatures). Zero dependencies beyond Python stdlib.
+  - `tests/conformance/run_conformance_tests.py` — 7 test vectors (TV-C1 through TV-C7) covering all gateway hash formulas. All passing.
 
 ---
 

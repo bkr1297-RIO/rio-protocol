@@ -1,0 +1,23 @@
+{
+  "_comment": "Example RIO intake request (WS6-ARTIFACTS-001). All hash fields are correctly computed. Signature fields use placeholder Base64 values \u2014 real values require the actual RIO_PRIVATE_KEY.",
+  "source": "manus",
+  "intent": "Summarise the key properties of the secp256k1 elliptic curve in three bullet points.",
+  "signature": "MEQCIHS5ExamplePlaceholderBase64EncodedDERSignatureOfIntentBytesAAAA==",
+  "timestamp": "2026-03-26T14:00:00.000000Z",
+  "model": "claude",
+  "nonce": "f7a3b1c9e2d04f8a6b5e1c3a9d7f2b8e",
+  "execution_token": "MEQCIBhExamplePlaceholderBase64EncodedDERSignatureOfCanonicalBytesAA==",
+  "payload": {
+    "context": "Audience: software engineers implementing cryptographic systems."
+  },
+  "metadata": {
+    "request_id": "req_20260326_001",
+    "environment": "example"
+  },
+  "_computed_fields": {
+    "_note": "These fields are not sent in the request. They show the values the gateway derives from the fields above.",
+    "intent_id": "62ddf2d783eb52aa5f0d5aa671485a2239d5c2db01a324902dc282307301ee3a",
+    "canonical_string": "Summarise the key properties of the secp256k1 elliptic curve in three bullet points.|manus|2026-03-26T14:00:00.000000Z",
+    "parameters_hash": "3becab543471433b50570a1bb0041ed79db2492e1522b4c3fe8c258543a9e356"
+  }
+}

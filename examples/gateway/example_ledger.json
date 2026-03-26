@@ -1,0 +1,47 @@
+{
+  "_comment": "Example RIO audit ledger (WS6-ARTIFACTS-001). All hash values are cryptographically correct. Matches example_receipt_v2.json. Uses demo-service-token-for-testing-only as RIO_SERVICE_TOKEN.",
+  "demo_service_token": "demo-service-token-for-testing-only",
+  "execution_ledger": [
+    {
+      "_comment": "Successful gate passage. receipt_hash matches example_receipt_v2.json for cross-reference.",
+      "id": 1,
+      "action": "check_gate",
+      "agent": "claude",
+      "approver": "a1b2c3d4e5f6a7b8",
+      "executed_by": "manus",
+      "intent_id": "62ddf2d783eb52aa5f0d5aa671485a2239d5c2db01a324902dc282307301ee3a",
+      "parameters_hash": "3becab543471433b50570a1bb0041ed79db2492e1522b4c3fe8c258543a9e356",
+      "result": "executed",
+      "reason": "gate_passed",
+      "receipt_hash": "272dd6571870b29bb7f8434fe4aca3f8af0a527b9ca5b8b4ccbdaf9a929bff0f",
+      "prev_hash": "GENESIS",
+      "entry_hash": "0eaa56cc5107c2246a64d0492f46ca41cc0f4a89c5bc1a41a81ac64d7ef14652",
+      "timestamp": "2026-03-26T14:00:00.512344Z",
+      "_seal_data": "check_gate|claude|a1b2c3d4e5f6a7b8|manus|62ddf2d783eb52aa5f0d5aa671485a2239d5c2db01a324902dc282307301ee3a|3becab543471433b50570a1bb0041ed79db2492e1522b4c3fe8c258543a9e356|executed|gate_passed|272dd6571870b29bb7f8434fe4aca3f8af0a527b9ca5b8b4ccbdaf9a929bff0f|GENESIS|2026-03-26T14:00:00.512344Z"
+    }
+  ],
+  "post_execution_ledger": [
+    {
+      "_comment": "Successful AI execution. parameters_hash links to execution_ledger row 1. HMAC computed with demo_service_token.",
+      "id": 1,
+      "timestamp": "2026-03-26T14:00:03.901234Z",
+      "approver": "a1b2c3d4e5f6a7b8",
+      "agent": "claude-sonnet-4-6",
+      "executed_by": "manus",
+      "policy_result": "success",
+      "parameters_hash": "3becab543471433b50570a1bb0041ed79db2492e1522b4c3fe8c258543a9e356",
+      "result_hash": "29fbf428b4809285b571595a171aa8d7d09c0d2fd88ef1f9d2e15ab5d478b91f",
+      "ledger_hash": "71032422115b7424d6d2b5fd25c12dd66534ac7510f312a88a5c3f89d5afecec",
+      "signature": "52fd81e93bb7318814ba7f7092a430ee35b9de3de5b04e715ecf03fb485a8263",
+      "_seal_data": "2026-03-26T14:00:03.901234Z|a1b2c3d4e5f6a7b8|claude-sonnet-4-6|manus|success|3becab543471433b50570a1bb0041ed79db2492e1522b4c3fe8c258543a9e356|29fbf428b4809285b571595a171aa8d7d09c0d2fd88ef1f9d2e15ab5d478b91f|GENESIS",
+      "_hmac_formula": "HMAC-SHA256(key=UTF-8_encode(demo_service_token), msg=UTF-8_encode(ledger_hash))"
+    }
+  ],
+  "_hash_formulas": {
+    "entry_hash": "SHA-256(UTF-8_encode(action + '|' + agent + '|' + approver + '|' + executed_by + '|' + intent_id + '|' + parameters_hash + '|' + result + '|' + reason + '|' + receipt_hash + '|' + prev_hash + '|' + timestamp))",
+    "ledger_hash": "SHA-256(UTF-8_encode(timestamp + '|' + approver + '|' + agent + '|' + executed_by + '|' + policy_result + '|' + parameters_hash + '|' + result_hash + '|' + prev_ledger_hash))",
+    "hmac_signature": "HMAC-SHA256(key=UTF-8_encode(RIO_SERVICE_TOKEN), msg=UTF-8_encode(ledger_hash))",
+    "result_hash": "SHA-256(UTF-8_encode(ai_response_string))",
+    "GENESIS_anchor": "Literal ASCII string GENESIS \u2014 used as prev_hash and prev_ledger_hash for the first row in any chain"
+  }
+}

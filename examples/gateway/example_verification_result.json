@@ -1,0 +1,76 @@
+{
+  "_comment": "Example output of the RIO independent verifier run against example_receipt_v2.json and example_ledger.json.",
+  "overall": "PASS",
+  "checks_passed": 4,
+  "checks_failed": 0,
+  "checks": [
+    {
+      "check_name": "receipt_hash_integrity",
+      "description": "Recompute receipt_hash from source fields and compare to stored value.",
+      "formula": "SHA-256(prev_hash + '|' + source + '|' + intent + '|' + model + '|' + ai_response[:500] + '|' + timestamp)",
+      "stored_value": "228cd0b0abfdf4d1cfcc6efa83abe8bc8d9b65f518153722a43cc91998498907",
+      "computed_value": "228cd0b0abfdf4d1cfcc6efa83abe8bc8d9b65f518153722a43cc91998498907",
+      "passed": true,
+      "detail": "Receipt hash matches. Execution record is intact."
+    },
+    {
+      "check_name": "execution_ledger_chain_integrity",
+      "description": "For each row in execution_ledger: recompute entry_hash from all fields, verify it matches stored entry_hash, and verify prev_hash equals the previous row's entry_hash.",
+      "rows_checked": 1,
+      "chain_anchor": "GENESIS",
+      "results": [
+        {
+          "row_id": 1,
+          "stored_entry_hash": "0eaa56cc5107c2246a64d0492f46ca41cc0f4a89c5bc1a41a81ac64d7ef14652",
+          "computed_entry_hash": "0eaa56cc5107c2246a64d0492f46ca41cc0f4a89c5bc1a41a81ac64d7ef14652",
+          "prev_hash_ok": true,
+          "entry_hash_ok": true,
+          "passed": true
+        }
+      ],
+      "chain_intact": true,
+      "passed": true,
+      "detail": "All 1 execution_ledger entries verify correctly. Chain is intact."
+    },
+    {
+      "check_name": "post_execution_ledger_hash_integrity",
+      "description": "For each row in post_execution_ledger: recompute ledger_hash from all fields and verify it matches the stored ledger_hash.",
+      "rows_checked": 1,
+      "results": [
+        {
+          "row_id": 1,
+          "stored_ledger_hash": "71032422115b7424d6d2b5fd25c12dd66534ac7510f312a88a5c3f89d5afecec",
+          "computed_ledger_hash": "71032422115b7424d6d2b5fd25c12dd66534ac7510f312a88a5c3f89d5afecec",
+          "passed": true
+        }
+      ],
+      "passed": true,
+      "detail": "All 1 post_execution_ledger hash values verify correctly."
+    },
+    {
+      "check_name": "post_execution_ledger_hmac_signatures",
+      "description": "For each row in post_execution_ledger: recompute HMAC-SHA256(ledger_hash, RIO_SERVICE_TOKEN) and verify it matches the stored signature.",
+      "rows_checked": 1,
+      "results": [
+        {
+          "row_id": 1,
+          "stored_signature": "52fd81e93bb7318814ba7f7092a430ee35b9de3de5b04e715ecf03fb485a8263",
+          "computed_signature": "52fd81e93bb7318814ba7f7092a430ee35b9de3de5b04e715ecf03fb485a8263",
+          "passed": true
+        }
+      ],
+      "passed": true,
+      "detail": "All 1 HMAC signatures verify correctly with the provided service token."
+    }
+  ],
+  "cross_table_linkage": {
+    "parameters_hash": "3becab543471433b50570a1bb0041ed79db2492e1522b4c3fe8c258543a9e356",
+    "execution_ledger_row": 1,
+    "post_execution_ledger_row": 1,
+    "linked": true
+  },
+  "verifier_version": "1.0",
+  "verified_at": "2026-03-26T14:05:00.000000Z",
+  "receipt_file": "examples/example_receipt_v2.json",
+  "ledger_file": "examples/example_ledger.json"
+}
