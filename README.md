@@ -792,8 +792,9 @@ Contributions are welcome. Please follow these guidelines:
 | Changelog | 1 | Complete |
 | Ledger Protocol Documentation | 1 | In Progress (WS2/WS3) |
 | Security Model Documentation | 1 | In Progress (WS2) |
-| Independent Verifier | 1 | In Progress (WS4) |
-| Canonical Protocol Specification | 1 | In Progress (WS2) |
+| Independent Verifier Spec | 1 | Complete (WS4) |
+| Independent Verifier Implementation | 7 receipt + 4 ledger checks, 32 tests | Complete (WS4) |
+| Canonical Protocol Specification | 1 | Complete (WS2) |
 | Conformance Test Suite | 57 tests + 12 vectors | Complete (WS3) |
 | RIO Gateway Protocol Spec | 20 sections | Complete |
 | Regulatory Mapping (EU AI Act, NIST, SOC 2) | 1 | Complete (WS5) |

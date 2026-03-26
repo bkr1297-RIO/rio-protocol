@@ -1,0 +1,410 @@
+{
+  "_meta": {
+    "schema": "rio_ws4_verifier_prompt_v1",
+    "generated_at": "2026-03-26T22:32:12.279749Z",
+    "system": "RIO Runtime Intelligence",
+    "workstream": "Workstream 4: Independent Verifier",
+    "description": "Machine-readable specification for any independent implementation of the RIO v1 receipt and ledger verifier. Contains the full verification contract: 7 receipt checks, 4 ledger checks, hash formulas, signing payload, CLI interface, and acceptance criteria. An implementation passes WS4 if it reproduces identical pass/fail results for all WS3 test vectors using only the 'cryptography' library.",
+    "single_most_important_constraint": "ZERO dependency on the reference implementation. The verifier must work from the specification alone.",
+    "third_party_dependencies": [
+      "cryptography>=41.0.0"
+    ],
+    "python_version": "3.9+"
+  },
+  "package_structure": {
+    "root": "verification/",
+    "files": {
+      "__init__.py": "Package init with version and public API exports",
+      "models.py": "RIOReceipt and LedgerEntry dataclasses, defined from scratch",
+      "hash_utils.py": "All protocol hash functions (canonical_json, SHA-256 wrappers)",
+      "crypto_utils.py": "Ed25519 signature verification using cryptography library only",
+      "schema_validator.py": "JSON schema validation before cryptographic checks",
+      "receipt_verifier.py": "7 receipt verification checks, returns CheckResult list",
+      "ledger_verifier.py": "4 ledger chain checks, returns LedgerVerificationResult",
+      "cli.py": "CLI: verify-receipt / verify-ledger / verify-all",
+      "__main__.py": "Enables: python -m verification.cli",
+      "cross_verify.py": "ONLY file allowed to import src/ \u2014 compatibility proof script",
+      "requirements.txt": "cryptography>=41.0.0",
+      "README.md": "Installation, CLI usage, hash formulas, exit codes",
+      "tests/__init__.py": "Test package init",
+      "tests/test_hash_computation.py": "Hash formula tests against WS3 vectors",
+      "tests/test_receipt_verification.py": "Receipt tests against all 6 receipt vectors",
+      "tests/test_ledger_verification.py": "Ledger tests against 3 chain vectors",
+      "tests/test_cli.py": "CLI exit code, output format, stdin tests"
+    }
+  },
+  "receipt_schema": {
+    "signed_fields_19": [
+      "receipt_version",
+      "receipt_id",
+      "timestamp",
+      "runtime_id",
+      "runtime_version",
+      "environment",
+      "request_summary",
+      "request_hash",
+      "request_canonical_payload",
+      "policy_bundle_id",
+      "policy_bundle_hash",
+      "decision",
+      "decision_reason_codes",
+      "invariant_results",
+      "threshold_results",
+      "model_output_hash",
+      "model_output_preview",
+      "prev_ledger_hash",
+      "public_key_fingerprint"
+    ],
+    "computed_fields_3": [
+      "receipt_hash",
+      "signature_algorithm",
+      "signature"
+    ],
+    "total_required_fields": 22,
+    "valid_decisions": [
+      "allow",
+      "modify",
+      "block",
+      "escalate"
+    ],
+    "valid_signature_algorithms": [
+      "Ed25519"
+    ],
+    "field_types": {
+      "receipt_version": "string",
+      "receipt_id": "string (UUID)",
+      "timestamp": "string (ISO 8601 UTC)",
+      "runtime_id": "string",
+      "runtime_version": "string",
+      "environment": "string",
+      "request_summary": "string",
+      "request_hash": "string (64-char hex SHA-256)",
+      "request_canonical_payload": "object {intent, context, disengage}",
+      "policy_bundle_id": "string",
+      "policy_bundle_hash": "string (64-char hex SHA-256)",
+      "decision": "string (allow|modify|block|escalate)",
+      "decision_reason_codes": "array of strings",
+      "invariant_results": "object {string: bool}",
+      "threshold_results": "object",
+      "model_output_hash": "string (64-char hex SHA-256)",
+      "model_output_preview": "string",
+      "prev_ledger_hash": "string (64-char hex SHA-256)",
+      "public_key_fingerprint": "string (64-char hex SHA-256)",
+      "receipt_hash": "string (64-char hex SHA-256)",
+      "signature_algorithm": "string (Ed25519)",
+      "signature": "string (base64-encoded 64-byte Ed25519 signature)"
+    }
+  },
+  "ledger_entry_schema": {
+    "required_fields": [
+      "chain_index",
+      "receipt_id",
+      "receipt_hash",
+      "prev_ledger_hash",
+      "current_ledger_hash",
+      "timestamp"
+    ],
+    "field_types": {
+      "chain_index": "integer (0-indexed, monotonically increasing)",
+      "receipt_id": "string (UUID)",
+      "receipt_hash": "string (64-char hex SHA-256)",
+      "prev_ledger_hash": "string (64-char hex SHA-256)",
+      "current_ledger_hash": "string (64-char hex SHA-256)",
+      "timestamp": "string (ISO 8601 UTC)"
+    }
+  },
+  "hash_formulas": {
+    "canonical_json": {
+      "formula": "json.dumps(obj, sort_keys=True, separators=(',', ':'))",
+      "encoding": "UTF-8 bytes",
+      "verification": "canonical_json({'b':2,'a':1}) == b'{\"a\":1,\"b\":2}'",
+      "note": "All nested objects also have sorted keys. No whitespace. No trailing newlines."
+    },
+    "request_hash": {
+      "formula": "SHA256(canonical_json(request_canonical_payload))",
+      "input": "The request_canonical_payload object from the receipt"
+    },
+    "receipt_hash": {
+      "formula": "SHA256(canonical_json({exactly the 19 signed fields}))",
+      "input": "Dict of only the 19 signed fields \u2014 receipt_hash and signature NOT included",
+      "critical_note": "receipt_hash is NOT part of its own signed payload"
+    },
+    "model_output_hash": {
+      "formula": "SHA256(model_output_string.encode('utf-8'))",
+      "note": "Plain UTF-8 string hash, NOT canonical JSON"
+    },
+    "public_key_fingerprint": {
+      "formula": "SHA256(raw_32_byte_ed25519_public_key_bytes)",
+      "pem_extraction": "load_pem_public_key(pem) then .public_bytes(Encoding.Raw, PublicFormat.Raw)"
+    },
+    "ledger_chain_hash": {
+      "formula": "SHA256((prev_ledger_hash_str + receipt_hash_str).encode('utf-8'))",
+      "critical_note": "String concatenation first, then encode \u2014 NOT byte concatenation"
+    },
+    "genesis_hash": {
+      "formula": "SHA256(b'GENESIS')",
+      "value": "901131d838b17aac0f7885b81e03cbdc9f5157a00343d30ab22083685ed1416a",
+      "note": "Protocol constant \u2014 the prev_ledger_hash of the very first ledger entry"
+    }
+  },
+  "signing_contract": {
+    "algorithm": "Ed25519",
+    "message_construction": "canonical_json({k: receipt[k] for k in SIGNED_FIELDS_19})",
+    "message_encoding": "UTF-8 bytes (from canonical_json)",
+    "signature_encoding": "base64 (standard, no padding stripping)",
+    "signature_length_bytes": 64,
+    "public_key_format": "PEM SubjectPublicKeyInfo (BEGIN PUBLIC KEY)",
+    "verification_pseudocode": [
+      "pub_key = load_pem_public_key(pem_text.encode())",
+      "signing_payload = {k: receipt[k] for k in SIGNED_FIELDS_19}",
+      "message = json.dumps(signing_payload, sort_keys=True, separators=(',',':')).encode('utf-8')",
+      "sig_bytes = base64.b64decode(receipt['signature'])",
+      "pub_key.verify(sig_bytes, message)  # raises InvalidSignature if bad"
+    ]
+  },
+  "receipt_checks_7": [
+    {
+      "check_name": "required_fields",
+      "number": 1,
+      "description": "All 22 required fields present with correct types",
+      "pass_condition": "All fields in SIGNED_FIELDS_19 + [receipt_hash, signature_algorithm, signature] are present",
+      "fail_message_template": "Missing required fields: {field_names}"
+    },
+    {
+      "check_name": "request_hash",
+      "number": 2,
+      "description": "Recompute request_hash and compare to stored value",
+      "formula": "SHA256(canonical_json(receipt.request_canonical_payload))",
+      "pass_condition": "recomputed == receipt.request_hash",
+      "fail_message_template": "request_hash mismatch: expected {expected}, got {actual}"
+    },
+    {
+      "check_name": "receipt_hash",
+      "number": 3,
+      "description": "Recompute receipt_hash from 19 signed fields and compare",
+      "formula": "SHA256(canonical_json({19 signed fields}))",
+      "pass_condition": "recomputed == receipt.receipt_hash",
+      "fail_message_template": "receipt_hash mismatch: expected {expected}, got {actual}"
+    },
+    {
+      "check_name": "signature",
+      "number": 4,
+      "description": "Verify Ed25519 signature over signing payload bytes",
+      "formula": "Ed25519.verify(base64decode(signature), canonical_json(19 fields))",
+      "pass_condition": "verify() does not raise InvalidSignature",
+      "fail_message_template": "Ed25519 signature is INVALID"
+    },
+    {
+      "check_name": "public_key_fingerprint",
+      "number": 5,
+      "description": "SHA256 of raw key bytes matches stored fingerprint",
+      "formula": "SHA256(raw_32_byte_key) == receipt.public_key_fingerprint",
+      "pass_condition": "recomputed fingerprint matches",
+      "fail_message_template": "public_key_fingerprint mismatch: expected {expected}, got {actual}"
+    },
+    {
+      "check_name": "decision_valid",
+      "number": 6,
+      "description": "Decision is one of the 4 valid protocol values",
+      "pass_condition": "receipt.decision in {allow, modify, block, escalate}",
+      "fail_message_template": "decision '{value}' not in valid set"
+    },
+    {
+      "check_name": "ledger_link",
+      "number": 7,
+      "description": "prev_ledger_hash is a well-formed 64-char hex SHA-256 digest",
+      "pass_condition": "len(prev_ledger_hash) == 64 and all chars are lowercase hex",
+      "fail_message_template": "prev_ledger_hash is not a valid 64-char hex digest"
+    }
+  ],
+  "ledger_checks_4": [
+    {
+      "check_name": "entry_hash",
+      "number": 1,
+      "description": "Recompute current_ledger_hash for every entry",
+      "formula": "SHA256((entry.prev_ledger_hash + entry.receipt_hash).encode('utf-8'))",
+      "pass_condition": "recomputed == entry.current_ledger_hash",
+      "applies_to": "Every entry",
+      "fail_message_template": "current_ledger_hash mismatch at chain_index={i}: expected {expected}, got {actual}"
+    },
+    {
+      "check_name": "genesis_link",
+      "number": 2,
+      "description": "First entry's prev_ledger_hash must equal GENESIS_HASH",
+      "formula": "entries[0].prev_ledger_hash == SHA256(b'GENESIS')",
+      "genesis_hash": "901131d838b17aac0f7885b81e03cbdc9f5157a00343d30ab22083685ed1416a",
+      "applies_to": "Entry at index 0 only",
+      "fail_message_template": "First entry prev_ledger_hash {actual} != GENESIS_HASH {expected}"
+    },
+    {
+      "check_name": "chain_link",
+      "number": 3,
+      "description": "Each entry's prev_ledger_hash matches previous entry's current_ledger_hash",
+      "formula": "entries[i].prev_ledger_hash == entries[i-1].current_ledger_hash",
+      "applies_to": "All entries where i > 0",
+      "fail_message_template": "chain_link broken at index {i}: prev={prev} != previous.current={current}"
+    },
+    {
+      "check_name": "full_chain",
+      "number": 4,
+      "description": "Aggregate: chain_intact = (checks 1-3 pass for all entries)",
+      "applies_to": "Whole chain",
+      "result_fields": {
+        "chain_intact": "bool",
+        "entries_verified": "int",
+        "entries_total": "int",
+        "failures": "list of {entry_index, check_name, details}",
+        "details": "string"
+      }
+    }
+  ],
+  "cli_contract": {
+    "commands": {
+      "verify-receipt": {
+        "usage": "python -m verification.cli verify-receipt receipt.json --public-key key.pem",
+        "stdin_usage": "cat receipt.json | python -m verification.cli verify-receipt --public-key key.pem",
+        "exit_0": "All 7 checks passed",
+        "exit_1": "One or more checks failed",
+        "exit_2": "Input/parse/usage error"
+      },
+      "verify-ledger": {
+        "usage": "python -m verification.cli verify-ledger ledger.json",
+        "exit_0": "chain_intact=True",
+        "exit_1": "chain_intact=False",
+        "exit_2": "Input/parse/usage error"
+      },
+      "verify-all": {
+        "usage": "python -m verification.cli verify-all receipt.json ledger.json --public-key key.pem",
+        "exit_0": "Receipt valid AND chain intact",
+        "exit_1": "Either check fails",
+        "exit_2": "Input/parse/usage error"
+      }
+    },
+    "flags": {
+      "--json": "Output structured JSON instead of human-readable text",
+      "--quiet": "Print single summary line only"
+    },
+    "json_output_schema": {
+      "receipt": {
+        "receipt_id": "string",
+        "all_passed": "bool",
+        "checks": [
+          {
+            "check_name": "string",
+            "passed": "bool",
+            "details": "string"
+          }
+        ]
+      },
+      "ledger": {
+        "chain_intact": "bool",
+        "entries_verified": "int",
+        "entries_total": "int",
+        "failures": [
+          {
+            "entry_index": "int",
+            "check_name": "string",
+            "details": "string"
+          }
+        ],
+        "details": "string"
+      }
+    }
+  },
+  "acceptance_criteria": [
+    "Zero imports from runtime/ or src/ in any file except cross_verify.py",
+    "All WS3 test vectors produce identical pass/fail results: valid=PASS, invalid=FAIL",
+    "CLI exit code 0 for valid receipts/chains, exit code 1 for invalid",
+    "CLI accepts file path: python -m verification.cli verify-receipt receipt.json --public-key key.pem",
+    "CLI accepts ledger: python -m verification.cli verify-ledger ledger.json --public-key key.pem",
+    "cross_verify.py runs end-to-end and reports ALL CHECKS PASSED",
+    "All verification/tests/ pass when run with pytest",
+    "requirements.txt contains ONLY cryptography>=41.0.0",
+    "Hash functions produce byte-identical SHA-256 outputs to reference for same inputs",
+    "Signing payload reconstruction matches: canonical_json({exactly 19 signed fields})"
+  ],
+  "test_vectors_required": {
+    "receipt_valid_approved.json": {
+      "all_checks": "PASS",
+      "decision": "allow"
+    },
+    "receipt_valid_denied.json": {
+      "all_checks": "PASS",
+      "decision": "block"
+    },
+    "receipt_invalid_signature.json": {
+      "signature_check": "FAIL"
+    },
+    "receipt_invalid_hash.json": {
+      "receipt_hash_check": "FAIL"
+    },
+    "receipt_invalid_intent_hash.json": {
+      "request_hash_check": "FAIL"
+    },
+    "receipt_missing_fields.json": {
+      "required_fields_check": "FAIL"
+    },
+    "ledger_chain_valid.json": {
+      "chain_intact": true
+    },
+    "ledger_chain_tampered.json": {
+      "chain_intact": false
+    },
+    "ledger_chain_deleted_entry.json": {
+      "chain_intact": false
+    },
+    "public_key.pem": "Ed25519 test public key for all vector verification",
+    "hash_computation_examples.json": "7 worked hash examples \u2014 same inputs must produce same outputs",
+    "signing_payload_examples.json": "3 signing examples \u2014 all verifiable with public_key.pem"
+  },
+  "cross_verify_contract": {
+    "description": "The cross_verify.py script is the ONLY file permitted to import src/. It proves the independent verifier agrees with the reference implementation.",
+    "steps": [
+      "1. Call reference pipeline (src/) to generate a live signed receipt + ledger entry",
+      "2. Serialize both to JSON",
+      "3. Load the full ledger chain (from genesis) for complete chain verification",
+      "4. Run independent verifier on receipt \u2014 all 7 checks must PASS",
+      "5. Run independent verifier on full ledger chain \u2014 chain_intact must be True",
+      "6. Report ALL CHECKS PASSED or INCOMPATIBILITY DETECTED"
+    ],
+    "success_output": "Cross-Verification Result: ALL CHECKS PASSED",
+    "exit_code_success": 0,
+    "exit_code_failure": 1
+  },
+  "public_api": {
+    "programmatic": {
+      "verify_receipt": {
+        "import": "from verification import verify_receipt",
+        "signature": "verify_receipt(receipt_data: dict, public_key_pem: str) -> ReceiptVerificationResult",
+        "returns": "ReceiptVerificationResult with .all_passed, .checks, .receipt_id, .to_dict(), .to_json()"
+      },
+      "verify_ledger": {
+        "import": "from verification import verify_ledger",
+        "signature": "verify_ledger(chain: list[dict]) -> LedgerVerificationResult",
+        "returns": "LedgerVerificationResult with .chain_intact, .entries_verified, .entries_total, .failures, .details"
+      },
+      "verify_receipt_from_file": {
+        "import": "from verification.receipt_verifier import verify_receipt_from_file",
+        "signature": "verify_receipt_from_file(receipt_path: str, public_key_path: str) -> ReceiptVerificationResult"
+      },
+      "verify_ledger_from_file": {
+        "import": "from verification.ledger_verifier import verify_ledger_from_file",
+        "signature": "verify_ledger_from_file(ledger_path: str) -> LedgerVerificationResult"
+      }
+    }
+  },
+  "implementation_notes": [
+    "The verifier READS receipts and ledger entries \u2014 it does not GENERATE them",
+    "Accept JSON input as either a raw receipt dict OR a vector-wrapped {'receipt': {...}} dict",
+    "Ledger files may be a JSON array OR an object with a 'chain' key containing an array",
+    "Ledger files from WS3 may have nested {'ledger_entry': {...}} objects \u2014 unwrap them",
+    "Run all 7 receipt checks even if early checks fail \u2014 caller needs the full picture",
+    "Error messages must be specific: 'expected abc123..., got def456...' not 'verification failed'",
+    "The 'cryptography' library provides Ed25519PublicKey via load_pem_public_key()",
+    "Get raw key bytes via: key.public_bytes(Encoding.Raw, PublicFormat.Raw)"
+  ],
+  "reference_implementation_location": "src/crypto_receipt.py",
+  "test_vectors_location": "tests/vectors/",
+  "spec_location": "spec/protocol_invariants.md",
+  "ws3_prompt_location": "ws3_conformance_prompt.json"
+}
