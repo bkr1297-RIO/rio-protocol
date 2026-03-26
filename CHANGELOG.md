@@ -15,6 +15,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Test Vectors:** 12 deterministic test vector files in `tests/vectors/` — valid/invalid receipts, hash computation examples, signing payload examples, valid/tampered ledger chains, and Ed25519 test public key.
 - **Test Matrix:** Human-readable test matrix (`tests/conformance/TEST_MATRIX.md`) mapping all 57 test cases to conformance levels, expected decisions, invariants, and required vectors.
 - **RIO Gateway Protocol Specification v1.0:** Sovereign Gate Edition (`spec/rio_gateway_protocol_v1.0.json`) — the production gateway specification covering ECDSA secp256k1 signatures, Sovereign Gate (5-check sequence), Execution Gate (5-guard sequence), signature/nonce registries, in-memory response ledger, execution ledger, post-execution ledger with HMAC-SHA256, database schema, and worked examples.
+- **WS5 Adoption & Compliance Documentation:** Four documents in `docs/adoption/`:
+  - `REGULATORY_MAPPING.md` — Maps RIO mechanisms to EU AI Act (6 articles, 22 sub-requirements), NIST AI RMF (16 subcategories), and SOC 2 Type II (17 criteria). 73% full coverage, 27% partial (outside protocol scope), 0% unaddressed.
+  - `CERTIFICATION_CRITERIA.md` — Three conformance levels (Level 1: Receipt Format, Level 2: Pipeline, Level 3: Full Protocol) with 60+ binary pass/fail criteria, certification process, and maintenance rules.
+  - `IMPLEMENTATION_GUIDE.md` — Step-by-step adoption guide covering architecture decisions, three implementation phases, integration patterns, operational considerations, testing strategy, and migration from non-governed systems.
+  - `QUICKSTART.md` — Minimal viable deployment guide for getting a Level 1 compliant implementation running in under an hour.
 
 ---
 

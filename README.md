@@ -791,11 +791,15 @@ Contributions are welcome. Please follow these guidelines:
 | Contribution Guidelines | 1 | Complete |
 | Changelog | 1 | Complete |
 | Ledger Protocol Documentation | 1 | In Progress (WS2/WS3) |
-| Security Model Documentation | 1 | In Progress (WS5) |
+| Security Model Documentation | 1 | In Progress (WS2) |
 | Independent Verifier | 1 | In Progress (WS4) |
 | Canonical Protocol Specification | 1 | In Progress (WS2) |
 | Conformance Test Suite | 57 tests + 12 vectors | Complete (WS3) |
 | RIO Gateway Protocol Spec | 20 sections | Complete |
+| Regulatory Mapping (EU AI Act, NIST, SOC 2) | 1 | Complete (WS5) |
+| Certification Criteria (3 levels) | 1 | Complete (WS5) |
+| Implementation Guide | 1 | Complete (WS5) |
+| Quickstart Guide | 1 | Complete (WS5) |
 
 ---
 
