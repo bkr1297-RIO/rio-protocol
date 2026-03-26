@@ -279,6 +279,8 @@ Each record is canonically hashed (SHA-256), cryptographically signed (ECDSA-sec
 
 ## Three-Loop Architecture
 
+![Three-Loop Architecture](docs/three_loop_architecture.png)
+
 The protocol implements a Three-Loop Architecture:
 
 ```

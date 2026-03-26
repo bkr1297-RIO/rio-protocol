@@ -2,17 +2,17 @@
 
 ## A Cryptographic Protocol for Governed AI Execution
 
-**Version:** 2.0.0
-**Date:** March 25, 2026
 **Author / Architect:** Brian K. Rasmussen
-**Technical Implementation and Documentation:** Manny
-**Status:** Technical Whitepaper
+
+**Version:** 2.0.0 — March 2026
 
 ---
 
 ## 1. Abstract
 
-Runtime Intelligence Orchestration (RIO) is a fail-closed authorization and audit protocol designed to govern autonomous AI agents. As AI systems transition from passive advisors to active participants in digital environments — capable of moving funds, managing infrastructure, and accessing sensitive data — the risk of unaligned or malicious execution increases. RIO addresses this by decoupling the "intelligence" of the agent from the "authority" to execute. By enforcing a cryptographic control plane between the AI and the execution target, RIO ensures that no high-impact action can occur without explicit, verifiable human approval. The system provides a tamper-evident audit trail through a hash-chained ledger and generates cryptographic receipts for every execution. This paper details the RIO architecture, its 8-stage execution pipeline, the cryptographic security model, and its implementation as a hardened gateway for enterprise AI operations.
+Runtime Intelligence Orchestration (RIO) is a fail-closed authorization and audit protocol designed to govern autonomous AI agents. As AI systems transition from passive advisors to active participants in digital environments — capable of moving funds, managing infrastructure, and accessing sensitive data — the risk of unaligned or malicious execution increases.
+
+RIO addresses this by decoupling the "intelligence" of the agent from the "authority" to execute. Built on a **Three-Loop Architecture** (Intake/Discovery, Execution/Governance, Learning), RIO translates goals into structured intents, enforces policy and approvals before execution, controls and verifies actions, generates v2 cryptographic receipts with intent_hash, action_hash, and verification_hash, and maintains an immutable signed ledger. The Learning Loop feeds outcomes back into policy refinement without bypassing governance.
 
 ---
 
@@ -22,253 +22,263 @@ The rapid advancement of Large Language Models (LLMs) has birthed a new era of a
 
 Traditional security models — such as prompt engineering, system instructions, or model alignment — are advisory. They rely on the AI's "willingness" to follow rules. In a production environment, this is insufficient. A single hallucination or prompt injection can lead to irreversible consequences, such as unauthorized financial transfers or data breaches.
 
-RIO (Runtime Intelligence Orchestration) shifts the paradigm from *advisory* to *structural* governance. It treats AI as an untrusted requester and places a hard execution gate in front of every sensitive action. By requiring a cryptographic "proof of approval" at the moment of execution, RIO ensures that the human remains the ultimate authority, without sacrificing the efficiency of AI-driven orchestration.
+RIO shifts the paradigm from advisory to structural governance. It treats AI as an untrusted requester and places a hard execution gate in front of every sensitive action. By requiring a cryptographic "proof of approval" at the moment of execution, RIO ensures that the human remains the ultimate authority, without sacrificing the efficiency of AI-driven orchestration.
 
 ---
 
-## 3. System Overview
+## 3. Three-Loop Architecture
 
-RIO is built on the principle that **AI proposes, but the system executes.** It operates across two distinct planes:
+RIO is built on a **Three-Loop Architecture** that governs the complete lifecycle of AI-driven actions:
 
-**The Control Plane:** This plane governs the flow of intent. It captures the AI's request, evaluates it against organizational policies, determines the required risk level, and manages the human approval workflow. It is responsible for generating the cryptographic "Execution Token" that unlocks the gate.
+### Intake / Discovery Loop
 
-**The Audit Plane:** This plane provides the "memory" of the system. It records every intent, approval, denial, and execution event in a tamper-evident, hash-chained ledger. It generates "Cryptographic Receipts" that allow any party to independently verify that an action was authorized and executed correctly.
+The Intake / Discovery Loop translates vague goals into structured intents before governance begins. It validates incoming requests, detects missing information, uses AI-assisted refinement to clarify ambiguous goals, and produces a well-defined structured intent. Also known as the **Intake Translation Layer**, **Universal Grammar Layer**, or **Goal-to-Intent Layer**.
 
-The system is **fail-closed** by design. If the control plane is unavailable, if a signature is invalid, or if the ledger cannot be written, the execution gate remains locked. This ensures that no action is ever taken in an unrecorded or unauthorized state.
+**Constraints:**
+
+- Must produce a well-defined structured intent before governance starts
+- AI refinement is advisory — the human or system confirms the final intent
+
+### Execution / Governance Loop
+
+The Execution / Governance Loop controls and authorizes all actions before execution. It enforces policy evaluation, risk scoring, human approval workflows, execution gating, post-execution verification (computing intent_hash, action_hash, and verification_hash), v2 receipt generation, and signed ledger recording.
+
+**Constraints:**
+
+- No execution without authorization
+- All actions must produce v2 receipts (including denials)
+- All receipts must be recorded in the signed ledger
+
+### Learning Loop
+
+The Learning Loop improves future decisions and governance policies. It analyzes patterns from the audit trail, proposes policy updates, and enables replay/simulation.
+
+**Constraints:**
+
+- Learning cannot bypass governance
+- Learning cannot execute actions directly
+- Policy updates must go through governance before deployment
+
+The system is **fail-closed by design**. If any component cannot positively verify a required condition, the execution gate remains locked. This ensures that no action is ever taken in an unrecorded or unauthorized state.
 
 ---
 
-## 4. Architecture
+## 4. Core Design Principles
 
-The RIO architecture is divided into four trust zones, each with clearly defined boundaries and responsibilities:
-
-1. **External Requesters (Untrusted):** This zone includes AI agents, automated scripts, and frontend clients. They can submit "Intents" but have no direct access to execution targets or cryptographic keys.
-
-2. **RIO Control Plane (Trusted):** The core of the system. It contains the Intent Service, Policy Engine, and Signature Service. It manages the transition from an "Intent" to an "Authorized Action."
-
-3. **Execution Targets (Protected):** These are the real-world systems (e.g., Gmail API, Stripe, AWS) that perform the actions. They are shielded by the Execution Gate, which only accepts requests accompanied by a valid RIO Execution Token.
-
-4. **Audit & Attestation (Immutable):** This zone houses the Ledger and Receipt Service. It provides the source of truth for all system activity and is designed to be tamper-evident.
-
-**Trust Boundaries:**
-
-The boundary between Requesters and the Control Plane is secured by standard authentication and the "Intake" protocol. The boundary between the Control Plane and Execution Targets is the "Hard Gate," secured by ECDSA (secp256k1) signatures. The boundary between the Control Plane and Audit Plane is an append-only, hash-chained connection.
+| Principle | Description |
+|---|---|
+| **Fail-Closed** | Default state is "deny." Every gate blocks unless explicitly opened. |
+| **Structural Enforcement** | Rules are enforced by architecture, not by AI compliance. |
+| **Cryptographic Proof** | Every action requires a signed, verifiable proof of authorization. |
+| **Complete Audit Trail** | Every decision — approval or denial — produces a v2 receipt. |
+| **Human Authority** | Humans define policies and approve high-risk actions. AI cannot override. |
+| **Three-Loop Separation** | Intake, Execution, and Learning are structurally separated loops. |
 
 ---
 
 ## 5. The Governed Execution Pipeline
 
-RIO enforces governance through a rigorous 8-stage pipeline. Each stage produces a specific data structure that is passed to the next, ensuring a continuous chain of custody.
+RIO enforces governance through the pipeline within the Execution/Governance Loop. Each stage produces a specific data structure that is passed to the next, ensuring a continuous chain of custody:
 
-1. **Intake:** The AI agent submits a raw intent (e.g., "Send $500 to Alice").
-2. **Classification:** The system identifies the action type and extracts parameters.
-3. **Structured Intent:** The intent is converted into a machine-readable format with a unique `intent_id`.
-4. **Policy & Risk Evaluation:** The Policy Engine checks the intent against active rules. A risk score is calculated based on the action, amount, and target.
-5. **Authorization:** If the risk exceeds the threshold, a human approver is notified. Upon approval, the Signature Service generates an ECDSA signature.
-6. **Execution Gate:** The requester submits the action and the Execution Token (containing the signature) to the gate. The gate verifies the signature, timestamp, and nonce.
-7. **Receipt Generation:** Upon successful execution, an HMAC-signed receipt is generated, capturing the result and anchoring it to the current ledger state.
-8. **Ledger Entry:** The event is recorded in the hash-chained ledger, linking it to the previous entry's hash.
+1. **Intake** — The AI agent submits a raw intent (or vague goal, which is refined by the Intake/Discovery Loop).
+2. **Discovery & Refinement** — If the request is vague, AI-assisted refinement produces a structured intent.
+3. **Classification** — The system identifies the action type and assigns a risk category.
+4. **Policy & Risk Evaluation** — The Policy Engine checks the intent against active rules. A risk score is calculated.
+5. **Authorization** — If the risk exceeds the threshold, a human approver is notified. Upon approval, an Execution Token is generated.
+6. **Execution Gate** — The gate verifies the token signature, timestamp, nonce, and kill switch.
+6b. **Post-Execution Verification** — Computes intent_hash, action_hash, and verification_hash (SHA-256) to cryptographically bind intent to action.
+7. **v2 Receipt Generation** — A signed receipt is generated containing all hashes, risk data, policy decision, and three ISO 8601 timestamps.
+8. **v2 Ledger Entry** — The receipt is recorded in the signed hash-chained ledger with its own ledger_signature.
 
-**Pipeline Flow Diagram:**
-
-```
-[ AI Agent ] --(Intent)--> [ Intake ]
-                              │
-                              ▼
-                        [ Classification ]
-                              │
-                              ▼
-                     [ Policy & Risk ] --(High Risk)--> [ Human Approval ]
-                              │                                │
-                              ▼                                ▼
-                     [ Execution Gate ] <---(Execution Token)--┘
-                              │
-                  ┌───────────┴───────────┐
-                  ▼                       ▼
-           [ If Denied ]           [ If Approved ]
-           (Block & Log)          (Execute Action)
-                                        │
-                                        ▼
-                               [ Receipt & Ledger ]
-```
+**Denial receipts** are generated for blocked or denied actions, ensuring the audit trail covers every decision — not just successful executions.
 
 ---
 
 ## 6. System Invariants
 
-The RIO protocol is governed by ten core invariants that must be maintained at all times to ensure system integrity:
+The RIO protocol is governed by ten core invariants that must be maintained at all times:
 
-1. **No Execution Without Authorization:** No action can be performed by an execution target unless a valid, unconsumed Execution Token is presented.
-2. **No Authorization Without Policy Check:** An Execution Token can only be generated after the Policy Engine has evaluated the intent.
-3. **Fail-Closed Enforcement:** Any failure in a dependency (database, signature service, ledger) must result in a blocked action.
-4. **Single-Use Approvals:** Every Execution Token and its associated signature are single-use. Replay attacks are blocked at the structural level.
-5. **Cryptographic Binding:** The signature must be bound to the exact payload (action + parameters) presented for approval.
-6. **Timestamp Freshness:** Execution Tokens have a maximum lifespan (default 300s) to prevent the use of stale authorizations.
-7. **Every Action Produces a Receipt:** Every execution attempt, whether successful or blocked, must generate a cryptographic receipt.
-8. **Tamper-Evident Audit Trail:** All receipts must be recorded in a hash-chained ledger where each entry anchors to the previous.
-9. **Identity Attribution:** Every action must be attributed to both the requesting agent and the authorizing human.
-10. **Immutable History:** Ledger entries cannot be modified or deleted; the chain must be verifiable from the genesis block.
+1. **No Execution Without Authorization** — No action can be performed unless a valid, unconsumed Execution Token is presented.
+2. **No Authorization Without Policy Check** — An Execution Token can only be generated after the Policy Engine has evaluated the intent.
+3. **Fail-Closed Enforcement** — Any failure in a dependency must result in a blocked action.
+4. **Single-Use Approvals** — Every Execution Token and its associated signature are single-use.
+5. **Cryptographic Binding** — The signature must be bound to the exact payload presented for approval.
+6. **Timestamp Freshness** — Execution Tokens have a maximum lifespan (default 300s).
+7. **Every Action Produces a Receipt** — Every execution attempt, whether successful or blocked, must generate a cryptographic receipt.
+8. **Tamper-Evident Audit Trail** — All receipts must be recorded in a hash-chained ledger.
+9. **Identity Attribution** — Every action must be attributed to both the requesting agent and the authorizing human.
+10. **Immutable History** — Ledger entries cannot be modified or deleted.
 
 ---
 
-## 7. Cryptographic Audit Model
+## 7. Cryptographic Audit Model (v2)
 
-RIO uses a multi-layered cryptographic model to ensure that the audit trail is both authentic and tamper-evident.
+RIO v2 uses a multi-layered cryptographic model to ensure that the audit trail is both authentic and tamper-evident.
 
-**Receipt Structure:** A RIO receipt is a JSON object containing the full context of the execution. It is signed using HMAC-SHA256 with a key known only to the RIO Control Plane.
+### v2 Receipt Structure
 
-```json
-{
-  "intent_id": "INT-1042",
-  "action": "send_email",
-  "timestamp": "2026-03-25T12:00:00Z",
-  "approver": "brian_rasmussen",
-  "agent": "finance_bot_v1",
-  "executed_by": "RIO Control Plane",
-  "policy_result": "APPROVED",
-  "parameters_hash": "sha256(...)",
-  "result_hash": "sha256(...)",
-  "ledger_hash": "prev_entry_hash",
-  "signature": "hmac_signature"
-}
-```
+A v2 receipt is a JSON object containing:
 
-**Ledger Structure:** The ledger is a hash chain where each entry E_n contains a hash H_n calculated as: `H_n = SHA256(E_n.data + H_(n-1))`. This structure ensures that any modification to entry E_i will invalidate all subsequent hashes H_j (where j >= i), making tampering immediately detectable.
+| Field | Description |
+|---|---|
+| receipt_id | Unique identifier for the receipt |
+| intent_id | Reference to the original intent |
+| action | The action that was requested |
+| requester | The agent or entity that requested the action |
+| approver | The human who approved (or null for denials) |
+| decision | "approved" or "denied" |
+| execution_status | "EXECUTED", "BLOCKED", etc. |
+| risk_score | Numeric risk assessment (0-100) |
+| risk_level | "LOW", "MEDIUM", "HIGH", "CRITICAL" |
+| policy_decision | "ALLOW", "BLOCK", "REQUIRE_APPROVAL" |
+| intent_hash | SHA-256 of intent + action + requester + timestamp |
+| action_hash | SHA-256 of action + parameters |
+| verification_hash | SHA-256 of intent_hash + action_hash + execution_status |
+| verification_status | "verified", "failed", or "skipped" |
+| timestamp_request | ISO 8601 timestamp of the original request |
+| timestamp_approval | ISO 8601 timestamp of approval |
+| timestamp_execution | ISO 8601 timestamp of execution |
+| receipt_hash | SHA-256 hash of the receipt contents |
+| signature | Ed25519 signature over the receipt |
+| previous_hash | Hash of the previous receipt (chain link) |
+| protocol_version | "v2" |
 
-**Verification:** The system provides a `verify_ledger_integrity()` function that traverses the chain, recomputing hashes and checking continuity. Receipts can be independently verified by recomputing the HMAC signature using the system's receipt key.
+### v2 Ledger Structure
+
+The v2 ledger is a signed hash chain where each entry E_n contains:
+
+| Field | Description |
+|---|---|
+| block_id | Unique block identifier |
+| receipt_id | Reference to the receipt |
+| receipt_hash | Hash of the associated receipt |
+| previous_hash | Hash of the previous ledger entry (H_(n-1)) |
+| current_hash | H_n = SHA256(E_n.data + H_(n-1)) |
+| ledger_signature | Ed25519 signature over the entry |
+| protocol_version | "v2" |
+
+This structure ensures that any modification to any entry invalidates all subsequent hashes, and the per-entry signature provides independent verification. The **Receipt Verifier** and **Ledger Verifier** enable independent audit of individual receipts and the full chain.
 
 ---
 
 ## 8. Threat Model
 
-RIO is designed to mitigate critical threats in autonomous AI environments. The following table summarizes the primary threat categories and their structural mitigations:
+RIO is designed to mitigate critical threats in autonomous AI environments:
 
-| Threat Category | Attack Vector | Mitigation |
-|---|---|---|
-| Unauthorized Execution | Direct call to executor API | Service boundary + service-to-service auth |
-| Ledger Tampering | Database modification | Hash-chained ledger entries |
-| Token Reuse | Replay of valid token | Single-use nonce/signature registry |
-| Privilege Escalation | Forged approval record | Independent ECDSA signature verification |
-| Kill Switch Bypass | Disabling the gate | Fail-closed design (no gate = no execution) |
-| Missing Audit Trail | Execution without logging | Ledger write as a prerequisite for execution |
+| Threat | Mitigation |
+|---|---|
+| Unauthorized Execution | Service boundary + service-to-service auth |
+| Ledger Tampering | Hash-chained ledger entries with per-entry signatures |
+| Token Reuse | Single-use nonce/signature registry |
+| Privilege Escalation | Independent ECDSA signature verification |
+| Kill Switch Bypass | Fail-closed design |
+| Missing Audit Trail | Ledger write as a prerequisite for execution |
 
 ---
 
 ## 9. Governance Model
 
-The RIO Governance Model defines how rules are created, evaluated, and updated.
+Policies are defined as a set of rules that map actions and parameters to risk levels. The engine evaluates intents in real-time, returning a verdict of ALLOW, BLOCK, or REQUIRE_APPROVAL.
 
-**Policy Engine:** Policies are defined as a set of rules that map actions and parameters to risk levels. The engine evaluates intents in real-time, returning a verdict of `ALLOW`, `BLOCK`, or `REQUIRE_APPROVAL`.
+### Risk Scoring
 
-**Risk Engine:** Risk is calculated using a 4-component scoring model:
+Risk is calculated using a 4-component scoring model:
 
-1. **Base Risk:** The inherent risk of the action type (e.g., `send_email` vs `move_funds`).
-2. **Role Modifier:** Adjusts risk based on the agent's assigned role.
-3. **Amount Modifier:** Scales risk based on financial or data volume.
-4. **Target Modifier:** Adjusts risk based on the sensitivity of the target system.
+- **Base Risk** — Inherent risk of the action type
+- **Role Modifier** — Adjusts based on the agent's role
+- **Amount Modifier** — Scales based on financial or data volume
+- **Target Modifier** — Adjusts based on target system sensitivity
 
-**Policy Lifecycle:** Policies follow a strict versioning lifecycle: `PROPOSED` → `APPROVED` → `ACTIVATED` → `INACTIVE` (or `ROLLED_BACK`). Only one policy version can be `ACTIVATED` at any time, ensuring deterministic evaluation.
+### Policy Lifecycle
 
----
+Policies follow a strict versioning lifecycle:
 
-## 10. Identity and Access Control
+PROPOSED → APPROVED → ACTIVATED → INACTIVE (or ROLLED_BACK)
 
-RIO implements a robust Identity and Access Management (IAM) system tailored for AI-human collaboration.
-
-**Role Hierarchy:** The system supports a 5-role hierarchy for human users:
-
-1. **Intern:** View-only access to logs.
-2. **Employee:** Can propose intents and approve low-risk actions.
-3. **Manager:** Can approve medium-risk actions.
-4. **Director:** Can approve high-risk actions and modify policies.
-5. **Admin:** Full system control, including key management.
-
-**Authorization Tokens:** Execution Tokens are cryptographically bound to the user's identity and the specific intent. They are time-bound (default 300 seconds), single-use (consumed upon first presentation to the gate), and nonce-protected (prevents replay attacks).
+Only one policy version can be ACTIVATED at any time, ensuring deterministic evaluation.
 
 ---
 
-## 11. Learning and Simulation
+## 10. Execution Token Lifecycle
 
-RIO includes a "Governed Corpus" that records all system interactions, providing a rich dataset for learning and policy refinement.
+The Execution Token is the cryptographic artifact that bridges human approval and machine execution:
 
-**Replay Engine:** The system can "replay" historical intents through the pipeline in three modes:
+1. **Created** — Generated after policy check determines approval is required
+2. **Pending** — Awaiting human decision
+3. **Approved** — Human approves; token is signed with Ed25519
+4. **Consumed** — Token is presented at the execution gate and verified
+5. **Expired** — Token exceeds its TTL (default 300s) without being consumed
 
-1. **Exact Replay:** Verifies that the system produces the same result for the same input.
-2. **Modified Policy:** Simulates how a new policy would have handled past intents.
-3. **Modified Role:** Simulates how different user roles would have impacted the outcome.
-
-**Policy Improvement Loop:**
-
-1. **Record:** Capture intents and outcomes in the governed corpus.
-2. **Analyze:** Identify patterns of friction or risk.
-3. **Simulate:** Test new rules against the corpus.
-4. **Deploy:** Activate refined policies with confidence.
+A consumed token cannot be reused. An expired token cannot be consumed. This ensures that every execution is backed by a fresh, explicit human decision.
 
 ---
 
-## 12. Multi-Agent Governance
+## 11. Learning Loop
 
-In complex environments, AI agents often interact with one another. RIO governs these interactions using the Governed Agent Pattern.
+The Learning Loop is the third loop in RIO's Three-Loop Architecture. It records all system interactions in a **Governed Corpus**, providing a rich dataset for learning and policy refinement.
 
-When Agent A requests an action from Agent B, the request is treated as an "Intent" by RIO. If the action is high-risk, RIO intercepts the flow and requires human approval before Agent B can execute. This ensures that delegation between agents does not bypass the human authority gate.
+### Replay Engine
 
-**Agent-to-RIO Workflow:** `Agent A → Agent B → RIO Client → Pipeline → Approval → Execution → Result → Agent A`.
+The Replay Engine can replay historical intents through the pipeline in three modes:
+
+- **Exact Replay** — Verifies the system produces the same result
+- **Modified Policy** — Simulates how a new policy would have handled past intents
+- **Modified Role** — Tests how different role assignments would change outcomes
+
+### Policy Improvement Loop
+
+The Policy Improvement Loop follows four steps:
+
+1. **Record** — Capture intents and outcomes
+2. **Analyze** — Identify patterns of friction or risk
+3. **Simulate** — Test new rules against the corpus
+4. **Deploy** — Activate refined policies with confidence
+
+Critically, the Learning Loop **cannot bypass governance**: all policy updates must go through the Execution/Governance Loop before deployment, and the Learning Loop cannot execute actions directly.
+
+---
+
+## 12. Test Harness
+
+The RIO protocol includes a comprehensive test harness with **57 automated tests** across 6 test suites:
+
+| Suite | Tests | Coverage |
+|---|---|---|
+| Core Pipeline | 15 | Intent creation, policy evaluation, authorization, execution |
+| Cryptographic Verification | 10 | Signature generation, verification, hash chain integrity |
+| Denial & Edge Cases | 8 | Blocked actions, expired tokens, kill switch |
+| Audit & Traceability | 7 | Receipt generation, ledger recording, audit log |
+| Governance Model | 7 | Policy lifecycle, risk scoring, role-based access |
+| v2 Receipt System | 10 | v2 receipts, hash verification, ledger chain, denial receipts |
+
+All tests are deterministic and can be run in isolation or as a full suite.
 
 ---
 
 ## 13. Enterprise Use Cases
 
-RIO is designed for high-stakes enterprise environments. Below are five key scenarios:
+**Invoice Payment Approval** — A finance agent identifies an outstanding invoice. RIO intercepts the payment request, requiring a Manager's approval for any amount over $1,000.
 
-1. **Invoice Payment Approval:** A finance agent identifies an outstanding invoice. RIO intercepts the payment request, requiring a Manager's biometric approval for any amount over $1,000.
+**GDPR Data Deletion** — An agent tasked with data privacy receives a deletion request. RIO ensures the deletion is logged and verified against the correct user ID before execution.
 
-2. **GDPR Data Deletion:** An agent tasked with data privacy receives a deletion request. RIO ensures the deletion is logged and verified against the correct user ID before execution.
+**Production Deployment** — A DevOps agent proposes a code deployment. RIO requires a Director-level signature, ensuring that no code reaches production without a human "go" decision.
 
-3. **Production Deployment:** A DevOps agent proposes a code deployment. RIO requires a Director-level signature, ensuring that no code reaches production without a human "go" decision.
+**Access Provisioning** — An HR agent requests system access for a new hire. RIO validates the request against the employee's role and requires Admin approval for privileged access.
 
-4. **Access Provisioning:** An HR agent requests system access for a new hire. RIO validates the request against the employee's role and requires Admin approval for privileged access.
-
-5. **Agent-to-Agent Delegation:** A personal assistant agent asks a travel agent to book a flight. RIO gates the final payment, ensuring the user approves the cost and itinerary.
+**Agent-to-Agent Delegation** — A personal assistant agent asks a travel agent to book a flight. RIO gates the final payment, ensuring the user approves the cost and itinerary.
 
 ---
 
-## 14. Implementation Status
+## 14. Conclusion
 
-The RIO system is a fully functional, hardened implementation. The current repository includes:
-
-- **Core Pipeline:** An 8-stage Python implementation (`pipeline.py`) with full data structure support.
-- **Hardened Gateway:** A FastAPI-based gateway with ECDSA enforcement and nonce registry.
-- **Cryptographic Services:** ECDSA (secp256k1) signing and HMAC-SHA256 receipt generation.
-- **Tamper-Evident Ledger:** A file-based hash-chained ledger with integrity verification tools.
-- **Test Suite:** 47 passing tests across 12 suites, covering all critical security vectors (V-001 to V-010).
-- **Admin Dashboard:** A frontend UI for monitoring the audit log and managing policies.
-- **Policy & Risk Admin:** Full versioning, approval, activation, and rollback for policies and risk models.
-- **Governed Agent Example:** A complete example showing how AI agents integrate with RIO.
-- **Simulation Engine:** Replay engine with exact, modified-policy, and modified-role modes.
+RIO provides the missing link in AI safety: a governed AI control plane built on a Three-Loop Architecture that translates goals into structured intents, enforces policy and approvals before execution, controls and verifies actions, generates v2 cryptographic receipts, maintains an immutable signed ledger, and learns from every decision over time. By decoupling intent from execution and anchoring every action in a cryptographic audit trail, RIO enables organizations to deploy autonomous agents with confidence. Governance does not have to be a bottleneck — it can be a verifiable, tamper-evident, and automated part of the execution itself.
 
 ---
 
-## 15. Limitations and Future Work
+**Repository:** [github.com/bkr1297-RIO/rio-protocol](https://github.com/bkr1297-RIO/rio-protocol)
 
-While RIO provides a robust foundation for AI governance, several areas are identified for future development:
+**Protocol Version:** 2.0.0
 
-- **Distributed Ledger:** Moving from a single-node file-based ledger to a distributed, decentralized ledger for enhanced resilience.
-- **Real Adapter Integrations:** Expanding the library of execution adapters beyond simulated tools to include direct integrations with major enterprise APIs.
-- **Multi-Tenant Support:** Enhancing the architecture to support multiple organizations within a single RIO instance.
-- **Hardware Security Modules (HSM):** Integrating with HSMs for the secure storage and management of RIO's master signing keys.
+**Architecture:** Three-Loop (Intake/Discovery, Execution/Governance, Learning)
 
----
-
-## 16. Conclusion
-
-RIO (Runtime Intelligence Orchestration) provides the missing link in AI safety: a structural enforcement layer that operates at the speed of machine intelligence while maintaining the absolute authority of human decision-makers. By decoupling intent from execution and anchoring every action in a cryptographic audit trail, RIO enables organizations to deploy autonomous agents with confidence. The key insight of RIO is that governance does not have to be a bottleneck; it can be a verifiable, tamper-evident, and automated part of the execution itself.
-
----
-
-## 17. References
-
-- RIO Repository: [github.com/bkr1297-RIO/rio-protocol](https://github.com/bkr1297-RIO/rio-protocol)
-- RIO Protocol Specification: `/spec/governed_execution_protocol.md`
-- NIST AI Risk Management Framework (AI RMF 1.0)
-- ISO/IEC 42001:2023 — Information technology — Artificial intelligence — Management system
-- ECDSA (secp256k1) Standards (SEC 2)
+**Test Coverage:** 57/57 tests passing
