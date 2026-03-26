@@ -1,26 +1,44 @@
 # Conformance Test Suite
 
-This directory will contain the full conformance test documentation for the RIO protocol, produced by the Workstream 3 (Conformance Test) agent.
+Machine-readable conformance test suite for any implementation of the RIO protocol. Contains 57 test definitions, 8 protocol invariants, cryptographic constants, hash computation formulas, signing payload contracts, and ledger chain formulas.
 
-## Expected Contents
+## Conformance Levels
 
-Each conformance test document follows a structured format with preconditions, steps, expected outcomes, and the invariants it validates.
+| Level | Name | Scope |
+|-------|------|-------|
+| 1 | Receipt Format | Static hash, signature, and field checks — no pipeline required |
+| 2 | Pipeline | Governance pipeline, gate enforcement, ledger chain |
+| 3 | Full Protocol | Adapter layer, AI routing, multi-tool governance |
 
-### Test Categories
+## Files
 
-| Category | Test ID Range | Description |
-|----------|---------------|-------------|
-| Cryptographic Integrity | TC-CRYPTO-001 through TC-CRYPTO-015 | Hash computation, signing, verification |
-| Policy Enforcement | TC-POLICY-001 through TC-POLICY-010 | Risk scoring, threshold decisions, escalation |
-| State Machine | TC-STATE-001 through TC-STATE-010 | State transitions, terminal states, invalid transitions |
-| Ledger Integrity | TC-LEDGER-001 through TC-LEDGER-010 | Hash chain, genesis block, tamper detection |
-| Kill Switch | TC-KILL-001 through TC-KILL-005 | Fail-closed behavior, kill switch activation |
-| Authorization | TC-AUTH-001 through TC-AUTH-007 | Token validation, expiry, scope enforcement |
+| File | Description |
+|------|-------------|
+| `rio_conformance_suite_v1.json` | Master conformance suite — all 57 test cases, invariants, constants, formulas, worked examples, reference receipt, and reference ledger chain in a single machine-readable document |
+| `TEST_MATRIX.md` | Human-readable matrix mapping each test case to its level, expected decision, invariants, and required vectors |
 
-## Relationship to Existing Tests
+## Test Vector Files
 
-The three existing test case documents (`TC-RIO-001.md`, `TC-RIO-002.md`, `TC-RIO-003.md`) in the parent `tests/` directory are end-to-end scenario tests. The conformance tests in this directory are granular, testing individual protocol operations in isolation.
+All test vectors are in `../vectors/`. See [tests/vectors/README.md](../vectors/README.md) for the full index.
 
-## Status
+## Interoperability Bar
 
-Pending — awaiting WS3 agent output.
+An implementation claims RIO Receipt Interoperability when it satisfies all four conditions:
+
+1. Reproduces all hashes in `hash_computation_examples.json` from the same inputs
+2. Verifies all 3 signatures in `signing_payload_examples.json` with `public_key.pem`
+3. All invalid vectors return FAIL; all valid vectors return PASS
+4. Walks `ledger_chain_valid.json`: all entries have `chain_intact=True`
+
+## Protocol Invariants
+
+| ID | Invariant |
+|----|-----------|
+| INV-01 | Human Authority Preserved — no autonomous execution without explicit human authorization |
+| INV-02 | All Decisions Logged — every governance decision produces a verifiable audit record |
+| INV-03 | Policy Compliance — requests must not violate declared coherence/somatic thresholds |
+| INV-04 | Scope Integrity — response scope must match stated intent; no unexpanded execution |
+| INV-05 | Tool Permission Enforcement — any tool usage must be within declared agent permissions |
+| INV-06 | Cryptographic Integrity — receipts must be signed; signatures must be verifiable |
+| INV-07 | Ledger Append-Only — the governance ledger must form a valid hash chain from genesis |
+| INV-08 | Fail-Closed Default — when evaluation fails or is ambiguous, the system must deny |

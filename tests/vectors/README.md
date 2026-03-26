@@ -1,28 +1,35 @@
 # Test Vectors
 
-This directory will contain deterministic test vectors for the RIO protocol, produced by the Workstream 3 (Conformance Test) agent.
+Deterministic test vectors for the RIO protocol. Implementations MUST produce identical outputs given identical inputs.
 
-## Expected Contents
+## Vector Files
 
-Each test vector file is a JSON document containing pre-computed inputs, intermediate values, and expected outputs for a specific protocol operation. Implementations MUST produce identical outputs given identical inputs.
+| File | Type | Level | Description |
+|------|------|-------|-------------|
+| `public_key.pem` | Key | 1 | Ed25519 test public key (dedicated, deterministic from `SHA256(b'RIO_CONFORMANCE_TEST_SEED_v1')`) |
+| `receipt_valid_approved.json` | Receipt | 1 | Complete valid receipt with `decision=allow` — all checks MUST pass |
+| `receipt_valid_denied.json` | Receipt | 1 | Complete valid receipt with `decision=block` (INV-01 fail) — all checks MUST pass |
+| `receipt_invalid_signature.json` | Receipt | 1 | Receipt with corrupted signature — signature check MUST fail |
+| `receipt_invalid_hash.json` | Receipt | 1 | Receipt with corrupted receipt_hash — hash check MUST fail |
+| `receipt_invalid_intent_hash.json` | Receipt | 1 | Receipt with corrupted request_hash — request hash and signature checks MUST fail |
+| `receipt_missing_fields.json` | Receipt | 1 | Receipt with required fields removed — required-fields check MUST fail |
+| `hash_computation_examples.json` | Examples | 1 | 7 worked hash examples — same inputs MUST produce same outputs |
+| `signing_payload_examples.json` | Examples | 1 | 3 signing examples (allow, block, escalate) — all signatures verifiable with `public_key.pem` |
+| `ledger_chain_valid.json` | Ledger | 2 | Valid ledger chain — all entries MUST have `chain_intact=True` |
+| `ledger_chain_tampered.json` | Ledger | 2 | Ledger chain with tampered entry — chain integrity check MUST fail |
+| `ledger_chain_deleted_entry.json` | Ledger | 2 | Ledger chain with deleted entry — chain integrity check MUST fail |
 
-### Planned Vector Files
+## Cryptographic Constants
 
-| File | Description |
-|------|-------------|
-| `TV-HASH-001_intent_hash.json` | Intent hash computation vectors |
-| `TV-HASH-002_action_hash.json` | Action hash computation vectors |
-| `TV-HASH-003_verification_hash.json` | Verification hash computation vectors |
-| `TV-HASH-004_receipt_hash.json` | Receipt hash computation vectors |
-| `TV-HASH-005_ledger_hash.json` | Ledger entry hash computation vectors |
-| `TV-SIG-001_receipt_signing.json` | Receipt signing and verification vectors |
-| `TV-SIG-002_ledger_signing.json` | Ledger signing and verification vectors |
-| `TV-CHAIN-001_hash_chain.json` | Hash chain linkage vectors |
-| `TV-CHAIN-002_genesis_block.json` | Genesis block initialization vectors |
-| `TV-POLICY-001_risk_scoring.json` | Risk score computation vectors |
-| `TV-POLICY-002_threshold_decisions.json` | Policy threshold decision vectors |
-| `TV-STATE-001_state_transitions.json` | State machine transition vectors |
+| Constant | Value |
+|----------|-------|
+| Signature Algorithm | Ed25519 |
+| Hash Algorithm | SHA-256 |
+| Genesis Hash | `901131d838b17aac0f7885b81e03cbdc9f5157a00343d30ab22083685ed1416a` |
+| Test Public Key Fingerprint | `4bfae3c1edddbe967c69b94a0d49d9ecf197b24af7c4b9c1eb6440badbefd3ea` |
 
-## Status
+## Usage
 
-Pending — awaiting WS3 agent output.
+These vectors are referenced by the conformance test suite in `../conformance/rio_conformance_suite_v1.json`. An implementation passes conformance when it reproduces all hashes and verifies all signatures using these vectors.
+
+**Warning:** The test key in `public_key.pem` is a dedicated conformance test key. Never use it in production.

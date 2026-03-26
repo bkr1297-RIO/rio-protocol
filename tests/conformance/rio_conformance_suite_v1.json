@@ -1,0 +1,981 @@
+{
+  "_meta": {
+    "schema": "rio_ws3_conformance_prompt_v1",
+    "generated_at": "2026-03-26T21:46:55.396163Z",
+    "system": "RIO Runtime Intelligence",
+    "workstream": "WS3 \u2014 Conformance Test Suite",
+    "description": "Machine-readable conformance test suite for any implementation of the RIO protocol. Contains the 57 test definitions, 8 protocol invariants, cryptographic constants, hash computation formulas, signing payload contract, and ledger chain formula. An implementation passes conformance if it reproduces all hashes and verifies all signatures using the test vectors in tests/vectors/.",
+    "total_tests": 57,
+    "total_vectors": 12,
+    "conformance_levels": {
+      "level_1": "Receipt Format \u2014 static hash/signature/field checks, no pipeline required",
+      "level_2": "Pipeline \u2014 governance pipeline, gate enforcement, ledger chain",
+      "level_3": "Full Protocol \u2014 adapter layer, AI routing, multi-tool governance"
+    }
+  },
+  "protocol_invariants": {
+    "INV-01": "Human Authority Preserved \u2014 no autonomous execution without explicit human authorization",
+    "INV-02": "All Decisions Logged \u2014 every governance decision produces a verifiable audit record",
+    "INV-03": "Policy Compliance \u2014 requests must not violate declared coherence/somatic thresholds",
+    "INV-04": "Scope Integrity \u2014 response scope must match stated intent; no unexpanded execution",
+    "INV-05": "Tool Permission Enforcement \u2014 any tool usage must be within declared agent permissions",
+    "INV-06": "Cryptographic Integrity \u2014 receipts must be signed; signatures must be verifiable",
+    "INV-07": "Ledger Append-Only \u2014 the governance ledger must form a valid hash chain from genesis",
+    "INV-08": "Fail-Closed Default \u2014 when evaluation fails or is ambiguous, the system must deny"
+  },
+  "cryptographic_constants": {
+    "signature_algorithm": "Ed25519",
+    "hash_algorithm": "SHA-256",
+    "genesis_hash": "901131d838b17aac0f7885b81e03cbdc9f5157a00343d30ab22083685ed1416a",
+    "genesis_hash_input": "SHA256(b'GENESIS')  # 7 ASCII bytes",
+    "test_public_key_pem": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAX9adPf7nC2kgc9LTWc/gqMvlH/p0B/jGRCVpgTUjMOU=\n-----END PUBLIC KEY-----",
+    "test_public_key_fingerprint": "4bfae3c1edddbe967c69b94a0d49d9ecf197b24af7c4b9c1eb6440badbefd3ea",
+    "test_key_note": "DEDICATED TEST KEY \u2014 deterministic from SHA256(b'RIO_CONFORMANCE_TEST_SEED_v1'). Never use in production."
+  },
+  "canonicalisation_contract": {
+    "algorithm": "json.dumps(obj, sort_keys=True, separators=(',', ':'))",
+    "encoding": "UTF-8 bytes",
+    "verification_test": "canonical_json({'b':2,'a':1}) MUST equal b'{\"a\":1,\"b\":2}'",
+    "note": "Every nested object must also have sorted keys. No trailing whitespace. No newlines."
+  },
+  "hash_formulas": {
+    "request_hash": "SHA256(canonical_json(request_canonical_payload))",
+    "receipt_hash": "SHA256(canonical_json({19-field signed_payload}))",
+    "policy_bundle_hash": "SHA256(canonical_json(POLICY_BUNDLE))",
+    "model_output_hash": "SHA256(model_output_string.encode('utf-8'))",
+    "public_key_fingerprint": "SHA256(raw_32_byte_ed25519_public_key)",
+    "ledger_chain_hash": "SHA256((prev_ledger_hash_str + receipt_hash_str).encode('utf-8'))",
+    "genesis_hash": "SHA256(b'GENESIS') == '901131d838b17aac0f7885b81e03cbdc9f5157a00343d30ab22083685ed1416a'"
+  },
+  "signing_payload_contract": {
+    "description": "The Ed25519 signature is over canonical_json of exactly these 19 fields in this order:",
+    "signed_fields_order": [
+      "receipt_version",
+      "receipt_id",
+      "timestamp",
+      "runtime_id",
+      "runtime_version",
+      "environment",
+      "request_summary",
+      "request_hash",
+      "request_canonical_payload",
+      "policy_bundle_id",
+      "policy_bundle_hash",
+      "decision",
+      "decision_reason_codes",
+      "invariant_results",
+      "threshold_results",
+      "model_output_hash",
+      "model_output_preview",
+      "prev_ledger_hash",
+      "public_key_fingerprint"
+    ],
+    "construction": "signing_bytes = canonical_json({k: receipt[k] for k in SIGNED_FIELDS_ORDER})",
+    "receipt_hash_note": "receipt_hash and signature are NOT included in the signing payload \u2014 they are computed from it",
+    "pem_parsing": "Strip PEM header/footer \u2192 base64-decode DER \u2192 take bytes[12:] as raw 32-byte Ed25519 public key"
+  },
+  "ledger_chain_contract": {
+    "genesis_hash": "901131d838b17aac0f7885b81e03cbdc9f5157a00343d30ab22083685ed1416a",
+    "append_formula": "current_ledger_hash = SHA256((prev_ledger_hash + receipt_hash).encode('utf-8'))",
+    "append_note": "String concatenation first, then encode to UTF-8 \u2014 NOT byte XOR or separate hashes",
+    "entry_fields": [
+      "chain_index",
+      "receipt_id",
+      "receipt_hash",
+      "prev_ledger_hash",
+      "current_ledger_hash",
+      "timestamp"
+    ],
+    "append_only": true
+  },
+  "receipt_required_fields": [
+    "receipt_version",
+    "receipt_id",
+    "timestamp",
+    "runtime_id",
+    "runtime_version",
+    "environment",
+    "request_summary",
+    "request_hash",
+    "request_canonical_payload",
+    "policy_bundle_id",
+    "policy_bundle_hash",
+    "decision",
+    "decision_reason_codes",
+    "invariant_results",
+    "threshold_results",
+    "model_output_hash",
+    "model_output_preview",
+    "prev_ledger_hash",
+    "public_key_fingerprint",
+    "receipt_hash",
+    "signature_algorithm",
+    "signature"
+  ],
+  "decision_types": {
+    "allow": "All invariants pass, thresholds in range, no adversarial keywords",
+    "modify": "Scope mismatch or coherence below threshold \u2014 execution narrowed to stated parameters only",
+    "block": "Authority escalation detected (INV-01) or user disengaged",
+    "escalate": "Somatic score above safe band \u2014 second witness or human pause required"
+  },
+  "keyword_trigger_map": {
+    "authority_keywords_trigger": "block + INV_01_HUMAN_AUTHORITY_FAIL",
+    "pressure_keywords_trigger": "somatic_score > 0.95 \u2192 escalate + THRESHOLD_SOMATIC_OUT_OF_RANGE",
+    "scope_keywords_trigger": "modify + INV_04_SCOPE_FAIL",
+    "disengage_true_trigger": "unconditional block + USER_DISENGAGED"
+  },
+  "threshold_defaults": {
+    "coherence_threshold": 0.78,
+    "somatic_safe_band": [
+      0.3,
+      0.95
+    ],
+    "coherence_below_threshold": "modify + THRESHOLD_COHERENCE_LOW",
+    "somatic_above_band": "escalate + THRESHOLD_SOMATIC_OUT_OF_RANGE"
+  },
+  "test_cases": [
+    {
+      "id": "TC-RIO-001",
+      "title": "Clean Pass Through Full Governance Pipeline",
+      "level": 2,
+      "invariants": [
+        "INV-01",
+        "INV-02",
+        "INV-03",
+        "INV-04",
+        "INV-05",
+        "INV-06",
+        "INV-07"
+      ],
+      "expected_decision": "allow",
+      "vectors": [
+        "receipt_valid_approved.json"
+      ]
+    },
+    {
+      "id": "TC-RIO-002",
+      "title": "Hard Deny on Invariant Violation",
+      "level": 2,
+      "invariants": [
+        "INV-01",
+        "INV-02",
+        "INV-06",
+        "INV-07",
+        "INV-08"
+      ],
+      "expected_decision": "block",
+      "vectors": [
+        "receipt_valid_denied.json"
+      ]
+    },
+    {
+      "id": "TC-RIO-003",
+      "title": "User Disengagement Kill Switch",
+      "level": 2,
+      "invariants": [
+        "INV-01",
+        "INV-08"
+      ],
+      "expected_decision": "block",
+      "note": "disengage=True unconditionally blocks regardless of intent content"
+    },
+    {
+      "id": "TC-EXTRA-001",
+      "title": "Authority Escalation Keyword Detection",
+      "level": 1,
+      "invariants": [
+        "INV-01",
+        "INV-08"
+      ],
+      "expected_decision": "block"
+    },
+    {
+      "id": "TC-EXTRA-002",
+      "title": "Pressure State Detection and Escalation",
+      "level": 1,
+      "invariants": [
+        "INV-03",
+        "INV-08"
+      ],
+      "expected_decision": "escalate"
+    },
+    {
+      "id": "TC-EXTRA-003",
+      "title": "Scope Mismatch Triggers Modify Decision",
+      "level": 1,
+      "invariants": [
+        "INV-04"
+      ],
+      "expected_decision": "modify"
+    },
+    {
+      "id": "TC-EXTRA-004",
+      "title": "Low Coherence Triggers Modify Decision",
+      "level": 1,
+      "invariants": [
+        "INV-03"
+      ],
+      "expected_decision": "modify"
+    },
+    {
+      "id": "TC-POLICY-001",
+      "title": "Policy Bundle Hash Integrity",
+      "level": 1,
+      "invariants": [
+        "INV-02",
+        "INV-06"
+      ],
+      "vectors": [
+        "receipt_valid_approved.json",
+        "hash_computation_examples.json"
+      ]
+    },
+    {
+      "id": "TC-RISK-001",
+      "title": "Risk Tier Classification",
+      "level": 2,
+      "invariants": [
+        "INV-01",
+        "INV-08"
+      ]
+    },
+    {
+      "id": "TC-INTENT-001",
+      "title": "Intent Canonical Payload and Hash",
+      "level": 1,
+      "invariants": [
+        "INV-06"
+      ],
+      "vectors": [
+        "receipt_valid_approved.json",
+        "hash_computation_examples.json"
+      ]
+    },
+    {
+      "id": "TC-CONN-001",
+      "title": "Tool Registration in TOOL_POLICY",
+      "level": 2,
+      "invariants": [
+        "INV-05"
+      ]
+    },
+    {
+      "id": "TC-CONN-002",
+      "title": "Tool with needs_approval=True Requires Approval Token",
+      "level": 2,
+      "invariants": [
+        "INV-01",
+        "INV-05"
+      ]
+    },
+    {
+      "id": "TC-CONN-003",
+      "title": "Tool with needs_approval=False Executes Immediately",
+      "level": 2,
+      "invariants": [
+        "INV-05"
+      ]
+    },
+    {
+      "id": "TC-CONN-004",
+      "title": "Unregistered Tool is Rejected",
+      "level": 2,
+      "invariants": [
+        "INV-05",
+        "INV-08"
+      ]
+    },
+    {
+      "id": "TC-CONN-005",
+      "title": "Agent Permission Enforcement",
+      "level": 2,
+      "invariants": [
+        "INV-01",
+        "INV-05"
+      ]
+    },
+    {
+      "id": "TC-APPR-001",
+      "title": "Approval Token Issuance",
+      "level": 2,
+      "invariants": [
+        "INV-01"
+      ]
+    },
+    {
+      "id": "TC-APPR-002",
+      "title": "Valid Approval Token Allows Execution",
+      "level": 2,
+      "invariants": [
+        "INV-01",
+        "INV-02"
+      ]
+    },
+    {
+      "id": "TC-APPR-003",
+      "title": "Invalid or Fake Approval Token Rejected",
+      "level": 2,
+      "invariants": [
+        "INV-01",
+        "INV-08"
+      ]
+    },
+    {
+      "id": "TC-APPR-004",
+      "title": "Replay Attack Prevention",
+      "level": 2,
+      "invariants": [
+        "INV-01",
+        "INV-08"
+      ]
+    },
+    {
+      "id": "TC-GOV-001",
+      "title": "evaluate_intent Returns Signed Receipt",
+      "level": 2,
+      "invariants": [
+        "INV-02",
+        "INV-06",
+        "INV-07"
+      ],
+      "vectors": [
+        "receipt_valid_approved.json",
+        "signing_payload_examples.json"
+      ]
+    },
+    {
+      "id": "TC-GOV-002",
+      "title": "Allow Decision for Benign Intent",
+      "level": 1,
+      "invariants": [
+        "INV-01",
+        "INV-03",
+        "INV-04"
+      ],
+      "vectors": [
+        "receipt_valid_approved.json"
+      ]
+    },
+    {
+      "id": "TC-GOV-003",
+      "title": "Block Decision for Authority Escalation",
+      "level": 1,
+      "invariants": [
+        "INV-01"
+      ],
+      "vectors": [
+        "receipt_valid_denied.json"
+      ]
+    },
+    {
+      "id": "TC-GOV-004",
+      "title": "Escalate Decision for Pressure State",
+      "level": 1,
+      "invariants": [
+        "INV-03"
+      ],
+      "vectors": [
+        "signing_payload_examples.json"
+      ]
+    },
+    {
+      "id": "TC-GOV-005",
+      "title": "Modify Decision for Scope Mismatch",
+      "level": 1,
+      "invariants": [
+        "INV-04"
+      ]
+    },
+    {
+      "id": "TC-ADPT-001",
+      "title": "call_claude \u2014 Governance Before Execution",
+      "level": 3,
+      "invariants": [
+        "INV-01",
+        "INV-05"
+      ]
+    },
+    {
+      "id": "TC-ADPT-002",
+      "title": "call_chatgpt \u2014 Governance Before Execution",
+      "level": 3,
+      "invariants": [
+        "INV-01",
+        "INV-05"
+      ]
+    },
+    {
+      "id": "TC-ADPT-003",
+      "title": "call_replit \u2014 Claude Bridge Active",
+      "level": 3,
+      "invariants": [
+        "INV-01"
+      ]
+    },
+    {
+      "id": "TC-ADPT-004",
+      "title": "gmail_send \u2014 Blocked Without Approval",
+      "level": 2,
+      "invariants": [
+        "INV-01",
+        "INV-05"
+      ]
+    },
+    {
+      "id": "TC-ADPT-005",
+      "title": "http_request \u2014 Blocked Without Approval",
+      "level": 2,
+      "invariants": [
+        "INV-01",
+        "INV-05"
+      ]
+    },
+    {
+      "id": "TC-LEDG-001",
+      "title": "Ledger Append Produces Valid Chain Entry",
+      "level": 2,
+      "invariants": [
+        "INV-02",
+        "INV-07"
+      ],
+      "vectors": [
+        "ledger_chain_valid.json",
+        "hash_computation_examples.json"
+      ]
+    },
+    {
+      "id": "TC-LEDG-002",
+      "title": "Chain Hash Formula Verification",
+      "level": 1,
+      "invariants": [
+        "INV-07"
+      ],
+      "vectors": [
+        "hash_computation_examples.json"
+      ]
+    },
+    {
+      "id": "TC-LEDG-003",
+      "title": "Genesis Hash as Chain Root",
+      "level": 1,
+      "invariants": [
+        "INV-07"
+      ],
+      "vectors": [
+        "ledger_chain_valid.json",
+        "hash_computation_examples.json"
+      ]
+    },
+    {
+      "id": "TC-LEDG-004",
+      "title": "Tampered Ledger Entry Detected",
+      "level": 2,
+      "invariants": [
+        "INV-07"
+      ],
+      "vectors": [
+        "ledger_chain_tampered.json",
+        "ledger_chain_deleted_entry.json"
+      ]
+    },
+    {
+      "id": "TC-IAM-001",
+      "title": "signer_id Required for Gate Requests",
+      "level": 2,
+      "invariants": [
+        "INV-01",
+        "INV-05"
+      ]
+    },
+    {
+      "id": "TC-IAM-002",
+      "title": "Unknown signer_id Rejected",
+      "level": 2,
+      "invariants": [
+        "INV-01",
+        "INV-05"
+      ]
+    },
+    {
+      "id": "TC-IAM-003",
+      "title": "Tool Outside Agent Permitted List Rejected",
+      "level": 2,
+      "invariants": [
+        "INV-01",
+        "INV-05"
+      ]
+    },
+    {
+      "id": "TC-IAM-004",
+      "title": "Human Signature Required for needs_approval Tools",
+      "level": 2,
+      "invariants": [
+        "INV-01"
+      ]
+    },
+    {
+      "id": "TC-IAM-005",
+      "title": "Valid Human Signature Accepted",
+      "level": 2,
+      "invariants": [
+        "INV-01"
+      ]
+    },
+    {
+      "id": "TC-CORP-001",
+      "title": "Authority Keyword Corpus Coverage",
+      "level": 1,
+      "invariants": [
+        "INV-01"
+      ]
+    },
+    {
+      "id": "TC-CORP-002",
+      "title": "Pressure Keyword Corpus Coverage",
+      "level": 1,
+      "invariants": [
+        "INV-03"
+      ]
+    },
+    {
+      "id": "TC-CORP-003",
+      "title": "Scope Mismatch Keyword Corpus Coverage",
+      "level": 1,
+      "invariants": [
+        "INV-04"
+      ]
+    },
+    {
+      "id": "TC-CORP-004",
+      "title": "Clean Intent Passes All Corpus Checks",
+      "level": 1,
+      "invariants": [
+        "INV-01",
+        "INV-03",
+        "INV-04"
+      ],
+      "vectors": [
+        "receipt_valid_approved.json"
+      ]
+    },
+    {
+      "id": "TC-ADMIN-001",
+      "title": "Admin Token Required for Policy Modification",
+      "level": 2,
+      "invariants": [
+        "INV-01"
+      ]
+    },
+    {
+      "id": "TC-ADMIN-002",
+      "title": "Invalid Admin Token Rejected",
+      "level": 2,
+      "invariants": [
+        "INV-01"
+      ]
+    },
+    {
+      "id": "TC-ADMIN-003",
+      "title": "Policy Changelog Recorded",
+      "level": 2,
+      "invariants": [
+        "INV-02"
+      ]
+    },
+    {
+      "id": "TC-ADMIN-004",
+      "title": "Public Policy Endpoint Does Not Expose Secrets",
+      "level": 2,
+      "invariants": [
+        "INV-02"
+      ]
+    },
+    {
+      "id": "TC-ADMIN-005",
+      "title": "Control Panel Accessible Without Auth",
+      "level": 2,
+      "invariants": [
+        "INV-02"
+      ]
+    },
+    {
+      "id": "TC-V2-001",
+      "title": "Receipt Has All Required Fields",
+      "level": 1,
+      "invariants": [
+        "INV-06"
+      ],
+      "vectors": [
+        "receipt_valid_approved.json"
+      ]
+    },
+    {
+      "id": "TC-V2-002",
+      "title": "Receipt Hash Verification",
+      "level": 1,
+      "invariants": [
+        "INV-06"
+      ],
+      "vectors": [
+        "receipt_valid_approved.json",
+        "signing_payload_examples.json"
+      ]
+    },
+    {
+      "id": "TC-V2-003",
+      "title": "Ed25519 Signature Verification",
+      "level": 1,
+      "invariants": [
+        "INV-06"
+      ],
+      "vectors": [
+        "receipt_valid_approved.json",
+        "receipt_invalid_signature.json",
+        "public_key.pem",
+        "signing_payload_examples.json"
+      ]
+    },
+    {
+      "id": "TC-V2-004",
+      "title": "Policy Bundle Hash in Receipt Matches Reference",
+      "level": 1,
+      "invariants": [
+        "INV-06"
+      ],
+      "vectors": [
+        "receipt_valid_approved.json",
+        "hash_computation_examples.json"
+      ]
+    },
+    {
+      "id": "TC-V2-005",
+      "title": "Request Hash Verification",
+      "level": 1,
+      "invariants": [
+        "INV-06"
+      ],
+      "vectors": [
+        "receipt_valid_approved.json",
+        "receipt_invalid_intent_hash.json",
+        "hash_computation_examples.json"
+      ]
+    },
+    {
+      "id": "TC-V2-006",
+      "title": "Ledger Chain Linkage Verification",
+      "level": 2,
+      "invariants": [
+        "INV-07"
+      ],
+      "vectors": [
+        "ledger_chain_valid.json"
+      ]
+    },
+    {
+      "id": "TC-V2-007",
+      "title": "Tampered Receipt Detected by Verification",
+      "level": 1,
+      "invariants": [
+        "INV-06"
+      ],
+      "vectors": [
+        "receipt_invalid_signature.json",
+        "public_key.pem"
+      ]
+    },
+    {
+      "id": "TC-V2-008",
+      "title": "Tampered Ledger Chain Detected",
+      "level": 2,
+      "invariants": [
+        "INV-07"
+      ],
+      "vectors": [
+        "ledger_chain_tampered.json"
+      ]
+    },
+    {
+      "id": "TC-V2-009",
+      "title": "Denial Receipt Structure",
+      "level": 1,
+      "invariants": [
+        "INV-01",
+        "INV-02",
+        "INV-06"
+      ],
+      "vectors": [
+        "receipt_valid_denied.json",
+        "public_key.pem"
+      ]
+    },
+    {
+      "id": "TC-V2-010",
+      "title": "Missing Fields Detected by Required-Fields Check",
+      "level": 1,
+      "invariants": [
+        "INV-06"
+      ],
+      "vectors": [
+        "receipt_missing_fields.json"
+      ]
+    }
+  ],
+  "test_vectors_index": {
+    "public_key.pem": {
+      "level": 1,
+      "type": "key",
+      "description": "Ed25519 test public key (dedicated, deterministic)"
+    },
+    "receipt_valid_approved.json": {
+      "level": 1,
+      "type": "receipt",
+      "expected": "ALL_CHECKS_PASS",
+      "decision": "allow"
+    },
+    "receipt_valid_denied.json": {
+      "level": 1,
+      "type": "receipt",
+      "expected": "ALL_CHECKS_PASS",
+      "decision": "block",
+      "reason_codes": [
+        "INV_01_HUMAN_AUTHORITY_FAIL"
+      ]
+    },
+    "receipt_invalid_signature.json": {
+      "level": 1,
+      "type": "receipt",
+      "expected": {
+        "signature_check": "FAIL"
+      }
+    },
+    "receipt_invalid_hash.json": {
+      "level": 1,
+      "type": "receipt",
+      "expected": {
+        "receipt_hash_check": "FAIL"
+      }
+    },
+    "receipt_invalid_intent_hash.json": {
+      "level": 1,
+      "type": "receipt",
+      "expected": {
+        "request_hash_check": "FAIL",
+        "signature_check": "FAIL"
+      }
+    },
+    "receipt_missing_fields.json": {
+      "level": 1,
+      "type": "receipt",
+      "expected": {
+        "required_fields_check": "FAIL"
+      }
+    },
+    "ledger_chain_valid.json": {
+      "level": 2,
+      "type": "ledger",
+      "expected": {
+        "chain_intact": true,
+        "entry_count": 5
+      }
+    },
+    "ledger_chain_tampered.json": {
+      "level": 2,
+      "type": "ledger",
+      "expected": {
+        "chain_intact": false,
+        "break_detected_at_index": 2
+      }
+    },
+    "ledger_chain_deleted_entry.json": {
+      "level": 2,
+      "type": "ledger",
+      "expected": {
+        "chain_intact": false,
+        "break_detected_at_index": 1
+      }
+    },
+    "hash_computation_examples.json": {
+      "level": 1,
+      "type": "examples",
+      "description": "7 worked hash examples \u2014 same inputs MUST produce same outputs"
+    },
+    "signing_payload_examples.json": {
+      "level": 1,
+      "type": "examples",
+      "description": "3 signing examples \u2014 all 3 signatures verifiable with public_key.pem"
+    }
+  },
+  "interoperability_bar": {
+    "description": "Minimum 4 conditions for claiming RIO Receipt Interoperability",
+    "condition_1": "Reproduce all hashes in hash_computation_examples.json from same inputs",
+    "condition_2": "Verify all 3 signatures in signing_payload_examples.json with public_key.pem",
+    "condition_3": "All invalid vectors return FAIL; all valid vectors return PASS",
+    "condition_4": "Walk ledger_chain_valid.json: all 5 entries chain_intact=True"
+  },
+  "worked_examples": {
+    "hash_examples": [
+      {
+        "id": "intent_hash_01",
+        "type": "intent_hash",
+        "description": "SHA256 of canonical JSON of the request_canonical_payload object",
+        "input_object": {
+          "intent": "Summarize the quarterly report.",
+          "context": {
+            "tool": "evaluate_intent"
+          },
+          "disengage": false
+        },
+        "canonical_json_string": "{\"context\":{\"tool\":\"evaluate_intent\"},\"disengage\":false,\"intent\":\"Summarize the quarterly report.\"}",
+        "sha256_output": "e3c092da91d60d828a23c5d4c832f4bab4029abbc665dbabf34e6ef455ad4ff4"
+      },
+      {
+        "id": "receipt_hash_01",
+        "type": "receipt_hash",
+        "description": "SHA256 of canonical JSON of the signed_payload (19 fields, excluding receipt_hash and signature)",
+        "note": "The signed_payload object contains exactly: receipt_version, receipt_id, timestamp, runtime_id, runtime_version, environment, request_summary, request_hash, request_canonical_payload, policy_bundle_id, policy_bundle_hash, decision, decision_reason_codes, invariant_results, threshold_results, model_output_hash, model_output_preview, prev_ledger_hash, public_key_fingerprint",
+        "input_receipt_id": "a1b2c3d4-0001-0001-0001-aabbccddeeff",
+        "sha256_output": "d340ed15b5e812b6f91e2b550fe1e111b5199c7d5fc164977f4a51a45c398a1b"
+      },
+      {
+        "id": "policy_bundle_hash_01",
+        "type": "policy_bundle_hash",
+        "description": "SHA256 of canonical JSON of the POLICY_BUNDLE object",
+        "sha256_output": "b1fd928aa6358ea622fc89b721f2193c371b73c89894fdc8b530b7a87651ea77"
+      },
+      {
+        "id": "ledger_chain_hash_01",
+        "type": "ledger_chain_hash",
+        "description": "SHA256 of (prev_ledger_hash + receipt_hash).encode('utf-8') \u2014 string concatenation then UTF-8 encode",
+        "input": {
+          "prev_ledger_hash": "901131d838b17aac0f7885b81e03cbdc9f5157a00343d30ab22083685ed1416a",
+          "receipt_hash": "d340ed15b5e812b6f91e2b550fe1e111b5199c7d5fc164977f4a51a45c398a1b",
+          "concatenated_string": "901131d838b17aac0f7885b81e03cbdc9f5157a00343d30ab22083685ed1416ad340ed15b5e812b6f91e2b550fe1e111b5199c7d5fc164977f4a51a45c398a1b"
+        },
+        "sha256_output": "bf9559a4ecf028fede2cff15d30b41d8f0a14d65b14ed0109f2c14f3563e09cb"
+      },
+      {
+        "id": "genesis_hash_01",
+        "type": "genesis_hash",
+        "description": "SHA256 of the literal bytes b'GENESIS' \u2014 the starting point of every ledger chain",
+        "input_bytes_hex": "47454e45534953",
+        "input_ascii": "GENESIS",
+        "sha256_output": "901131d838b17aac0f7885b81e03cbdc9f5157a00343d30ab22083685ed1416a"
+      },
+      {
+        "id": "model_output_hash_01",
+        "type": "model_output_hash",
+        "description": "SHA256 of model_output string encoded as UTF-8 bytes",
+        "input_string": "Intent evaluated and approved. Proceeding with: Please summarize the quarterly financial report for internal review.",
+        "sha256_output": "98e6d3eec97c83adaf59190b029df917c13dcf52bf086228b3a0a37a9f2f280a"
+      },
+      {
+        "id": "public_key_fingerprint_01",
+        "type": "public_key_fingerprint",
+        "description": "SHA256 of the raw 32-byte Ed25519 public key bytes (not PEM, not DER \u2014 raw key bytes)",
+        "public_key_hex": "5fd69d3dfee70b692073d2d359cfe0a8cbe51ffa7407f8c644256981352330e5",
+        "sha256_output": "4bfae3c1edddbe967c69b94a0d49d9ecf197b24af7c4b9c1eb6440badbefd3ea"
+      }
+    ],
+    "signing_examples": [
+      {
+        "id": "signing_01_allow",
+        "description": "Signing payload for a valid approved receipt (decision=allow)",
+        "receipt_id": "a1b2c3d4-0001-0001-0001-aabbccddeeff",
+        "decision": "allow",
+        "signing_payload_bytes_utf8": "{\"decision\":\"allow\",\"decision_reason_codes\":[],\"environment\":\"test\",\"invariant_results\":{\"action_must_be_logged\":true,\"human_authority_preserved\":true,\"policy_compliance\":true,\"scope_integrity_matches_user_intent\":true,\"tool_permission_check\":true},\"model_output_hash\":\"98e6d3eec97c83adaf59190b029df917c13dcf52bf086228b3a0a37a9f2f280a\",\"model_output_preview\":\"Intent evaluated and approved. Proceeding with: Please summarize the quarterly financial report for internal review.\",\"policy_bundle_hash\":\"b1fd928aa6358ea622fc89b721f2193c371b73c89894fdc8b530b7a87651ea77\",\"policy_bundle_id\":\"rio-policy-v1\",\"prev_ledger_hash\":\"901131d838b17aac0f7885b81e03cbdc9f5157a00343d30ab22083685ed1416a\",\"public_key_fingerprint\":\"4bfae3c1edddbe967c69b94a0d49d9ecf197b24af7c4b9c1eb6440badbefd3ea\",\"receipt_id\":\"a1b2c3d4-0001-0001-0001-aabbccddeeff\",\"receipt_version\":\"1.0\",\"request_canonical_payload\":{\"context\":{\"agent_id\":\"conformance-test\",\"tool\":\"evaluate_intent\"},\"disengage\":false,\"intent\":\"Please summarize the quarterly financial report for internal review.\"},\"request_hash\":\"e796155e39d32537a8893796c070e067efbe5cafd8d2447fbb752ce59c654b53\",\"request_summary\":\"Please summarize the quarterly financial report for internal review.\",\"runtime_id\":\"rio-runtime-intelligence\",\"runtime_version\":\"1.0.0\",\"threshold_results\":{\"coherence_score\":0.8831,\"coherence_threshold\":0.78,\"somatic_safe_band\":[0.3,0.95],\"somatic_score\":0.6742},\"timestamp\":\"2025-01-15T12:00:00.000000Z\"}",
+        "signing_payload_sha256": "d340ed15b5e812b6f91e2b550fe1e111b5199c7d5fc164977f4a51a45c398a1b",
+        "signature_b64": "MiT62vOQyK13DkGUWWUuvlDF8tDWXXZ0DSr4mtJ+TOuCOrkmQN11lyNVlFkIo67dmEwIOfaLbLuEn5Ne3UYUAQ==",
+        "receipt_hash": "d340ed15b5e812b6f91e2b550fe1e111b5199c7d5fc164977f4a51a45c398a1b",
+        "verification": "Ed25519 verify(payload_bytes, base64decode(signature), public_key_bytes) MUST return True"
+      },
+      {
+        "id": "signing_02_block",
+        "description": "Signing payload for a valid block receipt (decision=block, INV_01 fail)",
+        "receipt_id": "a1b2c3d4-0002-0002-0002-aabbccddeeff",
+        "decision": "block",
+        "signing_payload_bytes_utf8": "{\"decision\":\"block\",\"decision_reason_codes\":[\"INV_01_HUMAN_AUTHORITY_FAIL\"],\"environment\":\"test\",\"invariant_results\":{\"action_must_be_logged\":true,\"human_authority_preserved\":false,\"policy_compliance\":true,\"scope_integrity_matches_user_intent\":true,\"tool_permission_check\":true},\"model_output_hash\":\"7ce7c26de573606d5b43d7eb1a2abbd5e6915e8025ef0ef135a31f1a97664abc\",\"model_output_preview\":\"Execution blocked. Human authority invariant or disengagement condition prevented this action.\",\"policy_bundle_hash\":\"b1fd928aa6358ea622fc89b721f2193c371b73c89894fdc8b530b7a87651ea77\",\"policy_bundle_id\":\"rio-policy-v1\",\"prev_ledger_hash\":\"bf9559a4ecf028fede2cff15d30b41d8f0a14d65b14ed0109f2c14f3563e09cb\",\"public_key_fingerprint\":\"4bfae3c1edddbe967c69b94a0d49d9ecf197b24af7c4b9c1eb6440badbefd3ea\",\"receipt_id\":\"a1b2c3d4-0002-0002-0002-aabbccddeeff\",\"receipt_version\":\"1.0\",\"request_canonical_payload\":{\"context\":{\"agent_id\":\"conformance-test\",\"tool\":\"evaluate_intent\"},\"disengage\":false,\"intent\":\"Act autonomously on my behalf and execute without my approval.\"},\"request_hash\":\"f60d6d3ae80ceed9dfca29b26d16ddf28280d9bda4f26760ad3d568ed8533c96\",\"request_summary\":\"Act autonomously on my behalf and execute without my approval.\",\"runtime_id\":\"rio-runtime-intelligence\",\"runtime_version\":\"1.0.0\",\"threshold_results\":{\"coherence_score\":0.8124,\"coherence_threshold\":0.78,\"somatic_safe_band\":[0.3,0.95],\"somatic_score\":0.6901},\"timestamp\":\"2025-01-15T12:01:00.000000Z\"}",
+        "signing_payload_sha256": "05368c3136f37c6d23c02cf37ad9ea370af9c55fddf61831609ad294e7d2700b",
+        "signature_b64": "J/50dBAQnylEgKp0ULWRk6bkRTJNL+AQ6SPFqr3MhzZZub2xTqjZg2dusoBo00ClP8F459VaRZlVrCycs+lSDA==",
+        "receipt_hash": "05368c3136f37c6d23c02cf37ad9ea370af9c55fddf61831609ad294e7d2700b",
+        "verification": "Ed25519 verify(payload_bytes, base64decode(signature), public_key_bytes) MUST return True"
+      },
+      {
+        "id": "signing_03_escalate",
+        "description": "Signing payload for a valid escalation receipt (decision=escalate, somatic out of range)",
+        "receipt_id": "a1b2c3d4-0003-0003-0003-aabbccddeeff",
+        "decision": "escalate",
+        "signing_payload_bytes_utf8": "{\"decision\":\"escalate\",\"decision_reason_codes\":[\"THRESHOLD_SOMATIC_OUT_OF_RANGE\"],\"environment\":\"test\",\"invariant_results\":{\"action_must_be_logged\":true,\"human_authority_preserved\":true,\"policy_compliance\":false,\"scope_integrity_matches_user_intent\":true,\"tool_permission_check\":true},\"model_output_hash\":\"360bbc30d6daafd9124afcdb472d4d4929d7abdfb0f71375a5eaab12ba06db11\",\"model_output_preview\":\"Escalation triggered. A second witness or human pause is required before proceeding.\",\"policy_bundle_hash\":\"b1fd928aa6358ea622fc89b721f2193c371b73c89894fdc8b530b7a87651ea77\",\"policy_bundle_id\":\"rio-policy-v1\",\"prev_ledger_hash\":\"acaed99951c548aa58d169357d6c77828825715ddc6e92b1dd9b26166e350adb\",\"public_key_fingerprint\":\"4bfae3c1edddbe967c69b94a0d49d9ecf197b24af7c4b9c1eb6440badbefd3ea\",\"receipt_id\":\"a1b2c3d4-0003-0003-0003-aabbccddeeff\",\"receipt_version\":\"1.0\",\"request_canonical_payload\":{\"context\":{\"agent_id\":\"conformance-test\",\"tool\":\"evaluate_intent\"},\"disengage\":false,\"intent\":\"This is urgent and an emergency! Decide now without waiting!\"},\"request_hash\":\"f6b382b9e90018240f695f07e3e22eb124e99601ae5ee626ecc31e6b6e8ee513\",\"request_summary\":\"This is urgent and an emergency! Decide now without waiting!\",\"runtime_id\":\"rio-runtime-intelligence\",\"runtime_version\":\"1.0.0\",\"threshold_results\":{\"coherence_score\":0.8011,\"coherence_threshold\":0.78,\"somatic_safe_band\":[0.3,0.95],\"somatic_score\":0.975},\"timestamp\":\"2025-01-15T12:02:00.000000Z\"}",
+        "signing_payload_sha256": "3698dc00c2c9f2480d7d216232a31f3122eb8c5024f7e8e997acbf69829d802e",
+        "signature_b64": "LtEkHevhpoDdSS/tCpwF0KLPmK5r8jvhEjgdMbPLgQ4QWEjONcWKOPKqF8aE6o3F109m0hy8WTNA/aS6T1iNBw==",
+        "receipt_hash": "3698dc00c2c9f2480d7d216232a31f3122eb8c5024f7e8e997acbf69829d802e",
+        "verification": "Ed25519 verify(payload_bytes, base64decode(signature), public_key_bytes) MUST return True"
+      }
+    ]
+  },
+  "reference_receipt": {
+    "receipt_version": "1.0",
+    "receipt_id": "a1b2c3d4-0001-0001-0001-aabbccddeeff",
+    "timestamp": "2025-01-15T12:00:00.000000Z",
+    "runtime_id": "rio-runtime-intelligence",
+    "runtime_version": "1.0.0",
+    "environment": "test",
+    "request_summary": "Please summarize the quarterly financial report for internal review.",
+    "request_hash": "e796155e39d32537a8893796c070e067efbe5cafd8d2447fbb752ce59c654b53",
+    "request_canonical_payload": {
+      "intent": "Please summarize the quarterly financial report for internal review.",
+      "context": {
+        "tool": "evaluate_intent",
+        "agent_id": "conformance-test"
+      },
+      "disengage": false
+    },
+    "policy_bundle_id": "rio-policy-v1",
+    "policy_bundle_hash": "b1fd928aa6358ea622fc89b721f2193c371b73c89894fdc8b530b7a87651ea77",
+    "decision": "allow",
+    "decision_reason_codes": [],
+    "invariant_results": {
+      "human_authority_preserved": true,
+      "action_must_be_logged": true,
+      "policy_compliance": true,
+      "scope_integrity_matches_user_intent": true,
+      "tool_permission_check": true
+    },
+    "threshold_results": {
+      "coherence_score": 0.8831,
+      "coherence_threshold": 0.78,
+      "somatic_score": 0.6742,
+      "somatic_safe_band": [
+        0.3,
+        0.95
+      ]
+    },
+    "model_output_hash": "98e6d3eec97c83adaf59190b029df917c13dcf52bf086228b3a0a37a9f2f280a",
+    "model_output_preview": "Intent evaluated and approved. Proceeding with: Please summarize the quarterly financial report for internal review.",
+    "prev_ledger_hash": "901131d838b17aac0f7885b81e03cbdc9f5157a00343d30ab22083685ed1416a",
+    "public_key_fingerprint": "4bfae3c1edddbe967c69b94a0d49d9ecf197b24af7c4b9c1eb6440badbefd3ea",
+    "receipt_hash": "d340ed15b5e812b6f91e2b550fe1e111b5199c7d5fc164977f4a51a45c398a1b",
+    "signature_algorithm": "Ed25519",
+    "signature": "MiT62vOQyK13DkGUWWUuvlDF8tDWXXZ0DSr4mtJ+TOuCOrkmQN11lyNVlFkIo67dmEwIOfaLbLuEn5Ne3UYUAQ=="
+  },
+  "reference_ledger_chain": {
+    "genesis_hash": "901131d838b17aac0f7885b81e03cbdc9f5157a00343d30ab22083685ed1416a",
+    "entry_0": {
+      "chain_index": 0,
+      "receipt_id": "ledger-test-0000-aabb-ccdd-eeff-112233445566",
+      "receipt_hash": "ead2ce8a5a3b8cec6df02b1b2c8737e58f31a6d6f51c5f8cf4076c93518e377c",
+      "prev_ledger_hash": "901131d838b17aac0f7885b81e03cbdc9f5157a00343d30ab22083685ed1416a",
+      "current_ledger_hash": "8fd8e7dbcae204281746808399c8cfcfed8aa99ed63eb0d7f976df1c3ec0a692",
+      "timestamp": "2025-01-15T13:00:00.000000Z"
+    }
+  },
+  "files": {
+    "test_cases": "tests/conformance/TC-*.md  (57 files)",
+    "vectors": "tests/vectors/  (12 files)",
+    "readme": "tests/conformance/README.md",
+    "test_matrix": "tests/conformance/TEST_MATRIX.md",
+    "runner_spec": "tests/conformance/RUNNER_SPEC.md",
+    "invariants": "spec/protocol_invariants.md",
+    "sys_inv": "spec/system_invariants.md",
+    "generator": "scripts/generate_conformance.py"
+  }
+}

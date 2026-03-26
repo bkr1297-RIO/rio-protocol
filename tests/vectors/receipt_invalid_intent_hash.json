@@ -1,0 +1,48 @@
+{
+  "_description": "Receipt with corrupted request_hash \u2014 request hash and signature checks MUST fail",
+  "receipt": {
+    "receipt_version": "1.0",
+    "receipt_id": "a1b2c3d4-0001-0001-0001-aabbccddeeff",
+    "timestamp": "2025-01-15T12:00:00.000000Z",
+    "runtime_id": "rio-runtime-intelligence",
+    "runtime_version": "1.0.0",
+    "environment": "test",
+    "request_summary": "Please summarize the quarterly financial report for internal review.",
+    "request_hash": "0000000000000000a8893796c070e067efbe5cafd8d2447fbb752ce59c654b53",
+    "request_canonical_payload": {
+      "intent": "Please summarize the quarterly financial report for internal review.",
+      "context": {
+        "tool": "evaluate_intent",
+        "agent_id": "conformance-test"
+      },
+      "disengage": false
+    },
+    "policy_bundle_id": "rio-policy-v1",
+    "policy_bundle_hash": "b1fd928aa6358ea622fc89b721f2193c371b73c89894fdc8b530b7a87651ea77",
+    "decision": "allow",
+    "decision_reason_codes": [],
+    "invariant_results": {
+      "human_authority_preserved": true,
+      "action_must_be_logged": true,
+      "policy_compliance": true,
+      "scope_integrity_matches_user_intent": true,
+      "tool_permission_check": true
+    },
+    "threshold_results": {
+      "coherence_score": 0.8831,
+      "coherence_threshold": 0.78,
+      "somatic_score": 0.6742,
+      "somatic_safe_band": [
+        0.3,
+        0.95
+      ]
+    },
+    "model_output_hash": "98e6d3eec97c83adaf59190b029df917c13dcf52bf086228b3a0a37a9f2f280a",
+    "model_output_preview": "Intent evaluated and approved. Proceeding with: Please summarize the quarterly financial report for internal review.",
+    "prev_ledger_hash": "901131d838b17aac0f7885b81e03cbdc9f5157a00343d30ab22083685ed1416a",
+    "public_key_fingerprint": "4bfae3c1edddbe967c69b94a0d49d9ecf197b24af7c4b9c1eb6440badbefd3ea",
+    "receipt_hash": "d340ed15b5e812b6f91e2b550fe1e111b5199c7d5fc164977f4a51a45c398a1b",
+    "signature_algorithm": "Ed25519",
+    "signature": "MiT62vOQyK13DkGUWWUuvlDF8tDWXXZ0DSr4mtJ+TOuCOrkmQN11lyNVlFkIo67dmEwIOfaLbLuEn5Ne3UYUAQ=="
+  }
+}

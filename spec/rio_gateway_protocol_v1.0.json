@@ -1,0 +1,683 @@
+{
+  "document": {
+    "title": "RIO Protocol Specification",
+    "version": "1.0",
+    "status": "Active",
+    "date": "2026-03-26",
+    "authority": "Rio Gateway v3.0 — Sovereign Gate Edition"
+  },
+
+  "constants": {
+    "SIGNATURE_WINDOW_SECONDS": {
+      "default": 300,
+      "env_var": "SIG_WINDOW_SECONDS",
+      "type": "integer"
+    },
+    "signature_ttl": "SIGNATURE_WINDOW_SECONDS",
+    "nonce_ttl": "SIGNATURE_WINDOW_SECONDS",
+    "max_response_chars_in_ledger_hash": 500,
+    "max_context_chars_in_grammar_calibration": 300,
+    "ai_model_max_tokens": 1024,
+    "keepalive_interval_seconds": 240,
+    "default_model": "claude",
+    "genesis_anchor": "GENESIS",
+    "models": {
+      "claude": "claude-sonnet-4-6",
+      "chatgpt": "gpt-5.2",
+      "gemini": "gemini-2.5-flash"
+    }
+  },
+
+  "cryptographic_primitives": {
+    "asymmetric_signature": {
+      "algorithm": "ECDSA",
+      "curve": "secp256k1",
+      "hash_function": "SHA-256",
+      "signature_encoding": "DER",
+      "public_key_format": "Base64-encoded DER SPKI PEM",
+      "private_key_format": "Base64-encoded DER ECPrivateKey PEM (RFC 5915)",
+      "signature_transport": "Base64-encoded raw DER bytes",
+      "signed_message": "UTF-8 byte encoding of the intent string"
+    },
+    "hmac": {
+      "algorithm": "HMAC-SHA256",
+      "key_source": "UTF-8 encoding of RIO_SERVICE_TOKEN",
+      "input": "ledger_hash hex string (UTF-8 encoded)",
+      "output": "lowercase hexadecimal digest"
+    },
+    "hash_function": {
+      "algorithm": "SHA-256 (FIPS 180-4)",
+      "input_encoding": "UTF-8",
+      "output_format": "lowercase hexadecimal string"
+    }
+  },
+
+  "key_material": {
+    "RIO_PUBLIC_KEY": {
+      "purpose": "ECDSA secp256k1 public verifying key",
+      "env_var": "RIO_PUBLIC_KEY",
+      "accepted_formats": [
+        {
+          "name": "Full PEM with proper newlines",
+          "detection": "Contains '-----BEGIN PUBLIC KEY-----' with embedded newlines",
+          "normalization": "Used as-is after whitespace normalization"
+        },
+        {
+          "name": "Replit-collapsed PEM",
+          "detection": "Contains '-----BEGIN PUBLIC KEY-----' with spaces instead of newlines",
+          "normalization": "Base64 body extracted, whitespace stripped, re-wrapped at 64 chars per line"
+        },
+        {
+          "name": "Bare base64 body",
+          "detection": "No PEM headers; matches base64 character set",
+          "normalization": "Reconstructed into '-----BEGIN PUBLIC KEY-----' / '-----END PUBLIC KEY-----' wrapper"
+        },
+        {
+          "name": "Hex-encoded point",
+          "detection": "Matches [0-9a-fA-F]+ and length is 66 (compressed) or 130 (uncompressed) characters",
+          "normalization": "Decoded from hex directly to curve point"
+        }
+      ],
+      "on_missing_or_unparseable": "HTTP 503 — all requests blocked"
+    },
+    "RIO_PRIVATE_KEY": {
+      "purpose": "ECDSA secp256k1 private signing key",
+      "env_var": "RIO_PRIVATE_KEY",
+      "security": "NEVER logged, NEVER included in any response, NEVER exposed outside signing functions",
+      "accepted_formats": [
+        {
+          "name": "Full PEM with proper newlines",
+          "detection": "Contains '-----BEGIN EC PRIVATE KEY-----'",
+          "normalization": "Whitespace normalized"
+        },
+        {
+          "name": "Replit-collapsed PEM",
+          "detection": "Contains '-----BEGIN' with spaces instead of newlines",
+          "normalization": "Body extracted, re-wrapped at 64 chars per line"
+        },
+        {
+          "name": "Bare base64 body",
+          "detection": "No PEM headers",
+          "normalization": "Wrapped with '-----BEGIN EC PRIVATE KEY-----' / '-----END EC PRIVATE KEY-----'"
+        }
+      ]
+    },
+    "RIO_SERVICE_TOKEN": {
+      "purpose": "Shared HMAC key for post-execution ledger signatures",
+      "env_var": "RIO_SERVICE_TOKEN",
+      "on_missing": "post_execution_ledger.signature = 'key_unavailable'"
+    },
+    "RIO_PROXY_TOKEN": {
+      "purpose": "Alternative Bearer token for service-protected endpoints",
+      "env_var": "RIO_PROXY_TOKEN",
+      "note": "Functionally equivalent to RIO_SERVICE_TOKEN for token auth; either one being valid is sufficient"
+    },
+    "key_fingerprint": {
+      "field_name": "approver",
+      "formula": "SHA-256(UTF-8_encode(RIO_PUBLIC_KEY_env_var_stripped))[:16]",
+      "note": "First 16 hexadecimal characters of the full SHA-256 digest",
+      "on_missing": "'key_unavailable'"
+    }
+  },
+
+  "intake_request": {
+    "fields": [
+      { "name": "source",          "type": "string",  "required": true,  "description": "Caller identifier (e.g. 'manus', 'cli')" },
+      { "name": "intent",          "type": "string",  "required": true,  "description": "Natural-language instruction for the AI model" },
+      { "name": "signature",       "type": "string",  "required": true,  "description": "Base64-encoded DER ECDSA signature over the intent" },
+      { "name": "timestamp",       "type": "string",  "required": true,  "description": "ISO-8601 UTC timestamp of when the signature was produced" },
+      { "name": "model",           "type": "string",  "required": false, "description": "Preferred model: 'claude', 'chatgpt', or 'gemini'. Auto-detected if omitted." },
+      { "name": "payload",         "type": "object",  "required": false, "description": "Supplementary context. payload.context (if present) appended to intent during grammar calibration." },
+      { "name": "metadata",        "type": "object",  "required": false, "description": "Caller-supplied metadata. Stored but not processed." },
+      { "name": "nonce",           "type": "string",  "required": false, "description": "Single-use token for replay-attack prevention. Strongly RECOMMENDED." },
+      { "name": "execution_token", "type": "string",  "required": false, "description": "Gate token. All execution is blocked without this field." }
+    ],
+    "success_response_fields": [
+      { "name": "status",             "type": "string",  "description": "Always 'success' on HTTP 200" },
+      { "name": "model_used",         "type": "string",  "description": "Model identifier that handled the request" },
+      { "name": "response",           "type": "string",  "description": "AI model text response" },
+      { "name": "signature_verified", "type": "boolean", "description": "Always true on HTTP 200" },
+      { "name": "signature_hash",     "type": "string",  "description": "SHA-256 hex of raw DER signature bytes" },
+      { "name": "receipt_hash",       "type": "string",  "description": "In-memory ledger receipt hash" },
+      { "name": "ledger_index",       "type": "integer", "description": "Sequential index in in-memory ledger (1-based)" },
+      { "name": "timestamp",          "type": "string",  "description": "ISO-8601 UTC when the response was produced" }
+    ]
+  },
+
+  "execution_pipeline": {
+    "ordered_steps": [
+      {
+        "step": "0.5",
+        "name": "Signature Hash Computation and Atomic DB Claim",
+        "formula": "sig_hash = SHA-256(base64_decode(request.signature))",
+        "outcomes": {
+          "replay_detected":   "HTTP 409",
+          "concurrent_replay": "HTTP 409",
+          "db_error":          "HTTP 503 (fail-closed)",
+          "success":           "Row inserted in used_signatures; pipeline continues"
+        }
+      },
+      {
+        "step": "1",
+        "name": "Sovereign Gate",
+        "description": "ECDSA signature verification on the raw intent string"
+      },
+      {
+        "step": "1.7",
+        "name": "Execution Gate (check_gate)",
+        "description": "Validates execution_token against canonical gate parameters (5-guard sequence)"
+      },
+      {
+        "step": "2",
+        "name": "Rio Grammar Calibration",
+        "formula": "calibrated_intent = trim(intent) + '\\n\\n[Context: ' + trim(context)[:300] + ']'",
+        "note": "Context appended only if payload.context is present and non-empty"
+      },
+      {
+        "step": "3",
+        "name": "Model Routing",
+        "description": "Resolve explicit model field or apply intent keyword matching"
+      },
+      {
+        "step": "4",
+        "name": "AI Model Execution",
+        "outcomes": {
+          "exception": "HTTP 502"
+        }
+      },
+      {
+        "step": "4.5",
+        "name": "Post-Execution Ledger (asynchronous)",
+        "note": "Fire-and-forget. MUST NOT delay the HTTP response. Failures are logged but do not propagate."
+      },
+      {
+        "step": "5",
+        "name": "In-Memory Response Ledger Commit",
+        "description": "Appends hash-chained entry; produces receipt_hash and ledger_index returned to caller"
+      }
+    ]
+  },
+
+  "sovereign_gate": {
+    "description": "Outermost cryptographic checkpoint. Validates four properties in strict order, failing closed.",
+    "checks": [
+      {
+        "check": 1,
+        "name": "Key Availability",
+        "condition": "RIO_PUBLIC_KEY present and parseable",
+        "failure_http": 503,
+        "failure_reason": "key_not_configured"
+      },
+      {
+        "check": 2,
+        "name": "Timestamp Freshness",
+        "condition": "abs(now_utc - timestamp) <= SIGNATURE_WINDOW_SECONDS AND timestamp parseable",
+        "failure_http": 401,
+        "failure_reason": "bad_timestamp or timestamp_expired"
+      },
+      {
+        "check": 3,
+        "name": "Signature Presence",
+        "condition": "signature field present and non-empty",
+        "failure_http": 401,
+        "failure_reason": "missing_signature"
+      },
+      {
+        "check": 4,
+        "name": "Signature Validity",
+        "condition": "base64_decode(signature) is valid DER ECDSA over UTF-8_encode(intent) using RIO_PUBLIC_KEY",
+        "failure_http": 401,
+        "failure_reason": "bad_signature or invalid_base64"
+      },
+      {
+        "check": 5,
+        "name": "Nonce Enforcement",
+        "condition": "If nonce present: not previously claimed in Nonce Registry",
+        "required": "STRONGLY RECOMMENDED",
+        "failure_http_replay": 401,
+        "failure_http_registry_error": 503,
+        "failure_reason": "nonce_replay"
+      }
+    ],
+    "signature_computation": {
+      "message_bytes":     "UTF-8_encode(intent_string)",
+      "signature_bytes":   "ECDSA_sign(message_bytes, RIO_PRIVATE_KEY, hash=SHA-256, encoding=DER)",
+      "signature_b64":     "Base64_encode(signature_bytes)"
+    }
+  },
+
+  "signature_registry": {
+    "description": "Signature-level single-use enforcement. Distinct from Nonce Registry.",
+    "storage": "SQLite — used_signatures table in gateway.db (WAL mode). Survives restarts.",
+    "fingerprint_formula": "signature_hash = SHA-256(raw_DER_signature_bytes)",
+    "claim_procedure": [
+      "1. Compute signature_hash = SHA-256(base64_decode(signature))",
+      "2. Evict all rows where expires_at <= Unix_now",
+      "3. Query for existing row with signature_hash",
+      "4. If found → False (replay → HTTP 409)",
+      "5. If not found → INSERT(signature_hash, intent, used_at, expires_at = now + TTL) → True",
+      "6. IntegrityError on INSERT → treat as concurrent replay → HTTP 409",
+      "7. Any other DB error → HTTP 503 (fail-closed)"
+    ],
+    "ttl_formula": "expires_at = Unix_epoch_now() + SIGNATURE_WINDOW_SECONDS"
+  },
+
+  "nonce_registry": {
+    "description": "Caller-controlled single-use enforcement.",
+    "storage": "In-memory only. Does NOT survive restarts.",
+    "claim_procedure": [
+      "1. Evict all nonces whose expiry has passed",
+      "2. If nonce in store → False (replay → HTTP 401)",
+      "3. Otherwise → store[nonce] = Unix_now + TTL → True",
+      "4. Any exception → HTTP 503 (fail-closed)"
+    ],
+    "ttl_formula": "expiry = Unix_epoch_now() + SIGNATURE_WINDOW_SECONDS"
+  },
+
+  "execution_gate": {
+    "description": "Inner hard gate guarding AI model invocation. Operates independently of Sovereign Gate.",
+    "gate_parameters": {
+      "intent":    "Copied verbatim from intake request intent field",
+      "source":    "Copied verbatim from intake request source field",
+      "timestamp": "Copied verbatim from intake request timestamp field"
+    },
+    "canonical_encoding": {
+      "formula":  "canonical_bytes = UTF-8_encode(intent + '|' + source + '|' + timestamp)",
+      "separator": "| (U+007C, not URL-encoded)"
+    },
+    "parameters_hash": "SHA-256(canonical_bytes)",
+    "guards": [
+      {
+        "guard": 1,
+        "name": "Required Fields",
+        "condition": "intent, source, and timestamp all present and non-empty",
+        "failure_reason": "missing_fields:<comma-separated field list>",
+        "failure_http": 403
+      },
+      {
+        "guard": 2,
+        "name": "Timestamp Freshness",
+        "condition": "timestamp parseable ISO-8601 AND abs(now_utc - timestamp) <= SIGNATURE_WINDOW_SECONDS",
+        "failure_reason": "timestamp_stale or timestamp_invalid",
+        "failure_http": 403
+      },
+      {
+        "guard": 3,
+        "name": "Token Presence",
+        "condition": "execution_token present and non-empty",
+        "failure_reason": "missing_token",
+        "failure_http": 403
+      },
+      {
+        "guard": 4,
+        "name": "Key Availability",
+        "condition": "RIO_PUBLIC_KEY loadable (same key as gateway)",
+        "failure_reason": "key_unavailable",
+        "failure_http": 403
+      },
+      {
+        "guard": 5,
+        "name": "ECDSA Signature",
+        "condition": "base64_decode(execution_token) is valid DER ECDSA over canonical_bytes using RIO_PUBLIC_KEY",
+        "failure_reason": "invalid_signature or verification_error:<exc>",
+        "failure_http": 403
+      }
+    ],
+    "on_any_guard_failure": [
+      "HTTP 403 raised",
+      "Row written to gate_log with event='unauthorized execution attempt'",
+      "Row written to execution_ledger with result='blocked' and reason=<reason_code>"
+    ],
+    "receipt_hash_formula": {
+      "inputs": {
+        "intent_id":    "SHA-256(UTF-8_encode(intent))",
+        "source":       "from parameters",
+        "current_utc":  "ISO-8601 UTC at time of gate passage"
+      },
+      "formula": "receipt_data = 'GATE_PASSED|' + intent_id + '|' + source + '|' + current_utc_iso\nreceipt_hash = SHA-256(UTF-8_encode(receipt_data))"
+    },
+    "gate_receipt_object": {
+      "gate_verified":    true,
+      "receipt_hash":     "<hex>",
+      "intent_hash":      "<hex: SHA-256 of intent>",
+      "source":           "<string>",
+      "timestamp":        "<ISO-8601 UTC>",
+      "parameters_hash":  "<hex>",
+      "approver":         "<16 hex chars>"
+    },
+    "on_success_logging": [
+      "Row written to gate_log with event='gate_passed'",
+      "Row written to execution_ledger with result='executed' and reason='gate_passed'"
+    ]
+  },
+
+  "execution_token": {
+    "description": "Short-lived ECDSA signature over canonical gate parameters. Generated server-side.",
+    "generation": {
+      "step_1": "timestamp = current_utc_iso (use this timestamp in the subsequent intake request)",
+      "step_2": "canonical_bytes = UTF-8_encode(intent + '|' + source + '|' + timestamp)",
+      "step_3": "sig_bytes = ECDSA_sign(canonical_bytes, RIO_PRIVATE_KEY, hash=SHA-256, encoding=DER)",
+      "step_4": "token = Base64_encode(sig_bytes)",
+      "step_5": "parameters_hash = SHA-256(canonical_bytes)"
+    },
+    "generation_response": {
+      "token":           "<base64 DER signature>",
+      "timestamp":       "<ISO-8601 UTC — MUST be used as timestamp in intake request>",
+      "parameters_hash": "<hex>"
+    },
+    "expiry": "Valid for SIGNATURE_WINDOW_SECONDS from its timestamp (enforced by Guard 2)",
+    "critical_note": "The timestamp from token generation MUST be used unchanged in the intake request. Any difference in timestamp causes canonical encoding mismatch and Guard 5 rejection."
+  },
+
+  "model_routing": {
+    "explicit_model_keywords": [
+      { "matches": ["claude", "anthropic"],           "resolves_to": "claude" },
+      { "matches": ["chatgpt", "openai", "gpt"],      "resolves_to": "chatgpt" },
+      { "matches": ["gemini", "google"],              "resolves_to": "gemini" }
+    ],
+    "intent_keyword_routing": [
+      {
+        "keywords": ["code", "debug", "refactor", "function", "script", "program"],
+        "resolves_to": "chatgpt"
+      },
+      {
+        "keywords": ["analyse", "analyze", "analysis", "research", "reason", "summarise", "summarize"],
+        "resolves_to": "claude"
+      }
+    ],
+    "default_model": "claude",
+    "note": "Keyword matching is case-insensitive on the calibrated intent string"
+  },
+
+  "in_memory_response_ledger": {
+    "description": "Append-only hash chain recording every successful AI execution within the process lifetime. Does NOT survive restarts.",
+    "entry_fields": [
+      { "name": "ledger_index",   "description": "1-based sequential integer" },
+      { "name": "receipt_hash",   "description": "Hash seal for this entry" },
+      { "name": "prev_hash",      "description": "receipt_hash of previous entry, or 'GENESIS' for first" },
+      { "name": "source",         "description": "Caller identifier from intake request" },
+      { "name": "intent_hash",    "description": "SHA-256 of the intent string" },
+      { "name": "model",          "description": "Model identifier used for execution" },
+      { "name": "response_chars", "description": "Character length of the AI response" },
+      { "name": "timestamp",      "description": "ISO-8601 UTC at ledger commit time" }
+    ],
+    "receipt_hash_formula": {
+      "formula": "data = prev_hash + '|' + source + '|' + intent + '|' + model + '|' + response[:500] + '|' + timestamp\nreceipt_hash = SHA-256(UTF-8_encode(data))",
+      "note": "Only the first 500 characters of the AI response are included in the hash input"
+    },
+    "chain_anchor": "GENESIS",
+    "integrity_check": "receipt_hash of row N becomes prev_hash of row N+1"
+  },
+
+  "execution_ledger": {
+    "description": "Primary tamper-evident audit log in gateway.db. One row per check_gate call (pass or block).",
+    "table": "execution_ledger",
+    "columns": [
+      { "name": "id",              "type": "INTEGER PK AUTOINCREMENT", "description": "Row identifier" },
+      { "name": "action",          "type": "TEXT NOT NULL",            "description": "Always 'check_gate'" },
+      { "name": "agent",           "type": "TEXT NOT NULL",            "description": "AI model identifier or empty string if not yet resolved" },
+      { "name": "approver",        "type": "TEXT NOT NULL",            "description": "Key fingerprint (SHA-256(RIO_PUBLIC_KEY)[:16])" },
+      { "name": "executed_by",     "type": "TEXT NOT NULL",            "description": "Value of source from intake request" },
+      { "name": "intent_id",       "type": "TEXT NOT NULL",            "description": "SHA-256(UTF-8_encode(intent))" },
+      { "name": "parameters_hash", "type": "TEXT NOT NULL",            "description": "SHA-256(canonical_bytes)" },
+      { "name": "result",          "type": "TEXT NOT NULL",            "description": "'executed' if gate passed; 'blocked' if any guard failed" },
+      { "name": "reason",          "type": "TEXT NOT NULL",            "description": "'gate_passed' on success; reason code on failure" },
+      { "name": "receipt_hash",    "type": "TEXT NOT NULL",            "description": "Gate receipt hash on success; empty string on failure" },
+      { "name": "prev_hash",       "type": "TEXT NOT NULL",            "description": "entry_hash of the previous row, or 'GENESIS'" },
+      { "name": "entry_hash",      "type": "TEXT NOT NULL",            "description": "SHA-256 seal of this row" },
+      { "name": "timestamp",       "type": "TEXT NOT NULL",            "description": "ISO-8601 UTC when the row was written" }
+    ],
+    "entry_hash_formula": {
+      "field_order": ["action", "agent", "approver", "executed_by", "intent_id", "parameters_hash", "result", "reason", "receipt_hash", "prev_hash", "timestamp"],
+      "separator": "| (U+007C)",
+      "formula": "seal_data = action + '|' + agent + '|' + approver + '|' + executed_by + '|' + intent_id + '|' + parameters_hash + '|' + result + '|' + reason + '|' + receipt_hash + '|' + prev_hash + '|' + timestamp\nentry_hash = SHA-256(UTF-8_encode(seal_data))"
+    },
+    "chain_integrity": {
+      "rule": "prev_hash of row N MUST equal entry_hash of row N-1 (by id order)",
+      "anchor": "First row prev_hash MUST be 'GENESIS'"
+    },
+    "failure_semantics": "Write failures are logged but MUST NOT interrupt gate logic. Failure returns empty string for entry_hash."
+  },
+
+  "post_execution_ledger": {
+    "description": "Records the outcome of each AI execution after it completes. HMAC-signed. Written asynchronously.",
+    "table": "post_execution_ledger",
+    "columns": [
+      { "name": "id",              "type": "INTEGER PK AUTOINCREMENT", "description": "Row identifier" },
+      { "name": "timestamp",       "type": "TEXT NOT NULL",            "description": "ISO-8601 UTC when AI execution completed" },
+      { "name": "approver",        "type": "TEXT NOT NULL",            "description": "Key fingerprint (SHA-256(RIO_PUBLIC_KEY)[:16])" },
+      { "name": "agent",           "type": "TEXT NOT NULL",            "description": "AI model identifier that handled execution" },
+      { "name": "executed_by",     "type": "TEXT NOT NULL",            "description": "Value of source from intake request" },
+      { "name": "policy_result",   "type": "TEXT NOT NULL",            "description": "'success' or 'error:<message>'" },
+      { "name": "parameters_hash", "type": "TEXT NOT NULL",            "description": "SHA-256 of canonical gate parameters (from gate receipt)" },
+      { "name": "result_hash",     "type": "TEXT NOT NULL",            "description": "SHA-256 of raw AI response string" },
+      { "name": "ledger_hash",     "type": "TEXT NOT NULL",            "description": "SHA-256 chain seal of this entry" },
+      { "name": "signature",       "type": "TEXT NOT NULL",            "description": "HMAC-SHA256(ledger_hash, RIO_SERVICE_TOKEN)" }
+    ],
+    "result_hash_formula": "result_hash = SHA-256(UTF-8_encode(ai_response_string))",
+    "ledger_hash_formula": {
+      "field_order": ["timestamp", "approver", "agent", "executed_by", "policy_result", "parameters_hash", "result_hash", "prev_ledger_hash"],
+      "separator": "| (U+007C)",
+      "formula": "seal_data = timestamp + '|' + approver + '|' + agent + '|' + executed_by + '|' + policy_result + '|' + parameters_hash + '|' + result_hash + '|' + prev_ledger_hash\nledger_hash = SHA-256(UTF-8_encode(seal_data))"
+    },
+    "hmac_formula": "signature = HMAC-SHA256(key=UTF-8_encode(RIO_SERVICE_TOKEN), msg=UTF-8_encode(ledger_hash))",
+    "chain_integrity": {
+      "rule": "prev_ledger_hash of row N MUST equal ledger_hash of row N-1 (by id order)",
+      "anchor": "First row uses 'GENESIS' as prev_ledger_hash in the seal_data computation"
+    },
+    "on_missing_service_token": "signature = 'key_unavailable'",
+    "failure_semantics": "Write failures are logged but MUST NOT delay or affect the HTTP response to the caller."
+  },
+
+  "audit_trail_cross_reference": {
+    "primary_link": {
+      "field": "parameters_hash",
+      "formula": "SHA-256(UTF-8_encode(intent + '|' + source + '|' + timestamp))",
+      "links": ["execution_ledger", "post_execution_ledger"]
+    },
+    "secondary_link": {
+      "field": "intent_id",
+      "formula": "SHA-256(UTF-8_encode(intent))",
+      "note": "Use when only the intent string is known"
+    }
+  },
+
+  "http_status_codes": [
+    { "code": 200, "condition": "All pipeline steps passed; AI response returned" },
+    { "code": 401, "condition": "Sovereign Gate: timestamp expired, bad/missing signature, nonce replay" },
+    { "code": 403, "condition": "Execution Gate: any of the 5 guards failed" },
+    { "code": 409, "condition": "Signature replay: same signature hash already used" },
+    { "code": 502, "condition": "AI model call failed" },
+    { "code": 503, "condition": "Infrastructure failure: key not configured, signature registry unavailable, nonce registry error" }
+  ],
+
+  "reason_code_glossary": [
+    { "code": "key_not_configured",    "layer": "Sovereign Gate",   "meaning": "RIO_PUBLIC_KEY not set" },
+    { "code": "bad_timestamp",         "layer": "Sovereign Gate",   "meaning": "Timestamp unparseable" },
+    { "code": "timestamp_expired",     "layer": "Sovereign Gate / Execution Gate", "meaning": "Timestamp outside window" },
+    { "code": "missing_signature",     "layer": "Sovereign Gate",   "meaning": "signature field absent" },
+    { "code": "invalid_base64",        "layer": "Sovereign Gate",   "meaning": "signature is not valid Base64" },
+    { "code": "bad_signature",         "layer": "Sovereign Gate",   "meaning": "ECDSA verification failed" },
+    { "code": "verification_error",    "layer": "Sovereign Gate / Execution Gate", "meaning": "Unexpected exception during verification" },
+    { "code": "nonce_replay",          "layer": "Nonce Registry",   "meaning": "Nonce already claimed" },
+    { "code": "missing_fields:<list>", "layer": "Execution Gate Guard 1", "meaning": "One or more required fields absent" },
+    { "code": "timestamp_stale",       "layer": "Execution Gate Guard 2", "meaning": "Gate timestamp outside window" },
+    { "code": "timestamp_invalid",     "layer": "Execution Gate Guard 2", "meaning": "Gate timestamp unparseable" },
+    { "code": "missing_token",         "layer": "Execution Gate Guard 3", "meaning": "execution_token absent" },
+    { "code": "key_unavailable",       "layer": "Execution Gate Guard 4", "meaning": "RIO_PUBLIC_KEY not loadable" },
+    { "code": "invalid_signature",     "layer": "Execution Gate Guard 5", "meaning": "ECDSA token verification failed" }
+  ],
+
+  "database_schema": {
+    "gateway_db": {
+      "path": "artifacts/rio-gateway/gateway.db",
+      "journal_mode": "WAL",
+      "tables": {
+        "used_signatures": {
+          "columns": [
+            { "name": "signature_hash", "type": "TEXT PRIMARY KEY" },
+            { "name": "intent",         "type": "TEXT" },
+            { "name": "used_at",        "type": "TEXT" },
+            { "name": "expires_at",     "type": "REAL NOT NULL" }
+          ],
+          "indexes": ["idx_expires ON used_signatures(expires_at)"]
+        },
+        "gate_log": {
+          "columns": [
+            { "name": "id",           "type": "INTEGER PRIMARY KEY AUTOINCREMENT" },
+            { "name": "event",        "type": "TEXT NOT NULL" },
+            { "name": "intent_hash",  "type": "TEXT" },
+            { "name": "source",       "type": "TEXT" },
+            { "name": "receipt_hash", "type": "TEXT" },
+            { "name": "timestamp",    "type": "TEXT NOT NULL" }
+          ],
+          "indexes": ["idx_gate_log_ts ON gate_log(timestamp)"]
+        },
+        "execution_ledger": {
+          "columns": [
+            { "name": "id",              "type": "INTEGER PRIMARY KEY AUTOINCREMENT" },
+            { "name": "action",          "type": "TEXT NOT NULL" },
+            { "name": "agent",           "type": "TEXT NOT NULL" },
+            { "name": "approver",        "type": "TEXT NOT NULL" },
+            { "name": "executed_by",     "type": "TEXT NOT NULL" },
+            { "name": "intent_id",       "type": "TEXT NOT NULL" },
+            { "name": "parameters_hash", "type": "TEXT NOT NULL" },
+            { "name": "result",          "type": "TEXT NOT NULL" },
+            { "name": "reason",          "type": "TEXT NOT NULL" },
+            { "name": "receipt_hash",    "type": "TEXT NOT NULL" },
+            { "name": "prev_hash",       "type": "TEXT NOT NULL" },
+            { "name": "entry_hash",      "type": "TEXT NOT NULL" },
+            { "name": "timestamp",       "type": "TEXT NOT NULL" }
+          ],
+          "indexes": [
+            "idx_ledger_ts     ON execution_ledger(timestamp)",
+            "idx_ledger_result ON execution_ledger(result)",
+            "idx_ledger_execby ON execution_ledger(executed_by)",
+            "idx_ledger_agent  ON execution_ledger(agent)"
+          ]
+        },
+        "post_execution_ledger": {
+          "columns": [
+            { "name": "id",              "type": "INTEGER PRIMARY KEY AUTOINCREMENT" },
+            { "name": "timestamp",       "type": "TEXT NOT NULL" },
+            { "name": "approver",        "type": "TEXT NOT NULL" },
+            { "name": "agent",           "type": "TEXT NOT NULL" },
+            { "name": "executed_by",     "type": "TEXT NOT NULL" },
+            { "name": "policy_result",   "type": "TEXT NOT NULL" },
+            { "name": "parameters_hash", "type": "TEXT NOT NULL" },
+            { "name": "result_hash",     "type": "TEXT NOT NULL" },
+            { "name": "ledger_hash",     "type": "TEXT NOT NULL" },
+            { "name": "signature",       "type": "TEXT NOT NULL" }
+          ],
+          "indexes": [
+            "idx_post_ts     ON post_execution_ledger(timestamp)",
+            "idx_post_agent  ON post_execution_ledger(agent)",
+            "idx_post_execby ON post_execution_ledger(executed_by)",
+            "idx_post_result ON post_execution_ledger(policy_result)"
+          ]
+        }
+      }
+    },
+    "messages_db": {
+      "path": "artifacts/rio-gateway/messages.db",
+      "journal_mode": "WAL",
+      "tables": {
+        "messages": {
+          "columns": [
+            { "name": "message_id",   "type": "TEXT PRIMARY KEY" },
+            { "name": "sender",       "type": "TEXT NOT NULL" },
+            { "name": "recipient",    "type": "TEXT NOT NULL" },
+            { "name": "content",      "type": "TEXT NOT NULL" },
+            { "name": "status",       "type": "TEXT NOT NULL DEFAULT 'active'" },
+            { "name": "access_token", "type": "TEXT NOT NULL" },
+            { "name": "created_at",   "type": "TEXT NOT NULL" },
+            { "name": "recalled_at",  "type": "TEXT" },
+            { "name": "expires_at",   "type": "TEXT" }
+          ]
+        }
+      }
+    }
+  },
+
+  "worked_examples": {
+    "approver_fingerprint": {
+      "description": "Compute the approver field from RIO_PUBLIC_KEY",
+      "steps": [
+        "raw_bytes  = UTF-8_encode(strip(RIO_PUBLIC_KEY_env_var))",
+        "full_hash  = SHA-256(raw_bytes)    // 64 hex chars",
+        "approver   = full_hash[:16]        // first 16 hex chars"
+      ]
+    },
+    "canonical_gate_parameters_and_parameters_hash": {
+      "inputs": {
+        "intent":    "Summarise the three laws of thermodynamics.",
+        "source":    "manus",
+        "timestamp": "2026-03-26T14:00:00.000000Z"
+      },
+      "steps": [
+        "canonical_str   = 'Summarise the three laws of thermodynamics.|manus|2026-03-26T14:00:00.000000Z'",
+        "canonical_bytes = UTF-8_encode(canonical_str)",
+        "parameters_hash = SHA-256(canonical_bytes)"
+      ]
+    },
+    "execution_ledger_entry_hash": {
+      "description": "Compute entry_hash for a blocked gate attempt (first row)",
+      "inputs": {
+        "action":          "check_gate",
+        "agent":           "",
+        "approver":        "a1b2c3d4e5f6a7b8",
+        "executed_by":     "manus",
+        "intent_id":       "SHA-256(UTF-8_encode(intent))",
+        "parameters_hash": "<computed from canonical encoding>",
+        "result":          "blocked",
+        "reason":          "missing_token",
+        "receipt_hash":    "",
+        "prev_hash":       "GENESIS",
+        "timestamp":       "2026-03-26T14:00:01.234567Z"
+      },
+      "formula": "seal_data  = 'check_gate||a1b2c3d4e5f6a7b8|manus|' + intent_id + '|' + parameters_hash + '|blocked|missing_token||GENESIS|2026-03-26T14:00:01.234567Z'\nentry_hash = SHA-256(UTF-8_encode(seal_data))"
+    },
+    "post_execution_ledger_hash_and_hmac": {
+      "description": "Compute ledger_hash and signature for the first successful post-exec row",
+      "inputs": {
+        "timestamp":        "2026-03-26T14:00:05.000000Z",
+        "approver":         "a1b2c3d4e5f6a7b8",
+        "agent":            "claude-sonnet-4-6",
+        "executed_by":      "manus",
+        "policy_result":    "success",
+        "parameters_hash":  "<from canonical encoding example>",
+        "result_hash":      "SHA-256(UTF-8_encode(ai_response_string))",
+        "prev_ledger_hash": "GENESIS"
+      },
+      "steps": [
+        "seal_data   = '2026-03-26T14:00:05.000000Z|a1b2c3d4e5f6a7b8|claude-sonnet-4-6|manus|success|' + parameters_hash + '|' + result_hash + '|GENESIS'",
+        "ledger_hash = SHA-256(UTF-8_encode(seal_data))",
+        "signature   = HMAC-SHA256(key=UTF-8_encode(RIO_SERVICE_TOKEN), msg=UTF-8_encode(ledger_hash))"
+      ]
+    },
+    "in_memory_response_ledger_first_entry": {
+      "inputs": {
+        "source":     "manus",
+        "intent":     "Summarise the three laws of thermodynamics.",
+        "model":      "claude",
+        "response":   "The three laws are...  (first 500 chars used)",
+        "timestamp":  "2026-03-26T14:00:05.100000Z",
+        "prev_hash":  "GENESIS"
+      },
+      "steps": [
+        "data         = 'GENESIS|manus|Summarise the three laws of thermodynamics.|claude|The three laws are...|2026-03-26T14:00:05.100000Z'",
+        "receipt_hash = SHA-256(UTF-8_encode(data))",
+        "ledger_index = 1"
+      ],
+      "note": "The second entry's prev_hash equals this receipt_hash"
+    },
+    "signature_registry_fingerprint": {
+      "inputs": { "sig_b64": "<Base64-encoded DER signature from intake request>" },
+      "steps": [
+        "sig_bytes      = Base64_decode(sig_b64)",
+        "signature_hash = SHA-256(sig_bytes)",
+        "// signature_hash is the PRIMARY KEY in used_signatures"
+      ]
+    }
+  }
+}

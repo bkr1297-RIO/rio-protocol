@@ -1,0 +1,66 @@
+{
+  "_description": "Deterministic hash computation test vectors for RIO protocol",
+  "examples": [
+    {
+      "id": "intent_hash_01",
+      "type": "intent_hash",
+      "description": "SHA256 of canonical JSON of the request_canonical_payload object",
+      "input_object": {
+        "intent": "Summarize the quarterly report.",
+        "context": {
+          "tool": "evaluate_intent"
+        },
+        "disengage": false
+      },
+      "canonical_json_string": "{\"context\":{\"tool\":\"evaluate_intent\"},\"disengage\":false,\"intent\":\"Summarize the quarterly report.\"}",
+      "sha256_output": "e3c092da91d60d828a23c5d4c832f4bab4029abbc665dbabf34e6ef455ad4ff4"
+    },
+    {
+      "id": "receipt_hash_01",
+      "type": "receipt_hash",
+      "description": "SHA256 of canonical JSON of the signed_payload (19 fields, excluding receipt_hash and signature)",
+      "note": "The signed_payload object contains exactly: receipt_version, receipt_id, timestamp, runtime_id, runtime_version, environment, request_summary, request_hash, request_canonical_payload, policy_bundle_id, policy_bundle_hash, decision, decision_reason_codes, invariant_results, threshold_results, model_output_hash, model_output_preview, prev_ledger_hash, public_key_fingerprint",
+      "input_receipt_id": "a1b2c3d4-0001-0001-0001-aabbccddeeff",
+      "sha256_output": "d340ed15b5e812b6f91e2b550fe1e111b5199c7d5fc164977f4a51a45c398a1b"
+    },
+    {
+      "id": "policy_bundle_hash_01",
+      "type": "policy_bundle_hash",
+      "description": "SHA256 of canonical JSON of the POLICY_BUNDLE object",
+      "sha256_output": "b1fd928aa6358ea622fc89b721f2193c371b73c89894fdc8b530b7a87651ea77"
+    },
+    {
+      "id": "ledger_chain_hash_01",
+      "type": "ledger_chain_hash",
+      "description": "SHA256 of (prev_ledger_hash + receipt_hash).encode('utf-8') \u2014 string concatenation then UTF-8 encode",
+      "input": {
+        "prev_ledger_hash": "901131d838b17aac0f7885b81e03cbdc9f5157a00343d30ab22083685ed1416a",
+        "receipt_hash": "d340ed15b5e812b6f91e2b550fe1e111b5199c7d5fc164977f4a51a45c398a1b",
+        "concatenated_string": "901131d838b17aac0f7885b81e03cbdc9f5157a00343d30ab22083685ed1416ad340ed15b5e812b6f91e2b550fe1e111b5199c7d5fc164977f4a51a45c398a1b"
+      },
+      "sha256_output": "bf9559a4ecf028fede2cff15d30b41d8f0a14d65b14ed0109f2c14f3563e09cb"
+    },
+    {
+      "id": "genesis_hash_01",
+      "type": "genesis_hash",
+      "description": "SHA256 of the literal bytes b'GENESIS' \u2014 the starting point of every ledger chain",
+      "input_bytes_hex": "47454e45534953",
+      "input_ascii": "GENESIS",
+      "sha256_output": "901131d838b17aac0f7885b81e03cbdc9f5157a00343d30ab22083685ed1416a"
+    },
+    {
+      "id": "model_output_hash_01",
+      "type": "model_output_hash",
+      "description": "SHA256 of model_output string encoded as UTF-8 bytes",
+      "input_string": "Intent evaluated and approved. Proceeding with: Please summarize the quarterly financial report for internal review.",
+      "sha256_output": "98e6d3eec97c83adaf59190b029df917c13dcf52bf086228b3a0a37a9f2f280a"
+    },
+    {
+      "id": "public_key_fingerprint_01",
+      "type": "public_key_fingerprint",
+      "description": "SHA256 of the raw 32-byte Ed25519 public key bytes (not PEM, not DER \u2014 raw key bytes)",
+      "public_key_hex": "5fd69d3dfee70b692073d2d359cfe0a8cbe51ffa7407f8c644256981352330e5",
+      "sha256_output": "4bfae3c1edddbe967c69b94a0d49d9ecf197b24af7c4b9c1eb6440badbefd3ea"
+    }
+  ]
+}

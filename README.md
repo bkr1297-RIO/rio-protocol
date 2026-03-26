@@ -400,7 +400,8 @@ rio-protocol/
 │   ├── three_loop_architecture.md     Three-Loop Architecture (intake, execution/governance, learning)
 │   ├── two_loop_architecture.md       Two-loop architecture (superseded by three_loop_architecture.md)
 │   ├── intent_translation_layer.md    Intent translation layer (universal grammar)
-│   └── master_protocol_index.md       Master index linking all specifications
+│   ├── master_protocol_index.md       Master index linking all specifications
+│   └── rio_gateway_protocol_v1.0.json RIO Gateway Protocol Spec (Sovereign Gate Edition)
 │
 ├── architecture/                      System architecture models
 │   └── 15_layer_model.md             15-layer system architecture
@@ -474,7 +475,22 @@ rio-protocol/
 │   ├── TC-RIO-001.md                  Allowed execution with receipt and ledger
 │   ├── TC-RIO-002.md                  Denied execution due to policy
 │   ├── TC-RIO-003.md                  Kill switch blocks execution
-│   └── ...                            (WS3 agent will add full conformance suite)
+│   ├── conformance/                   WS3 Conformance Test Suite
+│   │   ├── rio_conformance_suite_v1.json  Master suite (57 tests, invariants, formulas)
+│   │   ├── TEST_MATRIX.md             Human-readable test case matrix
+│   │   └── README.md                  Conformance levels and interoperability bar
+│   └── vectors/                       Deterministic test vectors
+│       ├── public_key.pem             Ed25519 test public key
+│       ├── receipt_valid_approved.json Valid approved receipt
+│       ├── receipt_valid_denied.json   Valid denied receipt
+│       ├── receipt_invalid_*.json      Invalid receipt variants (3 files)
+│       ├── receipt_missing_fields.json Receipt with missing required fields
+│       ├── hash_computation_examples.json  7 worked hash examples
+│       ├── signing_payload_examples.json   3 signing/verification examples
+│       ├── ledger_chain_valid.json     Valid hash chain
+│       ├── ledger_chain_tampered.json  Tampered hash chain
+│       ├── ledger_chain_deleted_entry.json  Chain with deleted entry
+│       └── README.md                  Vector index and cryptographic constants
 │
 ├── ledger/                            Ledger protocol documentation
 │   └── README.md                      Hash chain structure, integrity rules, verification rules
@@ -778,7 +794,8 @@ Contributions are welcome. Please follow these guidelines:
 | Security Model Documentation | 1 | In Progress (WS5) |
 | Independent Verifier | 1 | In Progress (WS4) |
 | Canonical Protocol Specification | 1 | In Progress (WS2) |
-| Conformance Test Suite | 57 test docs + 12 vectors | In Progress (WS3) |
+| Conformance Test Suite | 57 tests + 12 vectors | Complete (WS3) |
+| RIO Gateway Protocol Spec | 20 sections | Complete |
 
 ---
 

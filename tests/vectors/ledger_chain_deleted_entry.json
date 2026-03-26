@@ -1,0 +1,7 @@
+{
+  "_description": "Ledger chain with deleted entry \u2014 chain integrity check MUST fail at index 1",
+  "chain": {
+    "genesis_hash": "901131d838b17aac0f7885b81e03cbdc9f5157a00343d30ab22083685ed1416a"
+  },
+  "note": "entry_0 removed; verifier should detect gap"
+}

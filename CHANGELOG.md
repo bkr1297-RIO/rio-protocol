@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Added
+
+- **WS3 Conformance Test Suite:** Machine-readable conformance suite (`tests/conformance/rio_conformance_suite_v1.json`) with 57 test case definitions, 8 protocol invariants, and interoperability bar.
+- **Test Vectors:** 12 deterministic test vector files in `tests/vectors/` — valid/invalid receipts, hash computation examples, signing payload examples, valid/tampered ledger chains, and Ed25519 test public key.
+- **Test Matrix:** Human-readable test matrix (`tests/conformance/TEST_MATRIX.md`) mapping all 57 test cases to conformance levels, expected decisions, invariants, and required vectors.
+- **RIO Gateway Protocol Specification v1.0:** Sovereign Gate Edition (`spec/rio_gateway_protocol_v1.0.json`) — the production gateway specification covering ECDSA secp256k1 signatures, Sovereign Gate (5-check sequence), Execution Gate (5-guard sequence), signature/nonce registries, in-memory response ledger, execution ledger, post-execution ledger with HMAC-SHA256, database schema, and worked examples.
+
+---
+
 ## [1.0.0] - 2026-03-26
 
 ### Added
