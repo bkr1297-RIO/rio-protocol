@@ -8,7 +8,7 @@
 
 ## 1. System Overview
 
-RIO is a governed execution architecture that converts goals and intents into authorized, executed, attested, and permanently recorded actions through a controlled protocol. Every consequential action — regardless of whether it originates from an AI agent, an automated system, or a human-initiated workflow — must traverse the full protocol before it can affect any external system.
+RIO is a governed AI control plane built on a Three-Loop Architecture that translates goals into structured intents, enforces policy and approvals before execution, controls and verifies actions, generates cryptographic receipts, maintains an immutable ledger, and learns from every decision over time. Every consequential action — regardless of whether it originates from an AI agent, an automated system, or a human-initiated workflow — must traverse the full protocol before it can affect any external system.
 
 The core flow proceeds through the following stages:
 
@@ -140,11 +140,11 @@ Learning cannot bypass runtime enforcement. All proposed changes from the learni
 
 ---
 
-## Two-Loop Architecture
+## Three-Loop Architecture
 
-RIO operates as two coupled loops: the Execution Loop, which controls and records actions in real time through the 8-step Governed Execution Protocol, and the Learning Loop, which analyzes historical data from the Governed Corpus to improve future governance without bypassing runtime controls. The two loops are structurally separated and coupled only through the ledger and the governed change process.
+RIO operates as three coupled loops: the Intake/Discovery Loop, which translates vague goals into structured intents before governance begins; the Execution/Governance Loop, which controls, authorizes, verifies, and records actions in real time through the Governed Execution Protocol with v2 cryptographic receipts; and the Learning Loop, which analyzes historical data from the Governed Corpus to improve future governance without bypassing runtime controls. The three loops are structurally separated and coupled through structured intents, the ledger, and the governed change process.
 
-See `/spec/two_loop_architecture.md` for the full specification.
+See `/spec/three_loop_architecture.md` for the full specification.
 
 ---
 
@@ -169,5 +169,5 @@ See `/spec/intent_translation_layer.md` for the full specification.
 | Governed Corpus | `/spec/governed_corpus.md` |
 | Threat Model | `/spec/threat_model.md` |
 | Protocol Test Matrix | `/spec/protocol_test_matrix.md` |
-| Two-Loop Architecture | `/spec/two_loop_architecture.md` |
+| Three-Loop Architecture | `/spec/three_loop_architecture.md` |
 | Intent Translation Layer | `/spec/intent_translation_layer.md` |

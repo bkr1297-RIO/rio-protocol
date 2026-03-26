@@ -2,7 +2,7 @@
 
 **Category:** AI Control Plane and Audit Plane
 
-RIO is a fail-closed execution governance system that requires authorization before execution and produces cryptographic receipts and tamper-evident audit logs for every action.
+RIO is a governed AI control plane that translates goals into structured intents, enforces policy and approvals before execution, controls and verifies actions, generates cryptographic receipts, maintains an immutable ledger, and learns from every decision over time. Built on a Three-Loop Architecture (Intake/Discovery, Execution/Governance, Learning).
 
 ---
 
@@ -78,7 +78,7 @@ make install    # Install dependencies
 make init       # Initialize the system
 make admin      # Create admin user
 make run        # Start the server
-make test       # Run 47 tests
+make test       # Run 57 tests
 ```
 
 ---
@@ -119,7 +119,7 @@ All scripts support `--help` for additional options.
 
 ## Running Tests
 
-The test harness includes 47 test cases covering the full protocol stack:
+The test harness includes 57 test cases covering the full protocol stack:
 
 ```bash
 python -m runtime.test_harness
@@ -139,6 +139,7 @@ python -m runtime.test_harness
 | TC-IAM (identity) | 5 | Role hierarchy, limits, self-approval, expiry |
 | TC-CORP (corpus) | 4 | Record, replay, stricter role, same settings |
 | TC-ADMIN (admin UI) | 5 | Risk draft, auth block, activate, rollback, ledger |
+| TC-V2 (v2 receipts) | 10 | v2 receipt gen, signing, verification, denial, ledger chain, tampering, hashes, timestamps, signature format |
 
 ---
 
@@ -152,7 +153,13 @@ python -m runtime.test_harness
                                 │
                                 ▼
 ┌─────────────────────────────────────────────────────────────────────┐
-│                       RIO CONTROL PLANE                           │
+│              LOOP 1: INTAKE / DISCOVERY                           │
+│  Goal → Validation → Missing Info → AI Refinement → Intent       │
+└───────────────────────────────┬─────────────────────────────────────┘
+                                │ Structured Intent
+                                ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│              LOOP 2: EXECUTION / GOVERNANCE                       │
 │                                                                   │
 │  ┌──────────┐  ┌──────────────┐  ┌───────────────┐  ┌──────────┐ │
 │  │  Intake   │→│Classification │→│Structured     │→│ Policy & │ │
@@ -161,8 +168,8 @@ python -m runtime.test_harness
 │                                                          │       │
 │                                                          ▼       │
 │  ┌──────────┐  ┌──────────────┐  ┌───────────────┐  ┌──────────┐ │
-│  │  Ledger  │←│   Receipt    │←│Execution Gate │←│Authorize │ │
-│  │  (Stage 8)│  │  (Stage 7)   │  │  (Stage 6)    │  │ (Stg 5)  │ │
+│  │v2 Ledger │←│ v2 Receipt   │←│  Verify (6b)  │←│Exec Gate │ │
+│  │  (Stage 8)│  │  (Stage 7)   │  │  + Authorize  │  │ (Stg 5-6)│ │
 │  └──────────┘  └──────────────┘  └───────┬───────┘  └──────────┘ │
 │                                          │                       │
 └──────────────────────────────────────────┼───────────────────────┘
@@ -176,11 +183,18 @@ python -m runtime.test_harness
                                            ▼
 ┌─────────────────────────────────────────────────────────────────────┐
 │                    AUDIT & ATTESTATION                            │
-│    Receipts  ·  Hash-Chain Ledger  ·  Governed Corpus  ·  Replay  │
+│  v2 Receipts · Signed Hash-Chain Ledger · Governed Corpus · Replay│
+└───────────────────────────────┬─────────────────────────────────────┘
+                                │
+                                ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│              LOOP 3: LEARNING                                     │
+│  Ledger → Audit → Pattern Analysis → Policy/Model Updates         │
+│  → Future Intake and Governance Decisions                         │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-The system is organized into four zones. External requesters submit action requests. The RIO Control Plane evaluates policy, computes risk, obtains authorization, and gates execution. Execution targets receive dispatched actions through adapters. The Audit & Attestation layer records every decision with cryptographic receipts and a tamper-evident ledger.
+The system is organized as a Three-Loop Architecture. External requesters submit goals. Loop 1 (Intake/Discovery) translates goals into structured intents. Loop 2 (Execution/Governance) evaluates policy, computes risk, obtains authorization, gates execution, verifies actions, generates v2 cryptographic receipts, and records them in a signed hash-chain ledger. Execution targets receive dispatched actions through adapters. The Audit & Attestation layer records every decision. Loop 3 (Learning) analyzes historical data and proposes policy and model updates that feed back into future governance decisions.
 
 ---
 
@@ -215,27 +229,29 @@ Existing approaches either block AI from acting (removing the value of automatio
 
 ## The Solution
 
-RIO interposes a control plane between any requester (AI agent, automated system, or human-initiated workflow) and any execution target (payment network, email system, database, deployment pipeline). Every action request passes through a deterministic pipeline:
+RIO interposes a governed AI control plane between any requester (AI agent, automated system, or human-initiated workflow) and any execution target (payment network, email system, database, deployment pipeline). Built on a Three-Loop Architecture, every action request passes through a deterministic pipeline:
 
-1. The request is received, verified, normalized, and hashed.
-2. Risk is evaluated and policies are checked.
+1. The Intake/Discovery Loop translates vague goals into structured intents through validation and AI-assisted refinement.
+2. The Execution/Governance Loop evaluates risk and policies against the structured intent.
 3. A human or delegated authority makes an authorization decision.
 4. The execution gate validates the authorization before releasing the action.
-5. The system produces cryptographic attestation, a receipt, and a tamper-evident ledger entry.
+5. Post-execution verification (Stage 6b) computes intent_hash, action_hash, and verification_hash.
+6. The system produces a v2 cryptographic receipt and a signed, tamper-evident ledger entry.
+7. The Learning Loop analyzes outcomes and proposes policy and model improvements.
 
-No action executes without valid authorization. If any step fails, the system denies execution. This is the fail-closed guarantee.
+No action executes without valid authorization. If any step fails, the system denies execution and generates a denial receipt. This is the fail-closed guarantee.
 
 ---
 
 ## System Overview
 
 ```
-External Requesters → RIO Control Plane → Execution Gate → Execution Systems
-                                                    ↓
-                                          Audit & Attestation → Ledger
+External Requesters → Intake/Discovery Loop → Structured Intent → Execution/Governance Loop → Execution Systems
+                                                                                                    ↓
+                                                                              Audit & Attestation → Ledger → Learning Loop
 ```
 
-The system overview diagram (`reference-architecture/01_system_overview.png`) shows the four zones: External Requesters, RIO Control Plane, Execution Systems, and Audit & Attestation.
+The system overview shows the Three-Loop Architecture: External Requesters submit goals to the Intake/Discovery Loop, which produces structured intents for the Execution/Governance Loop. The Execution/Governance Loop gates execution, verifies actions, and records v2 receipts in the signed ledger. The Learning Loop analyzes historical data and proposes policy updates.
 
 ---
 
@@ -261,15 +277,17 @@ Each record is canonically hashed (SHA-256), cryptographically signed (ECDSA-sec
 
 ---
 
-## Governed Execution Loop
+## Three-Loop Architecture
 
-The protocol implements a continuous governance loop:
+The protocol implements a Three-Loop Architecture:
 
 ```
-Observe → Verify → Evaluate → Authorize → Execute → Record → Attest → Ledger → Learn → Repeat
+Goal → Intake/Discovery Loop → Structured Intent → Execution/Governance Loop → Receipt → Ledger → Learning Loop → Policy/Model Updates → Future Decisions
 ```
 
-The Learning stage feeds outcomes back into risk evaluation, allowing the system to improve its risk models over time without weakening governance controls. The loop diagram is available at `reference-architecture/03_governed_execution_loop.png`.
+The Intake/Discovery Loop translates vague goals into structured intents. The Execution/Governance Loop enforces policy, authorization, execution gating, post-execution verification, v2 receipt generation, and signed ledger recording. The Learning Loop feeds outcomes back into risk evaluation and policy refinement, allowing the system to improve over time without weakening governance controls.
+
+See [`spec/three_loop_architecture.md`](spec/three_loop_architecture.md) for the full specification.
 
 ---
 
@@ -377,7 +395,8 @@ rio-protocol/
 │   ├── audit_ledger_protocol.md       Append-only ledger model and audit procedures
 │   ├── verification_model.md          Verification model for protocol and ledger integrity
 │   ├── governance_learning_protocol.md Governance learning protocol specification
-│   ├── two_loop_architecture.md       Two-loop architecture (execution + learning)
+│   ├── three_loop_architecture.md     Three-Loop Architecture (intake, execution/governance, learning)
+│   ├── two_loop_architecture.md       Two-loop architecture (superseded by three_loop_architecture.md)
 │   ├── intent_translation_layer.md    Intent translation layer (universal grammar)
 │   └── master_protocol_index.md       Master index linking all specifications
 │
@@ -401,7 +420,9 @@ rio-protocol/
 │   ├── ledger.py                      Stage 8: Append-only ledger with hash chain
 │   ├── verification.py                Verification of receipts, ledger, and invariants
 │   ├── governance_learning.py         Stage 9: Asynchronous learning recommendations
-│   ├── test_harness.py                47-test harness (run with python -m runtime.test_harness)
+│   ├── test_harness.py                57-test harness (run with python -m runtime.test_harness)
+│   ├── receipts/                      v2 receipt generation, signing, and verification
+│   ├── ledger_v2/                     v2 hash-chain ledger writer and verifier
 │   ├── policy/                        Policy and risk engines + rules
 │   ├── governance/                    Versioned policy/risk management + change logs
 │   ├── approvals/                     Approval queue and manager
@@ -610,9 +631,9 @@ See [`architecture/15_layer_model.md`](architecture/15_layer_model.md) for the f
 
 ---
 
-## Runtime Protocol (8 Steps)
+## Runtime Protocol (8 Steps + Verification)
 
-The Governed Execution Protocol defines the mandatory runtime path for every request: Intake, Classification, Structured Intent, Policy & Risk Check, Authorization, Execution Gate, Receipt/Attestation, and Audit Ledger. Governance Learning operates asynchronously as a ninth step and does not bypass runtime controls.
+The Governed Execution Protocol defines the mandatory runtime path for every request: Intake, Classification, Structured Intent, Policy & Risk Check, Authorization, Execution Gate, Post-Execution Verification (Stage 6b), v2 Receipt Generation, and v2 Ledger Entry. Governance Learning operates asynchronously and does not bypass runtime controls. Stage 6b computes intent_hash, action_hash, and verification_hash (SHA-256) to cryptographically bind the intent to the executed action.
 
 See [`spec/runtime_flow.md`](spec/runtime_flow.md) for the runtime flow diagram and [`spec/governed_execution_protocol.md`](spec/governed_execution_protocol.md) for the full stage definitions.
 
@@ -658,15 +679,15 @@ See [`spec/governed_corpus.md`](spec/governed_corpus.md) for the full specificat
 
 ## Intent Translation Layer
 
-RIO is designed to sit under an Intent Translation Layer that maps canonical intents to specific external systems and APIs while preserving a common governed execution model. The Intent Translation Layer translates human/agent goals into structured intents, maps those intents to system-specific actions, and normalizes execution results for receipt generation.
+RIO is designed to sit under an Intent Translation Layer (also known as the Intake/Discovery Loop) that maps canonical intents to specific external systems and APIs while preserving a common governed execution model. The Intent Translation Layer translates human/agent goals into structured intents, maps those intents to system-specific actions, and normalizes execution results for receipt generation.
 
-See [`spec/intent_translation_layer.md`](spec/intent_translation_layer.md) for the full specification and [`spec/two_loop_architecture.md`](spec/two_loop_architecture.md) for the two-loop architecture that defines the relationship between the execution loop and the learning loop.
+See [`spec/intent_translation_layer.md`](spec/intent_translation_layer.md) for the full specification and [`spec/three_loop_architecture.md`](spec/three_loop_architecture.md) for the Three-Loop Architecture that defines the relationship between the Intake/Discovery, Execution/Governance, and Learning loops.
 
 ---
 
-## Ledger & Receipts
+## Ledger & Receipts (v2)
 
-Every protocol decision — whether approved, denied, or blocked — produces a cryptographic receipt (Stage 7) and an append-only ledger entry (Stage 8). Receipts contain intent hash, decision hash, execution hash, timestamp, and ECDSA-secp256k1 signature. Ledger entries are hash-linked to form a tamper-evident chain. There are no silent failures and no unrecorded decisions.
+Every protocol decision — whether approved, denied, or blocked — produces a v2 cryptographic receipt (Stage 7) and a signed ledger entry (Stage 8). v2 receipts contain intent_hash, action_hash, verification_hash, verification_status, risk scoring, policy decisions, three ISO 8601 timestamps, and RSA-PSS signature. Denial receipts are generated for blocked actions. Ledger entries include per-entry ledger_signature and previous_ledger_hash for tamper-evident chain verification. There are no silent failures and no unrecorded decisions.
 
 See [`spec/receipt_spec.md`](spec/receipt_spec.md) for receipt fields and verification, and [`spec/ledger_interoperability.md`](spec/ledger_interoperability.md) for hash chain verification and anchoring.
 
@@ -718,7 +739,7 @@ Contributions are welcome. Please follow these guidelines:
 | 8-Step to 15-Protocol Mapping | 1 | Complete |
 | Verification Model | 1 | Complete |
 | Governance Learning Protocol | 1 | Complete |
-| Two-Loop Architecture | 1 | Complete |
+| Three-Loop Architecture | 1 | Complete |
 | Intent Translation Layer | 1 | Complete |
 | Master Protocol Index | 1 | Complete |
 | Runtime Skeleton | 15 Python modules | Complete |
@@ -731,7 +752,7 @@ Contributions are welcome. Please follow these guidelines:
 | Connector Framework | 3 connectors (email, file, HTTP) | Complete |
 | Adapter Framework | 4 adapters | Complete |
 | Governed Corpus + Replay | 2 modules | Complete |
-| Test Harness | 47 tests (12 suites) | Complete |
+| Test Harness | 57 tests (12 suites + v2) | Complete |
 | Packaging (pip, Docker, Make) | 3 methods | Complete |
 | System Documentation | 10 documents | Complete |
 

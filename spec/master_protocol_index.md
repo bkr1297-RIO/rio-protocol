@@ -2,7 +2,7 @@
 
 This document provides a structured index of all RIO protocol specifications, architecture documents, safety controls, and verification models.
 
-RIO is a governed execution architecture that converts goals and intents into authorized, executed, attested, and permanently recorded actions, with a learning loop that improves governance over time.
+RIO is a governed AI control plane built on a Three-Loop Architecture that translates goals into structured intents, enforces policy and approvals before execution, controls and verifies actions, generates cryptographic receipts, maintains an immutable ledger, and learns from every decision over time.
 
 ---
 
@@ -14,13 +14,14 @@ The RIO system operates across the following high-level flow:
 Goal → Intent Formation → Intent Validation → Governed Execution Protocol → Receipt → Ledger → Audit → Learning
 ```
 
-RIO operates as a two-loop system:
+RIO operates as a Three-Loop system:
 
-- **Execution Loop** — controls and records actions in real time
+- **Intake / Discovery Loop** — translates vague goals into structured intents before governance begins
+- **Execution / Governance Loop** — controls, authorizes, verifies, and records actions in real time with v2 cryptographic receipts
 - **Learning Loop** — improves policy, risk, and governance over time
 
 See:
-- `/spec/two_loop_architecture.md`
+- `/spec/three_loop_architecture.md`
 - `/spec/reference_architecture.md`
 
 ---
@@ -49,8 +50,9 @@ These protocols convert goals into structured, validated intents that can enter 
 | 4 | Policy & Risk | `/spec/05_policy_constraints.md` |
 | 5 | Authorization | `/spec/06_authorization.md` |
 | 6 | Execution Gate | `/spec/07_execution.md` |
-| 7 | Receipt | `/spec/receipt_protocol.md` |
-| 8 | Audit Ledger | `/spec/audit_ledger_protocol.md` |
+| 6b | Post-Execution Verification | (inline in pipeline) |
+| 7 | v2 Receipt Generation | `/spec/receipt_protocol.md` |
+| 8 | v2 Ledger Entry | `/spec/audit_ledger_protocol.md` |
 | 9 | Governance Learning | `/spec/governance_learning_protocol.md` |
 
 These protocols enforce runtime control over all actions.
@@ -95,7 +97,8 @@ These components define how the system records, proves, and learns from decision
 | Document | File |
 |----------|------|
 | Reference Architecture | `/spec/reference_architecture.md` |
-| Two-Loop Architecture | `/spec/two_loop_architecture.md` |
+| Three-Loop Architecture | `/spec/three_loop_architecture.md` |
+| Two-Loop Architecture (superseded) | `/spec/two_loop_architecture.md` |
 | Intent Translation Layer | `/spec/intent_translation_layer.md` |
 | System Architecture (4-Layer) | `/spec/system_architecture.md` |
 | 15-Layer Architecture | `/architecture/15_layer_model.md` |
