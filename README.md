@@ -470,10 +470,20 @@ rio-protocol/
 ├── manifest/                          System configuration
 │   └── rio_system_manifest.json       Protocol stack, crypto, governance
 │
-├── tests/                             Protocol test cases
+├── tests/                             Protocol conformance test cases
 │   ├── TC-RIO-001.md                  Allowed execution with receipt and ledger
 │   ├── TC-RIO-002.md                  Denied execution due to policy
-│   └── TC-RIO-003.md                  Kill switch blocks execution
+│   ├── TC-RIO-003.md                  Kill switch blocks execution
+│   └── ...                            (WS3 agent will add full conformance suite)
+│
+├── ledger/                            Ledger protocol documentation
+│   └── README.md                      Hash chain structure, integrity rules, verification rules
+│
+├── security/                          Security and threat model documentation
+│   └── README.md                      Threat model, kill switch, fail-closed behavior, trust boundaries
+│
+├── verification/                      Independent verifier
+│   └── README.md                      Standalone verification tool (WS4 agent output)
 │
 ├── safety/                            Safety mechanisms
 │   └── EKS-0_kill_switch.md           Global execution kill switch specification
@@ -518,7 +528,9 @@ rio-protocol/
 ├── .env.example                       Environment variable template
 ├── .dockerignore                      Docker build exclusions
 ├── README.md
-└── LICENSE
+├── LICENSE                            Apache License 2.0
+├── CONTRIBUTING.md                    Contribution guidelines and PR workflow
+└── CHANGELOG.md                       Release history (Keep a Changelog format)
 ```
 
 ---
@@ -710,6 +722,8 @@ Contributions are welcome. Please follow these guidelines:
 
 ## Status
 
+**Current release: v1.0.0** (tagged March 23, 2026)
+
 | Component | Count | Status |
 |-----------|-------|--------|
 | Core Protocol Definition | 1 | Complete |
@@ -757,6 +771,14 @@ Contributions are welcome. Please follow these guidelines:
 | Test Harness | 57 tests (12 suites + v2) | Complete |
 | Packaging (pip, Docker, Make) | 3 methods | Complete |
 | System Documentation | 10 documents | Complete |
+| Apache 2.0 License | 1 | Complete |
+| Contribution Guidelines | 1 | Complete |
+| Changelog | 1 | Complete |
+| Ledger Protocol Documentation | 1 | In Progress (WS2/WS3) |
+| Security Model Documentation | 1 | In Progress (WS5) |
+| Independent Verifier | 1 | In Progress (WS4) |
+| Canonical Protocol Specification | 1 | In Progress (WS2) |
+| Conformance Test Suite | 57 test docs + 12 vectors | In Progress (WS3) |
 
 ---
 
