@@ -1,0 +1,14 @@
+{
+  "_description": "Valid ledger chain for chain integrity verification",
+  "chain": {
+    "genesis_hash": "901131d838b17aac0f7885b81e03cbdc9f5157a00343d30ab22083685ed1416a",
+    "entry_0": {
+      "chain_index": 0,
+      "receipt_id": "ledger-test-0000-aabb-ccdd-eeff-112233445566",
+      "receipt_hash": "ead2ce8a5a3b8cec6df02b1b2c8737e58f31a6d6f51c5f8cf4076c93518e377c",
+      "prev_ledger_hash": "901131d838b17aac0f7885b81e03cbdc9f5157a00343d30ab22083685ed1416a",
+      "current_ledger_hash": "8fd8e7dbcae204281746808399c8cfcfed8aa99ed63eb0d7f976df1c3ec0a692",
+      "timestamp": "2025-01-15T13:00:00.000000Z"
+    }
+  }
+}

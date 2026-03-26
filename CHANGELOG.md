@@ -23,6 +23,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `CERTIFICATION_CRITERIA.md` — Three conformance levels (Level 1: Receipt Format, Level 2: Pipeline, Level 3: Full Protocol) with 60+ binary pass/fail criteria, certification process, and maintenance rules.
   - `IMPLEMENTATION_GUIDE.md` — Step-by-step adoption guide covering architecture decisions, three implementation phases, integration patterns, operational considerations, testing strategy, and migration from non-governed systems.
   - `QUICKSTART.md` — Minimal viable deployment guide for getting a Level 1 compliant implementation running in under an hour.
+- **WS6 Conformance & Quickstart Package:**
+  - `docs/QUICKSTART.md` — External developer quickstart: clone-to-verified-receipt in 10 minutes. Covers what RIO is, how to install the verifier, how to run it against example files, expected PASS/FAIL output, and pointers to the canonical spec.
+  - `docs/CONFORMANCE.md` — Conformance level definitions: Level 1 (Receipt Format), Level 2 (Ledger + Verification), Level 3 (Full Pipeline). Defines what must pass at each level, references test vectors.
+  - `examples/quickstart/` — Four real, cryptographically valid example files: `example_intent.json`, `example_receipt_v2.json`, `example_ledger.json`, `example_verification_result.json`.
+  - `tests/conformance/` — Six named conformance test vectors for external implementers: `valid_receipt.json`, `valid_ledger.json`, `tampered_receipt.json`, `tampered_ledger.json`, `missing_fields_receipt.json`, `invalid_signature_receipt.json`.
+  - `verification/README.md` — Expanded with complete CLI command examples, exit code reference, PASS/FAIL criteria, output modes, and what FAIL looks like.
 
 ---
 

@@ -1,0 +1,57 @@
+{
+  "receipt": {
+    "receipt_id": "a1b2c3d4-0001-0001-0001-aabbccddeeff",
+    "all_passed": true,
+    "checks": [
+      {
+        "check_name": "required_fields",
+        "number": 1,
+        "passed": true,
+        "details": ""
+      },
+      {
+        "check_name": "request_hash",
+        "number": 2,
+        "passed": true,
+        "details": ""
+      },
+      {
+        "check_name": "receipt_hash",
+        "number": 3,
+        "passed": true,
+        "details": ""
+      },
+      {
+        "check_name": "signature",
+        "number": 4,
+        "passed": true,
+        "details": ""
+      },
+      {
+        "check_name": "public_key_fingerprint",
+        "number": 5,
+        "passed": true,
+        "details": ""
+      },
+      {
+        "check_name": "decision_valid",
+        "number": 6,
+        "passed": true,
+        "details": ""
+      },
+      {
+        "check_name": "ledger_link",
+        "number": 7,
+        "passed": true,
+        "details": ""
+      }
+    ]
+  },
+  "ledger": {
+    "chain_intact": true,
+    "entries_verified": 1,
+    "entries_total": 1,
+    "failures": [],
+    "details": "Chain intact"
+  }
+}

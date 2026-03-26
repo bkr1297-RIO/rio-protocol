@@ -1,0 +1,8 @@
+{
+  "intent": "Please summarize the quarterly financial report for internal review.",
+  "context": {
+    "tool": "evaluate_intent",
+    "agent_id": "conformance-test"
+  },
+  "disengage": false
+}
