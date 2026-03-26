@@ -35,6 +35,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `examples/gateway/` — Four cryptographically valid gateway example files (intent, receipt, ledger, verification result). All hashes independently verified.
   - `demo/demo_verify.py` — Standalone gateway verifier (4 checks: receipt hash, execution ledger chain, post-execution ledger hash, HMAC signatures). Zero dependencies beyond Python stdlib.
   - `tests/conformance/run_conformance_tests.py` — 7 test vectors (TV-C1 through TV-C7) covering all gateway hash formulas. All passing.
+- **WS7 Conformance Tooling:**
+  - `tests/run_conformance.py` — Automated conformance test runner: 23 tests across Level 1 (17 tests) and Level 2 (6 tests). Supports `--level`, `--verbose`, and `--json` flags. Exit code 0 on all-pass, 1 on failure.
+  - `tools/check_compliance.py` — Compliance level validator: determines Level 0 (Non-Compliant), Level 1 (Receipt Format), Level 2 (Governance Attested), or Level 3 (Full Protocol) from provided artifacts. Supports `--auto` discovery, `--json` output, and explicit `--receipt`/`--key`/`--ledger` paths.
+  - `docs/COMPLIANCE_BADGES.md` — Compliance level definitions, badge usage rules, and testing instructions for all three levels.
+  - `docs/VERSIONING.md` — Protocol versioning policy: SemVer 2.0.0, breaking change definitions, backward compatibility guarantees, deprecation policy, and version lifecycle.
+  - `docs/PROTOCOL_CHANGE_TEMPLATE.md` — Protocol Change Proposal (PCP) template with all required sections: abstract, motivation, specification, backward compatibility, test vectors, security considerations, and conformance impact.
+  - `docs/VERIFICATION_OUTPUT_EXAMPLE.md` — Complete verification output examples for both the reference implementation (Ed25519, 7+4 checks) and gateway (ECDSA secp256k1, 9 checks) verifiers, with PASS/FAIL examples and failure diagnosis guide.
 
 ---
 
