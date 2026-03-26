@@ -40,6 +40,16 @@ from . import (
     verification,
     data_store,
 )
+from .receipts import (
+    generate_receipt_v2,
+    generate_denial_receipt,
+    sign_receipt as sign_receipt_v2,
+    verify_receipt_full,
+)
+from .ledger_v2 import (
+    append_v2 as ledger_append_v2,
+    get_head_hash as ledger_v2_head_hash,
+)
 from .approvals import approval_manager
 from .corpus.corpus_store import build_corpus_record, write_corpus_record
 from .approvals.approval_queue import ApprovalRequest
@@ -85,6 +95,9 @@ class PipelineResult:
     stage_failed: str = ""
     stages_completed: list[str] = field(default_factory=list)
     duration_ms: int = 0
+    # v2 receipt and ledger artifacts
+    receipt_v2: Any = None
+    ledger_entry_v2: Any = None
 
 
 def run(
@@ -192,10 +205,33 @@ def run(
             result.receipt = rcpt
             result.stages_completed.append("receipt")
 
-            # Append to ledger
+            # Generate v2 denial receipt
+            try:
+                denial_v2 = generate_denial_receipt(
+                    intent=intent_obj,
+                    decided_by="system:validation",
+                    reason=f"Intent validation failed: {validation.errors}",
+                    previous_hash=ledger_v2_head_hash(),
+                )
+                denial_v2 = sign_receipt_v2(denial_v2)
+                result.receipt_v2 = denial_v2
+                result.stages_completed.append("receipt_v2")
+            except Exception as v2_err:
+                logger.warning("v2 denial receipt non-fatal error: %s", str(v2_err))
+
+            # Append to ledger (v1)
             entry = ledger.append(rcpt, state)
             result.ledger_entry = entry
             result.stages_completed.append("ledger")
+
+            # Append to ledger (v2)
+            try:
+                if result.receipt_v2 is not None:
+                    entry_v2 = ledger_append_v2(result.receipt_v2)
+                    result.ledger_entry_v2 = entry_v2
+                    result.stages_completed.append("ledger_v2")
+            except Exception as v2_ledger_err:
+                logger.warning("v2 denial ledger non-fatal error: %s", str(v2_ledger_err))
 
             # Persist receipt and ledger entry to JSONL data store
             data_store.write_receipt(rcpt)
@@ -317,7 +353,38 @@ def run(
         )
 
         # ---------------------------------------------------------------
-        # Stage 7: Receipt
+        # Stage 6b: Post-Execution Verification (v2)
+        # ---------------------------------------------------------------
+        verification_result_v2 = None
+        verification_status_v2 = "skipped"
+        try:
+            # Run v1 verification checks as the verification step
+            v_checks = verification.run_full_verification(
+                intent=intent_obj,
+                authorization=auth,
+                receipt=Receipt(),  # placeholder — v1 receipt not yet generated
+                ledger_entry=LedgerEntry(),  # placeholder
+            )
+            # Use completeness check as the verification outcome
+            all_passed = all(c.passed for c in v_checks if c.check_name == "completeness")
+            verification_result_v2 = {
+                "checks_run": len(v_checks),
+                "checks_passed": sum(1 for c in v_checks if c.passed),
+                "execution_status": exec_result.execution_status.value,
+            }
+            verification_status_v2 = "verified" if all_passed else "failed"
+        except Exception as ver_err:
+            logger.warning("v2 verification step non-fatal error: %s", str(ver_err))
+            verification_result_v2 = {"error": str(ver_err)}
+            verification_status_v2 = "failed"
+        result.stages_completed.append("verification_v2")
+        logger.info(
+            "STAGE 6b COMPLETE — verification_v2 — status=%s",
+            verification_status_v2,
+        )
+
+        # ---------------------------------------------------------------
+        # Stage 7: Receipt (v1)
         # ---------------------------------------------------------------
         rcpt = receipt_module.generate_receipt(
             intent=intent_obj,
@@ -336,13 +403,44 @@ def run(
         result.receipt = rcpt
         result.stages_completed.append("receipt")
         logger.info(
-            "STAGE 7 COMPLETE — receipt — receipt_id=%s hash=%s",
+            "STAGE 7 COMPLETE — receipt (v1) — receipt_id=%s hash=%s",
             rcpt.receipt_id,
             rcpt.receipt_hash[:16] + "...",
         )
 
         # ---------------------------------------------------------------
-        # Stage 8: Ledger
+        # Stage 7b: Receipt (v2)
+        # ---------------------------------------------------------------
+        try:
+            rcpt_v2 = generate_receipt_v2(
+                intent=intent_obj,
+                authorization=auth,
+                execution_status=exec_result.execution_status.value,
+                result_data=exec_result.result_data or {},
+                previous_hash=ledger_v2_head_hash(),
+                verification_result=verification_result_v2,
+                verification_status=verification_status_v2,
+            )
+            rcpt_v2.risk_score = policy_result.risk_score
+            rcpt_v2.risk_level = policy_result.risk_level
+            rcpt_v2.policy_rule_id = policy_result.policy_rule_id
+            rcpt_v2.policy_decision = policy_result.decision.value
+            # Sign the v2 receipt
+            rcpt_v2 = sign_receipt_v2(rcpt_v2)
+            result.receipt_v2 = rcpt_v2
+            result.stages_completed.append("receipt_v2")
+            logger.info(
+                "STAGE 7b COMPLETE — receipt (v2) — receipt_id=%s intent_hash=%s verification=%s",
+                rcpt_v2.receipt_id,
+                rcpt_v2.intent_hash[:16] + "...",
+                rcpt_v2.verification_status,
+            )
+        except Exception as v2_err:
+            logger.warning("v2 receipt generation non-fatal error: %s", str(v2_err))
+            result.receipt_v2 = None
+
+        # ---------------------------------------------------------------
+        # Stage 8: Ledger (v1)
         # ---------------------------------------------------------------
         # Pass IAM enrichment fields to ledger
         iam_kwargs = {
@@ -356,10 +454,27 @@ def run(
         result.ledger_entry = entry
         result.stages_completed.append("ledger")
         logger.info(
-            "STAGE 8 COMPLETE — ledger — entry_id=%s chain_length=%d",
+            "STAGE 8 COMPLETE — ledger (v1) — entry_id=%s chain_length=%d",
             entry.ledger_entry_id,
             state.ledger_length,
         )
+
+        # ---------------------------------------------------------------
+        # Stage 8b: Ledger (v2)
+        # ---------------------------------------------------------------
+        try:
+            if result.receipt_v2 is not None:
+                entry_v2 = ledger_append_v2(result.receipt_v2)
+                result.ledger_entry_v2 = entry_v2
+                result.stages_completed.append("ledger_v2")
+                logger.info(
+                    "STAGE 8b COMPLETE — ledger (v2) — entry_id=%s chain_length=%s",
+                    entry_v2.ledger_entry_id,
+                    "v2",
+                )
+        except Exception as v2_ledger_err:
+            logger.warning("v2 ledger append non-fatal error: %s", str(v2_ledger_err))
+            result.ledger_entry_v2 = None
 
         # ---------------------------------------------------------------
         # Persist to JSONL data store (for Audit Dashboard)

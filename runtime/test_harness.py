@@ -54,6 +54,16 @@ Test Cases:
     TC-ADMIN-003: Risk model activation changes live thresholds
     TC-ADMIN-004: Risk model rollback restores prior version
     TC-ADMIN-005: Risk threshold change logged in governance ledger
+    TC-V2-001: v2 receipt generation with all required fields
+    TC-V2-002: v2 receipt signature verification (Ed25519/RSA-PSS)
+    TC-V2-003: v2 receipt hash verification
+    TC-V2-004: v2 denial receipt for blocked action
+    TC-V2-005: v2 ledger hash chain integrity
+    TC-V2-006: v2 ledger tampering detection
+    TC-V2-007: v2 verification step in pipeline
+    TC-V2-008: v2 intent, action, and verification hashes
+    TC-V2-009: v2 ISO 8601 timestamp format
+    TC-V2-010: v2 signature format (base64-encoded RSA-PSS)
 
 Run with: python -m runtime.test_harness
 """
@@ -79,6 +89,29 @@ from .iam import permissions as iam_permissions, users as iam_users
 from .iam.approval_workflow import check_authority
 from .corpus.corpus_store import read_corpus, get_corpus_record, clear_corpus
 from .corpus.replay_engine import replay_record, clear_simulations
+from .receipts import (
+    ReceiptV2,
+    generate_receipt_v2,
+    generate_denial_receipt,
+    sign_receipt as sign_receipt_v2,
+    verify_receipt_full,
+    compute_intent_hash,
+    compute_action_hash,
+    compute_receipt_hash,
+    compute_verification_hash,
+)
+from .ledger_v2 import (
+    LedgerEntryV2,
+    append_v2 as ledger_append_v2,
+    get_ledger_v2,
+    get_head_hash as ledger_v2_head_hash,
+    reset_v2 as ledger_v2_reset,
+    verify_ledger_chain as verify_ledger_chain_v2,
+    verify_entry_hash as verify_entry_hash_v2,
+    verify_entry_signature as verify_entry_signature_v2,
+    verify_chain_link as verify_chain_link_v2,
+    verify_receipt_linkage as verify_receipt_linkage_v2,
+)
 
 # Configure logging
 logging.basicConfig(
@@ -96,6 +129,7 @@ logger = logging.getLogger("rio.test_harness")
 def _reset_state() -> SystemState:
     """Create a fresh system state and reset the in-memory ledger."""
     ledger.reset()
+    ledger_v2_reset()
     approval_manager.reset()
     iam_permissions.reset()
     iam_users.reset()
@@ -3351,6 +3385,491 @@ def test_admin_risk_threshold_logged():
 
 
 # ---------------------------------------------------------------------------
+# TC-V2-001: v2 receipt generation with all required fields
+# ---------------------------------------------------------------------------
+
+def test_v2_receipt_generation():
+    """
+    TC-V2-001: Generate a v2 receipt and verify all required fields are present.
+    """
+    logger.info("=" * 70)
+    logger.info("TC-V2-001: v2 receipt generation with all required fields")
+    logger.info("=" * 70)
+
+    state = _reset_state()
+
+    result = run(
+        actor_id="user_alice",
+        raw_input={
+            "action_type": "read_data",
+            "target_resource": "report_server",
+            "parameters": {"dataset": "quarterly_reports"},
+            "requested_by": "user_alice",
+        },
+        approver_id="manager_bob",
+        state=state,
+        action_handler=_action_handler,
+    )
+
+    _assert(result.receipt_v2 is not None, "v2 receipt was generated")
+    rcpt = result.receipt_v2
+    _assert(rcpt.receipt_id != "", "v2 receipt_id is non-empty")
+    _assert(rcpt.intent_id != "", "v2 intent_id is non-empty")
+    _assert(rcpt.intent_hash != "", "v2 intent_hash is non-empty")
+    _assert(rcpt.action != "", "v2 action is non-empty")
+    _assert(rcpt.action_hash != "", "v2 action_hash is non-empty")
+    _assert(rcpt.requested_by != "", "v2 requested_by is non-empty")
+    _assert(rcpt.decision in ("approved", "denied"), "v2 decision is approved or denied")
+    _assert(rcpt.timestamp_request != "", "v2 timestamp_request is non-empty")
+    _assert(rcpt.receipt_hash != "", "v2 receipt_hash is non-empty")
+    _assert(rcpt.signature != "", "v2 signature is non-empty")
+
+    logger.info("TC-V2-001: PASSED")
+    logger.info("")
+
+
+# ---------------------------------------------------------------------------
+# TC-V2-002: v2 receipt signature verification
+# ---------------------------------------------------------------------------
+
+def test_v2_receipt_signature():
+    """
+    TC-V2-002: Verify that the v2 receipt signature is valid using RSA-PSS.
+    """
+    logger.info("=" * 70)
+    logger.info("TC-V2-002: v2 receipt signature verification")
+    logger.info("=" * 70)
+
+    state = _reset_state()
+
+    result = run(
+        actor_id="user_alice",
+        raw_input={
+            "action_type": "read_data",
+            "target_resource": "report_server",
+            "parameters": {"dataset": "quarterly_reports"},
+            "requested_by": "user_alice",
+        },
+        approver_id="manager_bob",
+        state=state,
+        action_handler=_action_handler,
+    )
+
+    _assert(result.receipt_v2 is not None, "v2 receipt exists")
+    rcpt = result.receipt_v2
+
+    # Run full verification
+    checks = verify_receipt_full(rcpt)
+    sig_check = [c for c in checks if c.check_name == "signature"][0]
+    _assert(sig_check.passed is True, "v2 signature verification passed")
+
+    # Tamper with receipt and verify signature fails
+    import copy
+    tampered = copy.deepcopy(rcpt)
+    tampered.decision = "denied"  # Tamper with decision
+    tampered_checks = verify_receipt_full(tampered)
+    tampered_sig = [c for c in tampered_checks if c.check_name == "signature"][0]
+    _assert(tampered_sig.passed is False, "Tampered v2 receipt signature fails verification")
+
+    logger.info("TC-V2-002: PASSED")
+    logger.info("")
+
+
+# ---------------------------------------------------------------------------
+# TC-V2-003: v2 receipt hash verification
+# ---------------------------------------------------------------------------
+
+def test_v2_receipt_hash():
+    """
+    TC-V2-003: Verify that the v2 receipt hash is correctly computed.
+    """
+    logger.info("=" * 70)
+    logger.info("TC-V2-003: v2 receipt hash verification")
+    logger.info("=" * 70)
+
+    state = _reset_state()
+
+    result = run(
+        actor_id="user_alice",
+        raw_input={
+            "action_type": "read_data",
+            "target_resource": "report_server",
+            "parameters": {"dataset": "quarterly_reports"},
+            "requested_by": "user_alice",
+        },
+        approver_id="manager_bob",
+        state=state,
+        action_handler=_action_handler,
+    )
+
+    _assert(result.receipt_v2 is not None, "v2 receipt exists")
+    rcpt = result.receipt_v2
+
+    # Recompute receipt hash and compare
+    expected_hash = compute_receipt_hash(rcpt)
+    _assert(rcpt.receipt_hash == expected_hash, "v2 receipt hash matches recomputed hash")
+
+    # Verify via the verifier
+    checks = verify_receipt_full(rcpt)
+    hash_check = [c for c in checks if c.check_name == "receipt_hash"][0]
+    _assert(hash_check.passed is True, "v2 receipt hash verification passed")
+
+    logger.info("TC-V2-003: PASSED")
+    logger.info("")
+
+
+# ---------------------------------------------------------------------------
+# TC-V2-004: v2 denial receipt for blocked action
+# ---------------------------------------------------------------------------
+
+def test_v2_denial_receipt():
+    """
+    TC-V2-004: A blocked/denied action produces a v2 denial receipt with
+    decision='denied' and no execution timestamp.
+    """
+    logger.info("=" * 70)
+    logger.info("TC-V2-004: v2 denial receipt for blocked action")
+    logger.info("=" * 70)
+
+    state = _reset_state()
+
+    # Trigger a denial via validation failure (missing required base field: target_resource)
+    result = run(
+        actor_id="user_alice",
+        raw_input={
+            "action_type": "transfer_funds",
+            # Missing target_resource — triggers validation failure
+            "parameters": {"amount": 500},
+            "requested_by": "user_alice",
+        },
+        approver_id="manager_bob",
+        state=state,
+        action_handler=_action_handler,
+    )
+
+    _assert(result.receipt_v2 is not None, "v2 denial receipt was generated")
+    rcpt = result.receipt_v2
+    _assert(rcpt.decision == "denied", "v2 denial receipt decision is 'denied'")
+    _assert(rcpt.execution_status == "BLOCKED", "v2 denial receipt execution_status is BLOCKED")
+    _assert(rcpt.signature != "", "v2 denial receipt is signed")
+    _assert(rcpt.receipt_hash != "", "v2 denial receipt has hash")
+    _assert(rcpt.intent_hash != "", "v2 denial receipt has intent_hash")
+
+    # Verify the denial receipt signature
+    checks = verify_receipt_full(rcpt)
+    sig_check = [c for c in checks if c.check_name == "signature"][0]
+    _assert(sig_check.passed is True, "v2 denial receipt signature is valid")
+
+    logger.info("TC-V2-004: PASSED")
+    logger.info("")
+
+
+# ---------------------------------------------------------------------------
+# TC-V2-005: v2 ledger hash chain integrity
+# ---------------------------------------------------------------------------
+
+def test_v2_ledger_hash_chain():
+    """
+    TC-V2-005: Multiple v2 receipts produce a hash-chained ledger that
+    passes full chain verification.
+    """
+    logger.info("=" * 70)
+    logger.info("TC-V2-005: v2 ledger hash chain integrity")
+    logger.info("=" * 70)
+
+    state = _reset_state()
+
+    # Run 3 pipeline executions to build a chain
+    for i in range(3):
+        run(
+            actor_id=f"user_{i}",
+            raw_input={
+                "action_type": "read_data",
+                "target_resource": "report_server",
+                "parameters": {"dataset": f"report_{i}"},
+                "requested_by": f"user_{i}",
+            },
+            approver_id="manager_bob",
+            state=state,
+            action_handler=_action_handler,
+        )
+
+    chain = get_ledger_v2()
+    _assert(len(chain) >= 3, f"v2 ledger has at least 3 entries (got {len(chain)})")
+
+    # Verify the full chain
+    result = verify_ledger_chain_v2(chain)
+    _assert(result.chain_intact is True, "v2 ledger hash chain is intact")
+    _assert(result.entries_verified == result.entries_total, "All v2 entries verified")
+    _assert(len(result.failures) == 0, "No chain verification failures")
+
+    # Verify chain linkage
+    _assert(chain[0].previous_ledger_hash == "", "Genesis entry has empty previous_ledger_hash")
+    for i in range(1, len(chain)):
+        _assert(
+            chain[i].previous_ledger_hash == chain[i - 1].ledger_hash,
+            f"Entry {i} links to entry {i - 1}",
+        )
+
+    logger.info("TC-V2-005: PASSED")
+    logger.info("")
+
+
+# ---------------------------------------------------------------------------
+# TC-V2-006: v2 ledger tampering detection
+# ---------------------------------------------------------------------------
+
+def test_v2_ledger_tampering():
+    """
+    TC-V2-006: Modifying a v2 ledger entry is detected by the verifier.
+    """
+    logger.info("=" * 70)
+    logger.info("TC-V2-006: v2 ledger tampering detection")
+    logger.info("=" * 70)
+
+    state = _reset_state()
+
+    # Build a chain
+    for i in range(3):
+        run(
+            actor_id=f"user_{i}",
+            raw_input={
+                "action_type": "read_data",
+                "target_resource": "report_server",
+                "parameters": {"dataset": f"report_{i}"},
+                "requested_by": f"user_{i}",
+            },
+            approver_id="manager_bob",
+            state=state,
+            action_handler=_action_handler,
+        )
+
+    chain = get_ledger_v2()
+    _assert(len(chain) >= 3, "v2 ledger has entries for tampering test")
+
+    # Tamper with the middle entry
+    import copy
+    tampered_chain = [copy.deepcopy(e) for e in chain]
+    tampered_chain[1].decision = "tampered_value"
+
+    result = verify_ledger_chain_v2(tampered_chain)
+    _assert(result.chain_intact is False, "Tampered v2 ledger detected")
+    _assert(len(result.failures) > 0, "Tampering failures reported")
+
+    # Verify original chain is still intact
+    original_result = verify_ledger_chain_v2(chain)
+    _assert(original_result.chain_intact is True, "Original v2 chain still intact")
+
+    logger.info("TC-V2-006: PASSED")
+    logger.info("")
+
+
+# ---------------------------------------------------------------------------
+# TC-V2-007: v2 verification step in pipeline
+# ---------------------------------------------------------------------------
+
+def test_v2_verification_step():
+    """
+    TC-V2-007: The pipeline includes a verification step (stage 6b) that
+    produces a verification_status in the v2 receipt.
+    """
+    logger.info("=" * 70)
+    logger.info("TC-V2-007: v2 verification step in pipeline")
+    logger.info("=" * 70)
+
+    state = _reset_state()
+
+    result = run(
+        actor_id="user_alice",
+        raw_input={
+            "action_type": "read_data",
+            "target_resource": "report_server",
+            "parameters": {"dataset": "quarterly_reports"},
+            "requested_by": "user_alice",
+        },
+        approver_id="manager_bob",
+        state=state,
+        action_handler=_action_handler,
+    )
+
+    _assert("verification_v2" in result.stages_completed, "verification_v2 stage completed")
+    _assert(result.receipt_v2 is not None, "v2 receipt exists")
+    _assert(
+        result.receipt_v2.verification_status in ("verified", "failed", "skipped"),
+        f"v2 verification_status is valid: {result.receipt_v2.verification_status}",
+    )
+    _assert(result.receipt_v2.verification_hash != "", "v2 verification_hash is non-empty")
+
+    logger.info("TC-V2-007: PASSED")
+    logger.info("")
+
+
+# ---------------------------------------------------------------------------
+# TC-V2-008: v2 intent, action, and verification hashes
+# ---------------------------------------------------------------------------
+
+def test_v2_triple_hashes():
+    """
+    TC-V2-008: Verify that intent_hash, action_hash, and verification_hash
+    are correctly computed SHA-256 hashes.
+    """
+    logger.info("=" * 70)
+    logger.info("TC-V2-008: v2 intent, action, and verification hashes")
+    logger.info("=" * 70)
+
+    state = _reset_state()
+
+    result = run(
+        actor_id="user_alice",
+        raw_input={
+            "action_type": "read_data",
+            "target_resource": "report_server",
+            "parameters": {"dataset": "quarterly_reports"},
+            "requested_by": "user_alice",
+        },
+        approver_id="manager_bob",
+        state=state,
+        action_handler=_action_handler,
+    )
+
+    _assert(result.receipt_v2 is not None, "v2 receipt exists")
+    rcpt = result.receipt_v2
+
+    # All hashes should be 64-char hex strings (SHA-256)
+    import re
+    sha256_pattern = re.compile(r"^[0-9a-f]{64}$")
+
+    _assert(bool(sha256_pattern.match(rcpt.intent_hash)), "intent_hash is valid SHA-256")
+    _assert(bool(sha256_pattern.match(rcpt.action_hash)), "action_hash is valid SHA-256")
+    _assert(bool(sha256_pattern.match(rcpt.receipt_hash)), "receipt_hash is valid SHA-256")
+    if rcpt.verification_hash:
+        _assert(bool(sha256_pattern.match(rcpt.verification_hash)), "verification_hash is valid SHA-256")
+
+    # Verify they are distinct from each other
+    _assert(rcpt.intent_hash != rcpt.action_hash, "intent_hash differs from action_hash")
+    _assert(rcpt.intent_hash != rcpt.receipt_hash, "intent_hash differs from receipt_hash")
+
+    logger.info("TC-V2-008: PASSED")
+    logger.info("")
+
+
+# ---------------------------------------------------------------------------
+# TC-V2-009: v2 ISO 8601 timestamp format
+# ---------------------------------------------------------------------------
+
+def test_v2_iso_timestamps():
+    """
+    TC-V2-009: Verify that v2 receipt timestamps are in ISO 8601 format.
+    """
+    logger.info("=" * 70)
+    logger.info("TC-V2-009: v2 ISO 8601 timestamp format")
+    logger.info("=" * 70)
+
+    state = _reset_state()
+
+    result = run(
+        actor_id="user_alice",
+        raw_input={
+            "action_type": "read_data",
+            "target_resource": "report_server",
+            "parameters": {"dataset": "quarterly_reports"},
+            "requested_by": "user_alice",
+        },
+        approver_id="manager_bob",
+        state=state,
+        action_handler=_action_handler,
+    )
+
+    _assert(result.receipt_v2 is not None, "v2 receipt exists")
+    rcpt = result.receipt_v2
+
+    from datetime import datetime, timezone
+
+    # Verify timestamp_request is valid ISO 8601
+    try:
+        dt = datetime.fromisoformat(rcpt.timestamp_request)
+        _assert(True, f"timestamp_request is valid ISO 8601: {rcpt.timestamp_request}")
+    except ValueError:
+        _assert(False, f"timestamp_request is NOT valid ISO 8601: {rcpt.timestamp_request}")
+
+    # Verify timestamp_approval is valid ISO 8601
+    try:
+        dt = datetime.fromisoformat(rcpt.timestamp_approval)
+        _assert(True, f"timestamp_approval is valid ISO 8601: {rcpt.timestamp_approval}")
+    except ValueError:
+        _assert(False, f"timestamp_approval is NOT valid ISO 8601: {rcpt.timestamp_approval}")
+
+    # Verify timestamp_execution is valid ISO 8601
+    try:
+        dt = datetime.fromisoformat(rcpt.timestamp_execution)
+        _assert(True, f"timestamp_execution is valid ISO 8601: {rcpt.timestamp_execution}")
+    except ValueError:
+        _assert(False, f"timestamp_execution is NOT valid ISO 8601: {rcpt.timestamp_execution}")
+
+    logger.info("TC-V2-009: PASSED")
+    logger.info("")
+
+
+# ---------------------------------------------------------------------------
+# TC-V2-010: v2 signature format (base64-encoded RSA-PSS)
+# ---------------------------------------------------------------------------
+
+def test_v2_signature_format():
+    """
+    TC-V2-010: Verify that the v2 receipt signature is a valid base64-encoded
+    RSA-PSS signature.
+    """
+    logger.info("=" * 70)
+    logger.info("TC-V2-010: v2 signature format (base64-encoded RSA-PSS)")
+    logger.info("=" * 70)
+
+    state = _reset_state()
+
+    result = run(
+        actor_id="user_alice",
+        raw_input={
+            "action_type": "read_data",
+            "target_resource": "report_server",
+            "parameters": {"dataset": "quarterly_reports"},
+            "requested_by": "user_alice",
+        },
+        approver_id="manager_bob",
+        state=state,
+        action_handler=_action_handler,
+    )
+
+    _assert(result.receipt_v2 is not None, "v2 receipt exists")
+    rcpt = result.receipt_v2
+
+    # Verify signature is non-empty
+    _assert(rcpt.signature != "", "v2 signature is non-empty")
+
+    # Verify signature is valid base64
+    import base64
+    try:
+        decoded = base64.b64decode(rcpt.signature)
+        _assert(len(decoded) > 0, "v2 signature decodes to non-empty bytes")
+        # RSA-2048 signature should be 256 bytes
+        _assert(len(decoded) == 256, f"v2 signature is 256 bytes (RSA-2048): got {len(decoded)}")
+    except Exception as e:
+        _assert(False, f"v2 signature is not valid base64: {e}")
+
+    # Verify the v2 ledger entry also has a signature
+    _assert(result.ledger_entry_v2 is not None, "v2 ledger entry exists")
+    _assert(result.ledger_entry_v2.ledger_signature != "", "v2 ledger entry has signature")
+
+    # Verify ledger entry signature is valid base64
+    try:
+        decoded_ledger = base64.b64decode(result.ledger_entry_v2.ledger_signature)
+        _assert(len(decoded_ledger) == 256, f"v2 ledger signature is 256 bytes: got {len(decoded_ledger)}")
+    except Exception as e:
+        _assert(False, f"v2 ledger signature is not valid base64: {e}")
+
+    logger.info("TC-V2-010: PASSED")
+    logger.info("")
+
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
@@ -3409,6 +3928,16 @@ def run_all_tests():
         ("TC-ADMIN-003", test_admin_risk_activation),
         ("TC-ADMIN-004", test_admin_risk_rollback),
         ("TC-ADMIN-005", test_admin_risk_threshold_logged),
+        ("TC-V2-001", test_v2_receipt_generation),
+        ("TC-V2-002", test_v2_receipt_signature),
+        ("TC-V2-003", test_v2_receipt_hash),
+        ("TC-V2-004", test_v2_denial_receipt),
+        ("TC-V2-005", test_v2_ledger_hash_chain),
+        ("TC-V2-006", test_v2_ledger_tampering),
+        ("TC-V2-007", test_v2_verification_step),
+        ("TC-V2-008", test_v2_triple_hashes),
+        ("TC-V2-009", test_v2_iso_timestamps),
+        ("TC-V2-010", test_v2_signature_format),
     ]
 
     passed = 0
