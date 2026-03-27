@@ -1,7 +1,7 @@
 # RIO Protocol — Full Cycle Reference Example
 
 **Source:** Live Merkaba Sovereign Engine v3.0.0
-**Gateway URL:** `https://rio-router-gateway.replit.app/api/rio-gateway`
+**Gateway URL:** `https://your-gateway.example.com/api/rio-gateway`
 **Captured:** 2026-03-27T00:49:00Z
 **Protocol Version:** v2
 

@@ -2,7 +2,7 @@
   "engine_name": "Merkaba Sovereign Engine",
   "engine_version": "3.0.0",
   "protocol_version": "v2",
-  "gateway_url": "https://rio-router-gateway.replit.app/api/rio-gateway",
+  "gateway_url": "https://your-gateway.example.com/api/rio-gateway",
   "status": "production",
   "compliance_level": "L2 — Cryptographic Verification",
   "cryptographic_suite": {

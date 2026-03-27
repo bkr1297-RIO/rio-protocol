@@ -1,6 +1,6 @@
 {
   "_comment": "Live reference example — ledger entry from Merkaba Sovereign Engine hash-chain ledger",
-  "_source": "GET /ledger on https://rio-router-gateway.replit.app/api/rio-gateway",
+  "_source": "GET /ledger on https://your-gateway.example.com/api/rio-gateway",
   "_captured": "2026-03-27T00:49:01Z",
   "ledger_index": 2,
   "receipt_hash": "069a3f19f7ece0dd5dbdf71c32f0efb1b3de80c8a6b8433c9ff74d2e5b586d75",

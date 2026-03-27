@@ -1,6 +1,6 @@
 {
   "_comment": "Live reference example — complete ledger chain from Merkaba Sovereign Engine",
-  "_source": "GET /ledger on https://rio-router-gateway.replit.app/api/rio-gateway",
+  "_source": "GET /ledger on https://your-gateway.example.com/api/rio-gateway",
   "_captured": "2026-03-27T00:49:01Z",
   "chain_metadata": {
     "engine": "Merkaba Sovereign Engine v3.0.0",

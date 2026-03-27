@@ -1,6 +1,6 @@
 {
   "_comment": "Live reference example — nonce and replay protection statistics from Merkaba Sovereign Engine",
-  "_source": "GET /nonce-stats on https://rio-router-gateway.replit.app/api/rio-gateway",
+  "_source": "GET /nonce-stats on https://your-gateway.example.com/api/rio-gateway",
   "_captured": "2026-03-27T00:49:01Z",
   "_purpose": "Demonstrates replay protection enforcement: every signature is single-use, nonces are tracked",
   "signature_registry": {

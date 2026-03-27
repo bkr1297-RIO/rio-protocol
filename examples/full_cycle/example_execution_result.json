@@ -1,6 +1,6 @@
 {
   "_comment": "Live reference example — complete execution result from Merkaba Sovereign Engine v3.0.0",
-  "_source": "POST /test-full-flow on https://rio-router-gateway.replit.app/api/rio-gateway",
+  "_source": "POST /test-full-flow on https://your-gateway.example.com/api/rio-gateway",
   "_captured": "2026-03-27T00:49:00.535897Z",
   "step_1_signing": {
     "step": "signing",

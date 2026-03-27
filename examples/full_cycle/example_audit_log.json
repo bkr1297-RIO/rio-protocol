@@ -1,6 +1,6 @@
 {
   "_comment": "Live reference example — execution gate audit log from Merkaba Sovereign Engine",
-  "_source": "GET /execution-gate/audit-log on https://rio-router-gateway.replit.app/api/rio-gateway",
+  "_source": "GET /execution-gate/audit-log on https://your-gateway.example.com/api/rio-gateway",
   "_captured": "2026-03-27T00:49:01Z",
   "_purpose": "Demonstrates fail-closed governance: unsigned and improperly signed intents are BLOCKED before execution",
   "total": 2,

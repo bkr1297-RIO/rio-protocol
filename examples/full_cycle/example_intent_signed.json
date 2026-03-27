@@ -1,6 +1,6 @@
 {
   "_comment": "Live reference example — signed intent submitted to Merkaba Sovereign Engine v3.0.0",
-  "_source": "POST /test-full-flow on https://rio-router-gateway.replit.app/api/rio-gateway",
+  "_source": "POST /test-full-flow on https://your-gateway.example.com/api/rio-gateway",
   "_captured": "2026-03-27T00:48:54.523038Z",
   "intent": "Transfer 500 units from treasury to operations account",
   "source": "manny_compiler",
