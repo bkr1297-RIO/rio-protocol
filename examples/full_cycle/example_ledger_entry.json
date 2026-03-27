@@ -1,0 +1,20 @@
+{
+  "_comment": "Live reference example — ledger entry from Merkaba Sovereign Engine hash-chain ledger",
+  "_source": "GET /ledger on https://rio-router-gateway.replit.app/api/rio-gateway",
+  "_captured": "2026-03-27T00:49:01Z",
+  "ledger_index": 2,
+  "receipt_hash": "069a3f19f7ece0dd5dbdf71c32f0efb1b3de80c8a6b8433c9ff74d2e5b586d75",
+  "prev_hash": "5da63daa7b1a58af43fded79bc6bf0254d4c063b9033e5deffc255364e99c41a",
+  "source": "test-full-flow",
+  "intent_hash": "6c06ba49908e03f6b7933dfdd09f9fccb2b6dedfd730dfdef98bc9a247e236d5",
+  "model": "claude",
+  "response_chars": 987,
+  "timestamp": "2026-03-27T00:49:00.535796Z",
+  "chain_properties": {
+    "genesis_entry": false,
+    "prev_hash_links_to": "ledger_index_1",
+    "hash_algorithm": "SHA-256",
+    "hash_input_format": "pipe-delimited (HMAC-SHA256)",
+    "immutability": "append-only, tamper-evident"
+  }
+}

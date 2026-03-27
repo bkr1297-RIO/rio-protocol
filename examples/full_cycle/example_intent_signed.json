@@ -1,0 +1,17 @@
+{
+  "_comment": "Live reference example — signed intent submitted to Merkaba Sovereign Engine v3.0.0",
+  "_source": "POST /test-full-flow on https://rio-router-gateway.replit.app/api/rio-gateway",
+  "_captured": "2026-03-27T00:48:54.523038Z",
+  "intent": "Transfer 500 units from treasury to operations account",
+  "source": "manny_compiler",
+  "model": "claude",
+  "signing": {
+    "algorithm": "secp256k1-ECDSA-SHA256-DER",
+    "intent_length": 54,
+    "signature_base64_length": 96,
+    "duration_ms": 3.15
+  },
+  "intent_hash": "6c06ba49908e03f6b7933dfdd09f9fccb2b6dedfd730dfdef98bc9a247e236d5",
+  "protocol_version": "v2",
+  "gateway_version": "3.0.0"
+}

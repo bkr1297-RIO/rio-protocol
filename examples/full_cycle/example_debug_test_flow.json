@@ -1,0 +1,92 @@
+{
+  "_comment": "Live reference example — debug test flow from Merkaba Sovereign Engine v3.0.0",
+  "_source": "GET /debug-test-full-flow on https://rio-router-gateway.replit.app/api/rio-gateway",
+  "_captured": "2026-03-27T00:49:10Z",
+  "_purpose": "Comprehensive 5-test diagnostic pipeline: health check, bad-signature rejection, direct API test, signature verification, and full pipeline execution",
+  "test_results": [
+    {
+      "test_name": "gateway_health",
+      "status": "pass",
+      "duration_ms": 0.01,
+      "substeps_log": [
+        "Gateway online: 0.025 ms",
+        "Sovereign Gate key present: True"
+      ],
+      "detail": {
+        "sovereign_gate": "active",
+        "version": "3.0.0"
+      }
+    },
+    {
+      "test_name": "intake_bad_sig",
+      "status": "pass",
+      "duration_ms": 2.29,
+      "substeps_log": [
+        "Request constructed: 0.001 ms",
+        "Signature rejected (HTTP 401): 2.268 ms"
+      ],
+      "detail": {
+        "result": "Correctly rejected with HTTP 401",
+        "message": "Intent was not signed by authorized key"
+      }
+    },
+    {
+      "test_name": "claude_api_direct",
+      "status": "pass",
+      "duration_ms": 928.3,
+      "substeps_log": [
+        "Claude client init: 0.001 ms",
+        "Claude responded: 928.284 ms"
+      ],
+      "detail": {
+        "response_chars": 10,
+        "preview": "GATEWAY_OK"
+      }
+    },
+    {
+      "test_name": "signature_verification",
+      "status": "pass",
+      "duration_ms": 6.76,
+      "substeps_log": [
+        "Key generation: 1.412 ms",
+        "Sign: 1.204 ms",
+        "Verify: 4.109 ms"
+      ],
+      "detail": {
+        "keygen_ms": 6.76,
+        "sign_ms": 5.34,
+        "verify_ms": 4.11
+      }
+    },
+    {
+      "test_name": "full_pipeline",
+      "status": "pass",
+      "duration_ms": 801.89,
+      "substeps_log": [
+        "Request received: 0.0 ms",
+        "Key pair generated + signed: 2.479 ms",
+        "Signature verified: 7.487 ms (verify step: 5.016 ms)",
+        "Grammar calibrated, model routed to 'claude': 7.528 ms",
+        "AI call started (claude): 7.533 ms",
+        "AI response received (11 chars): 801.669 ms — AI call took 794.151 ms",
+        "Ledger committed (index=3): 801.879 ms (ledger step: 0.194 ms)",
+        "Response returned to client: 801.886 ms"
+      ],
+      "detail": {
+        "model": "claude",
+        "ledger_index": 3,
+        "receipt_hash": "7f957a7fa26a3a52705f71018c75fc02c4b0536d6cbb973af72f77a3d02dcafd",
+        "response_chars": 11,
+        "ai_latency_ms": 794.36
+      }
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 0,
+    "total_tests": 5,
+    "total_wall_ms": 1739.9
+  },
+  "bottleneck": "none — all systems nominal",
+  "recommendation": "All 5 tests passed. The gateway is fully operational."
+}

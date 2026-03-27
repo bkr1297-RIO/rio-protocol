@@ -461,15 +461,23 @@ rio-protocol/
 │   ├── execution_record_example.json
 │   ├── attestation_record_example.json
 │   ├── receipt_example.json
-│   ├── example_intent.json             Gateway example intent
-│   ├── example_receipt_v2.json         Gateway example receipt
-│   ├── example_ledger.json             Gateway example ledger
-│   ├── example_verification_result.json Gateway example verification result
-│   └── gateway/                        Gateway-specific examples
-│       ├── example_intent.json
-│       ├── example_receipt_v2.json
-│       ├── example_ledger.json
-│       └── example_verification_result.json
+│   ├── engine_manifest.json            Live Merkaba Sovereign Engine manifest (26 endpoints)
+│   ├── gateway/                        Gateway-specific examples
+│   │   ├── example_intent.json
+│   │   ├── example_receipt_v2.json
+│   │   ├── example_ledger.json
+│   │   └── example_verification_result.json
+│   └── full_cycle/                     Complete end-to-end reference (live capture)
+│       ├── README.md                   Full cycle walkthrough and verification
+│       ├── example_intent_signed.json  Signed intent (ECDSA secp256k1)
+│       ├── example_execution_result.json 4-step execution trace
+│       ├── example_receipt_v2.json     Cryptographic receipt (v2)
+│       ├── example_ledger_entry.json   Single ledger entry with chain linkage
+│       ├── example_ledger_chain.json   Complete hash-chain ledger (2 entries)
+│       ├── example_verification_result.json Independent verification (PASS)
+│       ├── example_audit_log.json      Governance enforcement evidence
+│       ├── example_debug_test_flow.json 5-test diagnostic pipeline (all PASS)
+│       └── example_nonce_stats.json    Replay protection statistics
 │
 ├── reference-architecture/            Architecture diagrams and patterns
 │   ├── 01_system_overview.png
@@ -579,6 +587,11 @@ rio-protocol/
 │   ├── THREAT_MODEL_SUMMARY.md        Security threats and mitigations
 │   ├── ENTERPRISE_USE_CASES.md        Real-world governance scenarios
 │   ├── GLOSSARY.md                    Key terms and definitions
+│   ├── GOVERNANCE.md                  Protocol governance structure and change process
+│   ├── CERTIFICATION.md               Certification levels and process
+│   ├── CERTIFICATION_CHECKLIST.md     Certification submission checklist
+│   ├── RELEASE_CHECKLIST.md           Pre-publish release checklist
+│   ├── RELEASE_PROCESS.md             Version numbering and release workflow
 │   ├── QUICKSTART.md                  Clone-to-verify quickstart (Ed25519 verifier)
 │   ├── QUICKSTART_sdk.md              SDK-specific quickstart guide
 │   ├── QUICKSTART_gateway.md          Gateway-specific quickstart (ECDSA secp256k1)
@@ -604,6 +617,7 @@ rio-protocol/
 ├── Makefile                           Common development targets
 ├── .env.example                       Environment variable template
 ├── .dockerignore                      Docker build exclusions
+├── RIO_Core_Runtime_Behavior.md        Implementation-independent behavior reference (8,545 words)
 ├── README.md
 ├── LICENSE                            Apache License 2.0
 ├── CONTRIBUTING.md                    Contribution guidelines and PR workflow

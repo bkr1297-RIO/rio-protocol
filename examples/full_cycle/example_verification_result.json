@@ -1,0 +1,51 @@
+{
+  "_comment": "Live reference example — independent verification result for the full-cycle execution",
+  "_source": "Verification performed against Merkaba Sovereign Engine ledger and receipt data",
+  "_captured": "2026-03-27T00:49:01Z",
+  "verification_target": {
+    "receipt_hash": "069a3f19f7ece0dd5dbdf71c32f0efb1b3de80c8a6b8433c9ff74d2e5b586d75",
+    "ledger_index": 2,
+    "intent_hash": "6c06ba49908e03f6b7933dfdd09f9fccb2b6dedfd730dfdef98bc9a247e236d5"
+  },
+  "checks": [
+    {
+      "check": "receipt_hash_present",
+      "status": "PASS",
+      "detail": "Receipt hash is a valid SHA-256 hex string (64 characters)"
+    },
+    {
+      "check": "intent_hash_present",
+      "status": "PASS",
+      "detail": "Intent hash is a valid SHA-256 hex string (64 characters)"
+    },
+    {
+      "check": "ledger_chain_integrity",
+      "status": "PASS",
+      "detail": "prev_hash links to receipt_hash of ledger_index 1 (GENESIS chain intact)"
+    },
+    {
+      "check": "signature_verification",
+      "status": "PASS",
+      "detail": "ECDSA secp256k1 signature verified against gateway public key"
+    },
+    {
+      "check": "timestamp_ordering",
+      "status": "PASS",
+      "detail": "Ledger entry timestamp (2026-03-27T00:49:00.535796Z) follows previous entry"
+    },
+    {
+      "check": "fail_closed_enforcement",
+      "status": "PASS",
+      "detail": "Sovereign gate active, unsigned intents correctly rejected (see audit log)"
+    }
+  ],
+  "overall_result": "PASS",
+  "compliance_level": "L2 — Cryptographic Verification",
+  "verifier": "RIO Independent Verifier v1.0.0",
+  "engine": {
+    "name": "Merkaba Sovereign Engine",
+    "version": "3.0.0",
+    "cryptographic_suite": "ECDSA secp256k1 + HMAC-SHA256",
+    "security_model": "fail-closed"
+  }
+}

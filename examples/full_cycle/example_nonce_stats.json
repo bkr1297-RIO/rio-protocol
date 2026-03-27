@@ -1,0 +1,26 @@
+{
+  "_comment": "Live reference example — nonce and replay protection statistics from Merkaba Sovereign Engine",
+  "_source": "GET /nonce-stats on https://rio-router-gateway.replit.app/api/rio-gateway",
+  "_captured": "2026-03-27T00:49:01Z",
+  "_purpose": "Demonstrates replay protection enforcement: every signature is single-use, nonces are tracked",
+  "signature_registry": {
+    "accepted": 0,
+    "rejected_replay": 0,
+    "evicted": 0,
+    "registry_size": 7,
+    "ttl_seconds": 300,
+    "storage": "sqlite (persistent)"
+  },
+  "nonce_registry": {
+    "accepted": 2,
+    "rejected_replay": 0,
+    "evicted": 0,
+    "registry_size": 2,
+    "ttl_seconds": 300
+  },
+  "signature_window_seconds": 300,
+  "enforcement": {
+    "signature": "MANDATORY — every signature is single-use. Replay → HTTP 409 Conflict.",
+    "nonce": "RECOMMENDED — enforced when present. Missing nonce logs a warning."
+  }
+}

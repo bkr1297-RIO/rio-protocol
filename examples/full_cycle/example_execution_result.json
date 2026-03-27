@@ -1,0 +1,51 @@
+{
+  "_comment": "Live reference example — complete execution result from Merkaba Sovereign Engine v3.0.0",
+  "_source": "POST /test-full-flow on https://rio-router-gateway.replit.app/api/rio-gateway",
+  "_captured": "2026-03-27T00:49:00.535897Z",
+  "step_1_signing": {
+    "step": "signing",
+    "status": "success",
+    "timestamp": "2026-03-27T00:48:54.523038Z",
+    "duration_ms": 3.15,
+    "detail": {
+      "algorithm": "secp256k1-ECDSA-SHA256-DER",
+      "intent_len": 54,
+      "sig_b64_len": 96
+    }
+  },
+  "step_2_gateway_send": {
+    "step": "gateway_verify_and_route",
+    "status": "success",
+    "timestamp": "2026-03-27T00:48:54.529464Z",
+    "duration_ms": 6.26,
+    "detail": {
+      "sig_valid": true,
+      "model_routed_to": "claude",
+      "calibrated_len": 54
+    }
+  },
+  "step_3_model_execution": {
+    "step": "model_execution",
+    "status": "success",
+    "timestamp": "2026-03-27T00:49:00.535601Z",
+    "duration_ms": 6005.87,
+    "detail": {
+      "model": "claude",
+      "response_chars": 987,
+      "preview": "I want to be straightforward with you: **I'm a text-based AI assistant and cannot execute financial transactions, access"
+    }
+  },
+  "step_4_ledger_commit": {
+    "step": "ledger_commit",
+    "status": "success",
+    "timestamp": "2026-03-27T00:49:00.535897Z",
+    "duration_ms": 0.11,
+    "detail": {
+      "ledger_index": 2,
+      "receipt_hash": "069a3f19f7ece0dd5dbdf71c32f0efb1b3de80c8a6b8433c9ff74d2e5b586d75"
+    }
+  },
+  "total_time_ms": 6016.06,
+  "protocol_version": "v2",
+  "gateway_version": "3.0.0"
+}

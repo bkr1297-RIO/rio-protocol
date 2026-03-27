@@ -49,6 +49,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **SDK Documentation:** `sdk/README.md` — SDK installation, usage, and API reference for both Python and JavaScript.
 - **SDK Quickstart & Conformance Guides:** `docs/QUICKSTART_sdk.md` and `docs/CONFORMANCE_sdk.md` — SDK-specific quickstart and conformance documentation.
 - **Updated Demo & Tests:** `demo/demo_verify_sdk.py` and `tests/conformance/run_conformance_sdk.py` — SDK-integrated verification demo and conformance test runner.
+- **Full Cycle Reference Examples:** `examples/full_cycle/` — 9 reference files captured from live Merkaba Sovereign Engine v3.0.0 execution. Includes signed intent, 4-step execution result, v2 receipt, ledger entry, complete ledger chain, independent verification result (PASS), audit log (fail-closed governance evidence), debug test flow (5/5 PASS), and nonce/replay protection stats.
+- **Engine Manifest:** `examples/engine_manifest.json` — Complete manifest for the live Merkaba Sovereign Engine gateway, documenting all 26 API endpoints, cryptographic suite (ECDSA secp256k1 + HMAC-SHA256), security model (fail-closed), and compliance level (L2).
+- **Governance Documents:**
+  - `docs/GOVERNANCE.md` — Protocol governance structure, steward responsibilities, change proposal process, and backward compatibility rules.
+  - `docs/CERTIFICATION.md` — Three certification levels (Structural, Cryptographic, Full Protocol), certification process, testing requirements, and revocation rules.
+  - `docs/CERTIFICATION_CHECKLIST.md` — Submission checklist for RIO certification with evidence requirements.
+  - `docs/RELEASE_CHECKLIST.md` — Pre-publish release checklist ensuring all artifacts are updated.
+  - `docs/RELEASE_PROCESS.md` — Version numbering rules, release workflow, and update requirements.
+- **RIO Core Runtime Behavior:** `RIO_Core_Runtime_Behavior.md` — 8,545-word implementation-independent behavior document. Canonical source of truth for external implementers covering all protocol stages, receipt format, ledger format, verification rules, and protocol invariants.
 
 ---
 

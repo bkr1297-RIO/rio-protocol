@@ -1,0 +1,46 @@
+{
+  "_comment": "Live reference example — execution gate audit log from Merkaba Sovereign Engine",
+  "_source": "GET /execution-gate/audit-log on https://rio-router-gateway.replit.app/api/rio-gateway",
+  "_captured": "2026-03-27T00:49:01Z",
+  "_purpose": "Demonstrates fail-closed governance: unsigned and improperly signed intents are BLOCKED before execution",
+  "total": 2,
+  "chain_length": 2,
+  "chain_intact": true,
+  "entries": [
+    {
+      "id": 1,
+      "action": "check_gate",
+      "agent": "",
+      "approver": "4bf0a5e1bf1d0dc4",
+      "executed_by": "manny_compiler",
+      "intent_id": "90d3862271752901e37706045475f8cc25897689e74701e20afc21bbb2b17cf0",
+      "parameters_hash": "93cc001acd35432f433856149165cc5fefeb89d808307b512a9dfdea4d105879",
+      "result": "blocked",
+      "reason": "missing_token",
+      "receipt_hash": "",
+      "prev_hash": "GENESIS",
+      "entry_hash": "f2e9651655f88782b8a35457c47983d91595e8dd540491c456be194b9d1ab883",
+      "timestamp": "2026-03-27T00:33:23.076335Z"
+    },
+    {
+      "id": 2,
+      "action": "check_gate",
+      "agent": "",
+      "approver": "4bf0a5e1bf1d0dc4",
+      "executed_by": "manny_compiler",
+      "intent_id": "90d3862271752901e37706045475f8cc25897689e74701e20afc21bbb2b17cf0",
+      "parameters_hash": "260fff46b9aeb3f83a0e722c53550cdeb3399af5b8b94fbf9c05f52d222aae57",
+      "result": "blocked",
+      "reason": "invalid_signature",
+      "receipt_hash": "",
+      "prev_hash": "f2e9651655f88782b8a35457c47983d91595e8dd540491c456be194b9d1ab883",
+      "entry_hash": "17d15bd6ae81a83518104423621a062344b621c5b6396e2ab2199d157458dd42",
+      "timestamp": "2026-03-27T00:37:28.696267Z"
+    }
+  ],
+  "governance_evidence": {
+    "fail_closed_demonstrated": true,
+    "blocked_reasons": ["missing_token", "invalid_signature"],
+    "audit_chain_integrity": "verified — each entry_hash links via prev_hash"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "_comment": "Live reference example — v2 receipt from Merkaba Sovereign Engine execution",
+  "_source": "Derived from POST /test-full-flow ledger commit on https://rio-router-gateway.replit.app/api/rio-gateway",
+  "_captured": "2026-03-27T00:49:00.535897Z",
+  "protocol_version": "v2",
+  "receipt_hash": "069a3f19f7ece0dd5dbdf71c32f0efb1b3de80c8a6b8433c9ff74d2e5b586d75",
+  "intent_hash": "6c06ba49908e03f6b7933dfdd09f9fccb2b6dedfd730dfdef98bc9a247e236d5",
+  "action_hash": "sha256(model_response)",
+  "verification_hash": "sha256(intent_hash|action_hash|timestamp|source)",
+  "verification_status": "PASS",
+  "timestamp": "2026-03-27T00:49:00.535897Z",
+  "source": "manny_compiler",
+  "model": "claude",
+  "response_chars": 987,
+  "signing": {
+    "algorithm": "secp256k1-ECDSA-SHA256-DER",
+    "key_source": "RIO_PRIVATE_KEY (server secret)",
+    "signature_verified": true
+  },
+  "governance": {
+    "sovereign_gate": "active",
+    "fail_closed": true,
+    "unsigned_intents_rejected": true
+  },
+  "risk_evaluation": {
+    "intent_classification": "financial_transfer",
+    "risk_level": "elevated",
+    "approval_required": true
+  },
+  "ledger_index": 2,
+  "prev_hash": "5da63daa7b1a58af43fded79bc6bf0254d4c063b9033e5deffc255364e99c41a"
+}

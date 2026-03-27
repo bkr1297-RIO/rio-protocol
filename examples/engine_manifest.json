@@ -1,0 +1,50 @@
+{
+  "engine_name": "Merkaba Sovereign Engine",
+  "engine_version": "3.0.0",
+  "protocol_version": "v2",
+  "gateway_url": "https://rio-router-gateway.replit.app/api/rio-gateway",
+  "status": "production",
+  "compliance_level": "L2 — Cryptographic Verification",
+  "cryptographic_suite": {
+    "signing_algorithm": "ECDSA secp256k1 (DER-encoded)",
+    "hash_algorithm": "SHA-256",
+    "hash_input_format": "pipe-delimited (HMAC-SHA256)",
+    "replay_protection": "mandatory single-use signatures + optional nonces",
+    "key_storage": "server-side RIO_PRIVATE_KEY"
+  },
+  "security_model": {
+    "mode": "fail-closed",
+    "unsigned_intents": "rejected (HTTP 401)",
+    "invalid_signatures": "rejected (HTTP 401)",
+    "replay_attempts": "rejected (HTTP 409 Conflict)",
+    "nonce_enforcement": "recommended (warning if missing)"
+  },
+  "capabilities": {
+    "models_available": ["claude", "chatgpt"],
+    "sovereign_gate": "active",
+    "ledger_type": "append-only, hash-chained",
+    "execution_gate": true,
+    "audit_log": true,
+    "nonce_registry": true,
+    "signature_registry": true
+  },
+  "api_endpoints": {
+    "health": "GET /health",
+    "intake": "POST /intake",
+    "sign_intent": "POST /sign-intent",
+    "ledger": "GET /ledger",
+    "audit_log": "GET /execution-gate/audit-log",
+    "verify_receipt": "POST /execution-gate/verify-receipt",
+    "nonce_stats": "GET /nonce-stats",
+    "test_full_flow": "POST /test-full-flow",
+    "test_signing": "POST /test-signing",
+    "debug_test_full_flow": "GET /debug-test-full-flow",
+    "generate_execution_token": "POST /generate-execution-token"
+  },
+  "total_api_routes": 26,
+  "documentation": {
+    "openapi_spec": "GET /openapi.json",
+    "swagger_ui": "GET /docs"
+  },
+  "last_verified": "2026-03-27T00:49:00Z"
+}
