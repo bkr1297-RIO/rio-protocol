@@ -1,0 +1,97 @@
+{
+  "_artifact": "ledger_chain",
+  "_simulator": "RIO Protocol Simulator v1.0 (Ed25519)",
+  "_note": "Row 2 of execution_ledger has been tampered. Chain verification will fail at that row.",
+  "demo_service_token": "demo-service-token-for-testing-only",
+  "public_key_hex": "ba77d196ee331dbba6f3c1087565f2ef60df7f653ffc9b70734a71c9a493f658",
+  "execution_ledger": [
+    {
+      "id": 1,
+      "action": "check_gate",
+      "agent": "claude-sonnet-4-6",
+      "approver": "6777b8d69a797747",
+      "executed_by": "simulator",
+      "intent_id": "62ddf2d783eb52aa5f0d5aa671485a2239d5c2db01a324902dc282307301ee3a",
+      "parameters_hash": "ef4b3cad81e2ac2d1baf7788c174ee18b6120145fdbd853da37c0447243410a2",
+      "result": "executed",
+      "reason": "gate_passed",
+      "receipt_hash": "f9195f44cb09ebe724dbb4be77bd88edcfd28c49c1495db0d8b0f4681ba3fcee",
+      "prev_hash": "GENESIS",
+      "entry_hash": "b5c5420aa6ffd6551633bf15869e7ac9f56ef300736f1ad707a1c91dfdd3d0e2",
+      "timestamp": "2026-03-27T00:31:03.026468Z"
+    },
+    {
+      "id": 2,
+      "action": "check_gate",
+      "agent": "claude-sonnet-4-6",
+      "approver": "6777b8d69a797747",
+      "executed_by": "simulator",
+      "intent_id": "62ddf2d783eb52aa5f0d5aa671485a2239d5c2db01a324902dc282307301ee3a",
+      "parameters_hash": "ef4b3cad81e2ac2d1baf7788c174ee18b6120145fdbd853da37c0447243410a2",
+      "result": "blocked",
+      "reason": "gate_passed",
+      "receipt_hash": "65c2bda4cd76a4d6966f81ca7623b8217e9a29c506191496e9b4c77d6a5fcfbd",
+      "prev_hash": "b5c5420aa6ffd6551633bf15869e7ac9f56ef300736f1ad707a1c91dfdd3d0e2",
+      "entry_hash": "7d32fc761f8996c3b4b6ce0647020e202ccb145880eccab93099e2492f405383",
+      "timestamp": "2026-03-27T00:31:03.526616Z",
+      "_tampered": true,
+      "_note": "Row 2 tampered: 'result' changed to 'blocked' after entry_hash was computed. Chain verification will fail here."
+    },
+    {
+      "id": 3,
+      "action": "check_gate",
+      "agent": "claude-sonnet-4-6",
+      "approver": "6777b8d69a797747",
+      "executed_by": "simulator",
+      "intent_id": "62ddf2d783eb52aa5f0d5aa671485a2239d5c2db01a324902dc282307301ee3a",
+      "parameters_hash": "ef4b3cad81e2ac2d1baf7788c174ee18b6120145fdbd853da37c0447243410a2",
+      "result": "executed",
+      "reason": "gate_passed",
+      "receipt_hash": "b3bfa07ede192328e024bb4bac302d1597a15e8b67226f77b2c9f6538921e7f1",
+      "prev_hash": "7d32fc761f8996c3b4b6ce0647020e202ccb145880eccab93099e2492f405383",
+      "entry_hash": "9e30ea76c4b8864feb591934c00db7bbe13127c761d38ae087e9c16ff7971d02",
+      "timestamp": "2026-03-27T00:31:04.026627Z"
+    }
+  ],
+  "post_execution_ledger": [
+    {
+      "id": 1,
+      "timestamp": "2026-03-27T00:31:06.426491Z",
+      "approver": "6777b8d69a797747",
+      "agent": "claude-sonnet-4-6",
+      "executed_by": "simulator",
+      "policy_result": "success",
+      "parameters_hash": "ef4b3cad81e2ac2d1baf7788c174ee18b6120145fdbd853da37c0447243410a2",
+      "result_hash": "29fbf428b4809285b571595a171aa8d7d09c0d2fd88ef1f9d2e15ab5d478b91f",
+      "prev_ledger_hash": "GENESIS",
+      "ledger_hash": "d5261c650e0f47367dbd58f1e845086e57783755587a8926294f289fa34fc495",
+      "signature": "b1ff37e89c2f2c6b4e72bc2550a1131fc05ab491f9a78650b4f3875fb4d41c16"
+    },
+    {
+      "id": 2,
+      "timestamp": "2026-03-27T00:31:07.026669Z",
+      "approver": "6777b8d69a797747",
+      "agent": "claude-sonnet-4-6",
+      "executed_by": "simulator",
+      "policy_result": "success",
+      "parameters_hash": "ef4b3cad81e2ac2d1baf7788c174ee18b6120145fdbd853da37c0447243410a2",
+      "result_hash": "29fbf428b4809285b571595a171aa8d7d09c0d2fd88ef1f9d2e15ab5d478b91f",
+      "prev_ledger_hash": "d5261c650e0f47367dbd58f1e845086e57783755587a8926294f289fa34fc495",
+      "ledger_hash": "15102ca1bdc9c9786e275cb81ae95ef8e1d1a05756fdb00fa25573e60a9cb379",
+      "signature": "5092aa33267185e2fd48da4885e7d4b6fcf8826239f9b6ea0da37f18356977ad"
+    },
+    {
+      "id": 3,
+      "timestamp": "2026-03-27T00:31:07.626675Z",
+      "approver": "6777b8d69a797747",
+      "agent": "claude-sonnet-4-6",
+      "executed_by": "simulator",
+      "policy_result": "success",
+      "parameters_hash": "ef4b3cad81e2ac2d1baf7788c174ee18b6120145fdbd853da37c0447243410a2",
+      "result_hash": "29fbf428b4809285b571595a171aa8d7d09c0d2fd88ef1f9d2e15ab5d478b91f",
+      "prev_ledger_hash": "15102ca1bdc9c9786e275cb81ae95ef8e1d1a05756fdb00fa25573e60a9cb379",
+      "ledger_hash": "564a37d3575d886d69a6f0bfb781d922ff3a75b163b1391e79492ce77de5f8a1",
+      "signature": "a7daf75feff5359662cb8bcab963ae4eab9a9ab1657dbb76b273f03050f25906"
+    }
+  ]
+}

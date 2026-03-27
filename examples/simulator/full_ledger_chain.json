@@ -1,0 +1,95 @@
+{
+  "_artifact": "ledger_chain",
+  "_simulator": "RIO Protocol Simulator v1.0 (Ed25519)",
+  "_note": "Full valid 3-entry hash-chained ledger.",
+  "demo_service_token": "demo-service-token-for-testing-only",
+  "public_key_hex": "4f4fe3642c3000f44022b19d80516c77ac64da6ae1e2e1a560a5ff6c9bf3d09e",
+  "execution_ledger": [
+    {
+      "id": 1,
+      "action": "check_gate",
+      "agent": "claude-sonnet-4-6",
+      "approver": "f197b3bc9900dadd",
+      "executed_by": "simulator",
+      "intent_id": "62ddf2d783eb52aa5f0d5aa671485a2239d5c2db01a324902dc282307301ee3a",
+      "parameters_hash": "c1342e24584c3782390060a6feea683a6f02adbe916fe2e263eeeec0806691f8",
+      "result": "executed",
+      "reason": "gate_passed",
+      "receipt_hash": "d35128e4f3a206db7d6c56d3a34b82ed0627129485eddc4dde978c57ea3403c5",
+      "prev_hash": "GENESIS",
+      "entry_hash": "47ac19ae676748da74f0f65b7ad51045a6209d597ae7f68ea4443f6cbacf71a8",
+      "timestamp": "2026-03-27T00:31:07.575923Z"
+    },
+    {
+      "id": 2,
+      "action": "check_gate",
+      "agent": "claude-sonnet-4-6",
+      "approver": "f197b3bc9900dadd",
+      "executed_by": "simulator",
+      "intent_id": "62ddf2d783eb52aa5f0d5aa671485a2239d5c2db01a324902dc282307301ee3a",
+      "parameters_hash": "c1342e24584c3782390060a6feea683a6f02adbe916fe2e263eeeec0806691f8",
+      "result": "executed",
+      "reason": "gate_passed",
+      "receipt_hash": "40664781aa79885617917706851615e8d67bb236816227d9e43034e9a82ddd66",
+      "prev_hash": "47ac19ae676748da74f0f65b7ad51045a6209d597ae7f68ea4443f6cbacf71a8",
+      "entry_hash": "8b0408607a13498d820aef7df45e1577dfb29703052edd8b4651fbfea9cee57f",
+      "timestamp": "2026-03-27T00:31:08.088422Z"
+    },
+    {
+      "id": 3,
+      "action": "check_gate",
+      "agent": "claude-sonnet-4-6",
+      "approver": "f197b3bc9900dadd",
+      "executed_by": "simulator",
+      "intent_id": "62ddf2d783eb52aa5f0d5aa671485a2239d5c2db01a324902dc282307301ee3a",
+      "parameters_hash": "c1342e24584c3782390060a6feea683a6f02adbe916fe2e263eeeec0806691f8",
+      "result": "executed",
+      "reason": "gate_passed",
+      "receipt_hash": "72b67abe7b7d6334b0975ff7d09cbaea1370d2ba489aec81644a6c37c073e86e",
+      "prev_hash": "8b0408607a13498d820aef7df45e1577dfb29703052edd8b4651fbfea9cee57f",
+      "entry_hash": "3ff209193014ff0fbcfb36b33df4c655cbbe5fc8f796f1b547182e2a6f650a1e",
+      "timestamp": "2026-03-27T00:31:08.588447Z"
+    }
+  ],
+  "post_execution_ledger": [
+    {
+      "id": 1,
+      "timestamp": "2026-03-27T00:31:10.975936Z",
+      "approver": "f197b3bc9900dadd",
+      "agent": "claude-sonnet-4-6",
+      "executed_by": "simulator",
+      "policy_result": "success",
+      "parameters_hash": "c1342e24584c3782390060a6feea683a6f02adbe916fe2e263eeeec0806691f8",
+      "result_hash": "29fbf428b4809285b571595a171aa8d7d09c0d2fd88ef1f9d2e15ab5d478b91f",
+      "prev_ledger_hash": "GENESIS",
+      "ledger_hash": "60d03053d442c97af1b6edf169523121c63868e3525058eb6ed3b6c7f5e8db28",
+      "signature": "df77f38f629a342f0c2a7a3f2f8a2118971ef9320318a236ca417e7918e21aae"
+    },
+    {
+      "id": 2,
+      "timestamp": "2026-03-27T00:31:11.588502Z",
+      "approver": "f197b3bc9900dadd",
+      "agent": "claude-sonnet-4-6",
+      "executed_by": "simulator",
+      "policy_result": "success",
+      "parameters_hash": "c1342e24584c3782390060a6feea683a6f02adbe916fe2e263eeeec0806691f8",
+      "result_hash": "29fbf428b4809285b571595a171aa8d7d09c0d2fd88ef1f9d2e15ab5d478b91f",
+      "prev_ledger_hash": "60d03053d442c97af1b6edf169523121c63868e3525058eb6ed3b6c7f5e8db28",
+      "ledger_hash": "851d7d778cc611aa07f178c7a512b21668d4cd9b18c2cab6ace504f552bbf042",
+      "signature": "f7a32804472e36a6889be89be33e0335aa6991e578af38396d802a82d4e51580"
+    },
+    {
+      "id": 3,
+      "timestamp": "2026-03-27T00:31:12.188511Z",
+      "approver": "f197b3bc9900dadd",
+      "agent": "claude-sonnet-4-6",
+      "executed_by": "simulator",
+      "policy_result": "success",
+      "parameters_hash": "c1342e24584c3782390060a6feea683a6f02adbe916fe2e263eeeec0806691f8",
+      "result_hash": "29fbf428b4809285b571595a171aa8d7d09c0d2fd88ef1f9d2e15ab5d478b91f",
+      "prev_ledger_hash": "851d7d778cc611aa07f178c7a512b21668d4cd9b18c2cab6ace504f552bbf042",
+      "ledger_hash": "0586fd961b6bb1a6b4f837f82e824f6732250b04abd392b338a2fee5147335f1",
+      "signature": "1e8705f797b17d4204a7ff143ad689783203ac128c3e166e74b99548ad0d7a19"
+    }
+  ]
+}

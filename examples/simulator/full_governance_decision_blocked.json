@@ -1,0 +1,18 @@
+{
+  "_artifact": "governance_decision",
+  "_simulator": "RIO Protocol Simulator v1.0 (Ed25519)",
+  "intent_id": "62ddf2d783eb52aa5f0d5aa671485a2239d5c2db01a324902dc282307301ee3a",
+  "decision": "blocked",
+  "reason": "policy_rejected",
+  "approver": "f197b3bc9900dadd",
+  "executed_by": "simulator",
+  "agent": "",
+  "timestamp": "2026-03-27T00:31:07.575923Z",
+  "parameters_hash": "c1342e24584c3782390060a6feea683a6f02adbe916fe2e263eeeec0806691f8",
+  "receipt_hash": "",
+  "prev_hash": "GENESIS",
+  "entry_hash": "c5d106dcd6f8cd7fcb7c0eae7b9ce8f3e52fd9150d7cff40ccc04c4d2721eda5",
+  "_computed": {
+    "seal_data": "check_gate||f197b3bc9900dadd|simulator|62ddf2d783eb52aa5f0d5aa671485a2239d5c2db01a324902dc282307301ee3a|c1342e24584c3782390060a6feea683a6f02adbe916fe2e263eeeec0806691f8|blocked|policy_rejected||GENESIS|2026-03-27T00:31:07.575923Z"
+  }
+}

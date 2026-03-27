@@ -1,0 +1,21 @@
+{
+  "_artifact": "receipt",
+  "_simulator": "RIO Protocol Simulator v1.0 (Ed25519)",
+  "status": "success",
+  "model_used": "claude",
+  "response": "The secp256k1 elliptic curve has three key properties:\n\n\u2022 Prime field: Defined over a 256-bit prime field, giving approximately 128-bit security.\n\u2022 Cofactor h=1: Every non-identity point generates the full group, which is important for cryptographic correctness.\n\u2022 Efficient endomorphism: Supports a Frobenius endomorphism that enables a roughly 30% speedup in scalar multiplication, which is why it was chosen for Bitcoin and Ethereum.",
+  "signature_verified": true,
+  "signature_hash": "a42b9f6595b1ca4309da08390761eaed3683c10fcbe4e2adc6a05635f1bdce0d",
+  "receipt_hash": "5cb6cc6a76f1d9d4353a0784a58fafe527785e37b7ca29234ed3a300d6c78d5d",
+  "ledger_index": 1,
+  "timestamp": "2026-03-27T00:31:01.931455Z",
+  "_verification_inputs": {
+    "_note": "Fields needed to recompute receipt_hash. Formula: SHA-256(prev_hash|source|intent|model|response[:500]|timestamp)",
+    "prev_hash": "GENESIS",
+    "source": "simulator",
+    "intent": "Summarise the key properties of the secp256k1 elliptic curve in three bullet points.",
+    "model_used": "claude",
+    "ai_response_first_500_chars": "The secp256k1 elliptic curve has three key properties:\n\n\u2022 Prime field: Defined over a 256-bit prime field, giving approximately 128-bit security.\n\u2022 Cofactor h=1: Every non-identity point generates the full group, which is important for cryptographic correctness.\n\u2022 Efficient endomorphism: Supports a Frobenius endomorphism that enables a roughly 30% speedup in scalar multiplication, which is why it was chosen for Bitcoin and Ethereum.",
+    "timestamp": "2026-03-27T00:31:01.931455Z"
+  }
+}

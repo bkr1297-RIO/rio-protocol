@@ -1,0 +1,109 @@
+{
+  "_artifact": "verification_result",
+  "_simulator": "RIO Protocol Simulator v1.0 (Ed25519)",
+  "overall": "PASS",
+  "checks_passed": 4,
+  "checks_failed": 0,
+  "checks": [
+    {
+      "check_name": "receipt_hash_integrity",
+      "description": "Recompute receipt_hash from source fields and compare to stored value.",
+      "passed": true,
+      "stored": "5cb6cc6a76f1d9d4353a0784a58fafe527785e37b7ca29234ed3a300d6c78d5d",
+      "computed": "5cb6cc6a76f1d9d4353a0784a58fafe527785e37b7ca29234ed3a300d6c78d5d",
+      "detail": "Receipt hash matches. Execution record is intact."
+    },
+    {
+      "check_name": "execution_ledger_chain_integrity",
+      "description": "For each execution_ledger row: recompute entry_hash and verify prev_hash linkage from GENESIS.",
+      "rows_checked": 3,
+      "chain_anchor": "GENESIS",
+      "results": [
+        {
+          "row_id": 1,
+          "stored_entry_hash": "db7b1a011e3ab8ad3e4690098b68dfdc2aa6756aa210f1b02d5fb5c5a02e26ba",
+          "computed_entry_hash": "db7b1a011e3ab8ad3e4690098b68dfdc2aa6756aa210f1b02d5fb5c5a02e26ba",
+          "prev_hash_ok": true,
+          "entry_hash_ok": true,
+          "passed": true,
+          "tampered": false
+        },
+        {
+          "row_id": 2,
+          "stored_entry_hash": "e51195925463ff77a724cde0774c9478a5a885b7ec6b2d3165caf3bf4d8eef23",
+          "computed_entry_hash": "e51195925463ff77a724cde0774c9478a5a885b7ec6b2d3165caf3bf4d8eef23",
+          "prev_hash_ok": true,
+          "entry_hash_ok": true,
+          "passed": true,
+          "tampered": false
+        },
+        {
+          "row_id": 3,
+          "stored_entry_hash": "377f4d80536e2720b5b85021b85b1927eb6f7e8081b2aa578bba819346d3a212",
+          "computed_entry_hash": "377f4d80536e2720b5b85021b85b1927eb6f7e8081b2aa578bba819346d3a212",
+          "prev_hash_ok": true,
+          "entry_hash_ok": true,
+          "passed": true,
+          "tampered": false
+        }
+      ],
+      "chain_intact": true,
+      "passed": true,
+      "detail": "All 3 entries verify correctly. Chain is intact."
+    },
+    {
+      "check_name": "post_exec_ledger_hash_integrity",
+      "description": "For each post_execution_ledger row: recompute ledger_hash and compare to stored value.",
+      "rows_checked": 3,
+      "results": [
+        {
+          "row_id": 1,
+          "stored_ledger_hash": "e9ce98f8b4c731ab8343dff36a374f3820ed74b75d30b5022de2804ce0a49233",
+          "computed_ledger_hash": "e9ce98f8b4c731ab8343dff36a374f3820ed74b75d30b5022de2804ce0a49233",
+          "passed": true
+        },
+        {
+          "row_id": 2,
+          "stored_ledger_hash": "fee2b07dab1a1652dcc836687258a05adcdd0d971d112fff605acc24de917f04",
+          "computed_ledger_hash": "fee2b07dab1a1652dcc836687258a05adcdd0d971d112fff605acc24de917f04",
+          "passed": true
+        },
+        {
+          "row_id": 3,
+          "stored_ledger_hash": "2ed806e739bf3f7d3acde77ce9d5ee161be8abeb631cd460a5e287ae80dd0543",
+          "computed_ledger_hash": "2ed806e739bf3f7d3acde77ce9d5ee161be8abeb631cd460a5e287ae80dd0543",
+          "passed": true
+        }
+      ],
+      "passed": true,
+      "detail": "All 3 hash values verify correctly."
+    },
+    {
+      "check_name": "post_exec_hmac_signatures",
+      "description": "For each post_execution_ledger row: recompute HMAC-SHA256 signature using the service token and compare to stored value.",
+      "rows_checked": 3,
+      "results": [
+        {
+          "row_id": 1,
+          "stored_signature": "b983c65ca2c9ba1bfb97bad7d1b9f897860f35bea8e8c8f46de936f22d5f570e",
+          "computed_signature": "b983c65ca2c9ba1bfb97bad7d1b9f897860f35bea8e8c8f46de936f22d5f570e",
+          "passed": true
+        },
+        {
+          "row_id": 2,
+          "stored_signature": "b6b6345801e42b745dd807ecfddaed4a855bfc6f7110b5a3c0de66e36a0f7ea9",
+          "computed_signature": "b6b6345801e42b745dd807ecfddaed4a855bfc6f7110b5a3c0de66e36a0f7ea9",
+          "passed": true
+        },
+        {
+          "row_id": 3,
+          "stored_signature": "f9bd78249f91ec59f916d48b457e8e8e23628b84f5805af5b5ee7a1634667827",
+          "computed_signature": "f9bd78249f91ec59f916d48b457e8e8e23628b84f5805af5b5ee7a1634667827",
+          "passed": true
+        }
+      ],
+      "passed": true,
+      "detail": "All 3 HMAC signatures verify correctly."
+    }
+  ]
+}

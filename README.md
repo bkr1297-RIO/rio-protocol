@@ -467,17 +467,30 @@ rio-protocol/
 │   │   ├── example_receipt_v2.json
 │   │   ├── example_ledger.json
 │   │   └── example_verification_result.json
-│   └── full_cycle/                     Complete end-to-end reference (live capture)
-│       ├── README.md                   Full cycle walkthrough and verification
-│       ├── example_intent_signed.json  Signed intent (ECDSA secp256k1)
-│       ├── example_execution_result.json 4-step execution trace
-│       ├── example_receipt_v2.json     Cryptographic receipt (v2)
-│       ├── example_ledger_entry.json   Single ledger entry with chain linkage
-│       ├── example_ledger_chain.json   Complete hash-chain ledger (2 entries)
-│       ├── example_verification_result.json Independent verification (PASS)
-│       ├── example_audit_log.json      Governance enforcement evidence
-│       ├── example_debug_test_flow.json 5-test diagnostic pipeline (all PASS)
-│       └── example_nonce_stats.json    Replay protection statistics
+│   ├── full_cycle/                     Complete end-to-end reference (live capture)
+│   │   ├── README.md                   Full cycle walkthrough and verification
+│   │   ├── example_intent_signed.json  Signed intent (ECDSA secp256k1)
+│   │   ├── example_execution_result.json 4-step execution trace
+│   │   ├── example_receipt_v2.json     Cryptographic receipt (v2)
+│   │   ├── example_ledger_entry.json   Single ledger entry with chain linkage
+│   │   ├── example_ledger_chain.json   Complete hash-chain ledger (2 entries)
+│   │   ├── example_verification_result.json Independent verification (PASS)
+│   │   ├── example_audit_log.json      Governance enforcement evidence
+│   │   ├── example_debug_test_flow.json 5-test diagnostic pipeline (all PASS)
+│   │   └── example_nonce_stats.json    Replay protection statistics
+│   └── simulator/                      RIO Protocol Simulator artifacts (Ed25519)
+│       ├── README.md                   Simulator artifact index and hash formulas
+│       ├── intent_signed.json          Valid signed intent
+│       ├── governance_decision.json    Approved governance decision
+│       ├── execution_result.json       Model execution output
+│       ├── receipt.json                Cryptographic receipt
+│       ├── ledger_chain.json           3-entry hash-chained ledger
+│       ├── ledger_entry.json           Single ledger entry
+│       ├── verification_result.json    4/4 checks PASS
+│       ├── invalid_signature_intent.json  Corrupt signature (Stage 2 rejection)
+│       ├── tampered_ledger_chain.json  Row 2 tampered — chain broken
+│       ├── tampered_ledger_verification_result.json  3/4 PASS, 1 FAIL
+│       └── full_*.json                 Narrated 8-stage flow (7 files)
 │
 ├── reference-architecture/            Architecture diagrams and patterns
 │   ├── 01_system_overview.png
@@ -617,7 +630,24 @@ rio-protocol/
 ├── Makefile                           Common development targets
 ├── .env.example                       Environment variable template
 ├── .dockerignore                      Docker build exclusions
-├── RIO_Core_Runtime_Behavior.md        Implementation-independent behavior reference (8,545 words)
+├── rio_sdk/                           WS9 Developer SDK (Python, v0.1.0)
+│   ├── __init__.py                    Package exports (26 public symbols)
+│   ├── gateway_client.py              RIOClient — HTTP client for 13 gateway endpoints
+│   ├── intent_builder.py              IntentBuilder — Fluent intent construction
+│   ├── receipt_verifier.py            ReceiptVerifier (7 checks) + LedgerVerifier
+│   ├── ledger_client.py               LedgerClient — High-level ledger operations
+│   ├── signing.py                     Ed25519Key/Signer + ECDSAKey/Signer
+│   ├── models.py                      8 data models (Intent, Receipt, etc.)
+│   ├── exceptions.py                  9 typed exceptions (RIOError hierarchy)
+│   ├── setup.py                       pip install configuration
+│   └── examples/                      SDK usage examples
+│       ├── send_intent_example.py     Full flow: evaluate → verify → ledger
+│       ├── governor_submit_example.py Human approval flow
+│       └── key_generation_example.py  Ed25519 + ECDSA keygen/sign/verify
+│
+├── simulate.py                        RIO Protocol Simulator (4 modes + verify)
+├── SDK_README.md                      Developer SDK documentation
+├── RIO_Core_Runtime_Behavior.md       Implementation-independent behavior reference (8,545 words)
 ├── README.md
 ├── LICENSE                            Apache License 2.0
 ├── CONTRIBUTING.md                    Contribution guidelines and PR workflow

@@ -1,0 +1,22 @@
+{
+  "_artifact": "intent_signed",
+  "_simulator": "RIO Protocol Simulator v1.0 (Ed25519)",
+  "_note": "Valid signed intent. All signatures are Ed25519.",
+  "source": "simulator",
+  "intent": "Summarise the key properties of the secp256k1 elliptic curve in three bullet points.",
+  "timestamp": "2026-03-27T00:31:07.075886Z",
+  "intent_id": "62ddf2d783eb52aa5f0d5aa671485a2239d5c2db01a324902dc282307301ee3a",
+  "signature": "AtssIa3v3GFd4u2z/BjbD7BbJp6rXIvmi8GXKabH8uZj7/5D7YGmDrmaMlj/mDthy+6sZ/+pWGNXbis2678pCQ==",
+  "execution_token": "/ShCSNkvF9Z45KhBY9kChwV/FsTDsSPVPyxYPiOxesu/rx79RjmHPoWXCIHXgf7Xw/23zNLf1nkIj7oHCNLOBw==",
+  "model": "claude",
+  "nonce": "461dbf76b1d472f4f66be6d513908940",
+  "public_key_b64": "T0/jZCwwAPRAIrGdgFFsd6xk2mrh4uGlYKX/bJvz0J4=",
+  "public_key_hex": "4f4fe3642c3000f44022b19d80516c77ac64da6ae1e2e1a560a5ff6c9bf3d09e",
+  "_computed": {
+    "canonical_string": "Summarise the key properties of the secp256k1 elliptic curve in three bullet points.|simulator|2026-03-27T00:31:07.075886Z",
+    "parameters_hash": "c1342e24584c3782390060a6feea683a6f02adbe916fe2e263eeeec0806691f8",
+    "signature_hash": "1cc2a3b61a26cd52392ca8f3aaaa7abe7355a75d0606892402df1666f545b983",
+    "approver": "f197b3bc9900dadd",
+    "signature_valid": true
+  }
+}
