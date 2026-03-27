@@ -4,661 +4,225 @@
 
 RIO is a governed execution system that sits between AI, humans, and real-world actions. It translates goals into structured intent, evaluates risk and policy, requires approval when necessary, controls execution, verifies outcomes, and generates cryptographically signed receipts recorded in a tamper-evident ledger. **The system enforces the rules, not the AI.** Built on a three-loop architecture — Intake (goal → intent), Governance (policy → approval → execution → verification), and Learning (ledger → policy improvement) — RIO creates a closed-loop system where every action is authorized, executed, verified, recorded, and used to improve future decisions.
 
----
-
-## Quick Start
-
-```bash
-git clone https://github.com/bkr1297-RIO/rio-protocol.git
-cd rio-protocol
-python -m venv venv
-source venv/bin/activate        # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-python scripts/init_rio.py
-python scripts/create_admin_user.py
-python scripts/run_all.py
-```
-
-The dashboard opens at `http://localhost:8050`. API documentation is at `http://localhost:8050/docs`.
+> **This repository is the canonical protocol specification.** It contains everything an external team needs to implement a RIO-compliant gateway: specifications, JSON schemas, conformance test vectors, governance documents, and reference artifacts. It contains no executable implementation code.
 
 ---
 
-## Installation
+## Related Repositories
 
-### Prerequisites
-
-- Python 3.10 or later
-- pip (included with Python)
-- Git
-
-### Option A: Local Installation
-
-```bash
-# Clone the repository
-git clone https://github.com/bkr1297-RIO/rio-protocol.git
-cd rio-protocol
-
-# Create and activate a virtual environment
-python -m venv venv
-source venv/bin/activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Initialize the system (creates directories, keys, seed data)
-python scripts/init_rio.py
-
-# Create the first admin user
-python scripts/create_admin_user.py
-
-# Start the server
-python scripts/run_all.py
-```
-
-### Option B: Docker
-
-```bash
-git clone https://github.com/bkr1297-RIO/rio-protocol.git
-cd rio-protocol
-cp .env.example .env            # edit .env as needed
-docker compose -f docker/docker-compose.yml up --build
-```
-
-This starts two services:
-
-| Service | Port | Description |
-|---------|------|-------------|
-| `rio-dashboard` | 8050 | Dashboard + API + Admin UI |
-| `rio-api` | 8000 | API-only instance |
-
-### Option C: Makefile
-
-```bash
-make install    # Install dependencies
-make init       # Initialize the system
-make admin      # Create admin user
-make run        # Start the server
-make test       # Run 57 tests
-```
+| Repository | Purpose |
+|------------|---------|
+| [rio-reference-impl](https://github.com/bkr1297-RIO/rio-reference-impl) | Working reference implementation — runtime engine, audit dashboard, policy engine, Docker deployment |
+| [rio-tools](https://github.com/bkr1297-RIO/rio-tools) | Developer tools — SDKs (Python + JavaScript), protocol simulator, independent verifier CLI, compliance checker |
 
 ---
 
-## Configuration
+## Getting Started
 
-Copy `.env.example` to `.env` and edit as needed:
+### For Implementers
 
-```bash
-cp .env.example .env
-```
+Read the protocol specification and implement against the schemas:
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `RIO_ENV` | `local` | Environment name |
-| `RIO_DATA_DIR` | `runtime/data` | Data file directory |
-| `RIO_KEYS_DIR` | `runtime/keys` | Cryptographic key directory |
-| `RIO_MODE` | `simulated` | Execution mode (`simulated` or `live`) |
-| `ADMIN_EMAIL` | `admin@rio.local` | Bootstrap admin email |
-| `ADMIN_PASSWORD` | `change_me` | Bootstrap admin password |
-| `RIO_DASHBOARD_HOST` | `0.0.0.0` | Server bind address |
-| `RIO_DASHBOARD_PORT` | `8050` | Server bind port |
-| `RIO_LOG_LEVEL` | `INFO` | Log verbosity |
+1. Start with [RIO_Core_Runtime_Behavior.md](RIO_Core_Runtime_Behavior.md) for the implementation-independent behavior reference
+2. Read the [canonical specification](spec/RIO_Protocol_Specification_v1.0.md) for the complete 8-stage pipeline
+3. Validate your implementation against the [JSON schemas](schemas/) and [conformance test vectors](tests/vectors/)
+4. Check your conformance level using the [conformance definitions](docs/CONFORMANCE.md)
 
----
+### For Evaluators
 
-## Scripts
+Review the protocol design and governance:
 
-| Script | Purpose | Usage |
-|--------|---------|-------|
-| `scripts/init_rio.py` | Initialize directories, keys, policy files, risk files, users, roles | `python scripts/init_rio.py` |
-| `scripts/create_admin_user.py` | Create or update the admin user with hashed password | `python scripts/create_admin_user.py` |
-| `scripts/run_all.py` | Start the dashboard and API server | `python scripts/run_all.py` |
+1. [System Overview](docs/SYSTEM_OVERVIEW.md) — What RIO is and why it exists
+2. [Architecture](docs/ARCHITECTURE.md) — Component architecture
+3. [Enterprise Use Cases](docs/ENTERPRISE_USE_CASES.md) — Real-world governance scenarios
+4. [Regulatory Mapping](docs/adoption/REGULATORY_MAPPING.md) — EU AI Act, NIST AI RMF, SOC 2 alignment
 
-All scripts support `--help` for additional options.
+### For Contributors
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines and [docs/GOVERNANCE.md](docs/GOVERNANCE.md) for the protocol change process.
 
 ---
 
-## Running Tests
+## Protocol Overview
 
-The test harness includes 57 test cases covering the full protocol stack:
+### The 8-Stage Governed Execution Pipeline
 
-```bash
-python -m runtime.test_harness
-```
+| Stage | Name | Description |
+|-------|------|-------------|
+| 1 | Intake | Goal reception and origin verification |
+| 2 | Canonical Intent | Structured intent construction with identity binding |
+| 3 | Risk Evaluation | Multi-dimensional risk scoring |
+| 4 | Policy Constraints | Policy rule evaluation and constraint enforcement |
+| 5 | Authorization | Human approval for high-risk actions, automatic approval for low-risk |
+| 6 | Execution | Controlled execution with kill switch capability |
+| 7 | Attestation | Cryptographic receipt generation with hash-chain ledger recording |
+| 8 | Verification | Post-execution verification and learning loop feedback |
 
-| Test Suite | Count | Coverage |
-|------------|-------|----------|
-| TC-RIO (core protocol) | 3 | Stages 1–8, kill switch |
-| TC-EXTRA (invariants) | 4 | Self-auth, replay, validation, hash chain |
-| TC-POLICY / TC-RISK | 2 | Policy deny, risk scoring |
-| TC-INTENT | 1 | Intent requirements matrix |
-| TC-CONN (connectors) | 5 | Email, file, HTTP, kill switch |
-| TC-APPR (approvals) | 4 | Queue, approve, deny, role check |
-| TC-GOV (governance) | 5 | Version, activate, rollback, ledger, auth |
-| TC-ADPT (adapters) | 5 | Email, calendar, file sandbox, HTTP, kill switch |
-| TC-LEDG (ledger integrity) | 4 | Valid, tamper entry, delete, tamper receipt |
-| TC-IAM (identity) | 5 | Role hierarchy, limits, self-approval, expiry |
-| TC-CORP (corpus) | 4 | Record, replay, stricter role, same settings |
-| TC-ADMIN (admin UI) | 5 | Risk draft, auth block, activate, rollback, ledger |
-| TC-V2 (v2 receipts) | 10 | v2 receipt gen, signing, verification, denial, ledger chain, tampering, hashes, timestamps, signature format |
-
----
-
-## Architecture
-
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                        EXTERNAL REQUESTERS                        │
-│            AI Agents  ·  Automated Workflows  ·  Humans           │
-└───────────────────────────────┬─────────────────────────────────────┘
-                                │
-                                ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│              LOOP 1: INTAKE / DISCOVERY                           │
-│  Goal → Validation → Missing Info → AI Refinement → Intent       │
-└───────────────────────────────┬─────────────────────────────────────┘
-                                │ Structured Intent
-                                ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│              LOOP 2: EXECUTION / GOVERNANCE                       │
-│                                                                   │
-│  ┌──────────┐  ┌──────────────┐  ┌───────────────┐  ┌──────────┐ │
-│  │  Intake   │→│Classification │→│Structured     │→│ Policy & │ │
-│  │  (Stage 1)│  │  (Stage 2)   │  │Intent (Stg 3) │  │Risk (4)  │ │
-│  └──────────┘  └──────────────┘  └───────────────┘  └────┬─────┘ │
-│                                                          │       │
-│                                                          ▼       │
-│  ┌──────────┐  ┌──────────────┐  ┌───────────────┐  ┌──────────┐ │
-│  │v2 Ledger │←│ v2 Receipt   │←│  Verify (6b)  │←│Exec Gate │ │
-│  │  (Stage 8)│  │  (Stage 7)   │  │  + Authorize  │  │ (Stg 5-6)│ │
-│  └──────────┘  └──────────────┘  └───────┬───────┘  └──────────┘ │
-│                                          │                       │
-└──────────────────────────────────────────┼───────────────────────┘
-                                           │
-                                           ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                       EXECUTION TARGETS                           │
-│         Payment APIs  ·  Email  ·  Databases  ·  Deployments      │
-└─────────────────────────────────────────────────────────────────────┘
-                                           │
-                                           ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                    AUDIT & ATTESTATION                            │
-│  v2 Receipts · Signed Hash-Chain Ledger · Governed Corpus · Replay│
-└───────────────────────────────┬─────────────────────────────────────┘
-                                │
-                                ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│              LOOP 3: LEARNING                                     │
-│  Ledger → Audit → Pattern Analysis → Policy/Model Updates         │
-│  → Future Intake and Governance Decisions                         │
-└─────────────────────────────────────────────────────────────────────┘
-```
-
-The system is organized as a Three-Loop Architecture. External requesters submit goals. Loop 1 (Intake/Discovery) translates goals into structured intents. Loop 2 (Execution/Governance) evaluates policy, computes risk, obtains authorization, gates execution, verifies actions, generates v2 cryptographic receipts, and records them in a signed hash-chain ledger. Execution targets receive dispatched actions through adapters. The Audit & Attestation layer records every decision. Loop 3 (Learning) analyzes historical data and proposes policy and model updates that feed back into future governance decisions.
-
----
-
-## Documentation
-
-The `docs/` directory contains detailed documentation for each subsystem:
-
-| Document | Description |
-|----------|-------------|
-| [System Overview](docs/SYSTEM_OVERVIEW.md) | What RIO is, what problem it solves, and why governance is needed |
-| [Architecture](docs/ARCHITECTURE.md) | Spec layer, runtime layer, adapters, ledger, corpus, dashboard |
-| [Execution Flow](docs/EXECUTION_FLOW.md) | Step-by-step pipeline: Request → Policy → Risk → Auth → Gate → Adapter → Receipt → Ledger |
-| [Ledger and Receipts](docs/LEDGER_AND_RECEIPTS.md) | Hash chain, signatures, verification process |
-| [Policy and Risk](docs/POLICY_AND_RISK.md) | Policy engine, risk engine, versioning, thresholds |
-| [Identity and Approvals](docs/IDENTITY_AND_APPROVALS.md) | Users, roles, permissions, approval workflow, authorization tokens |
-| [Simulation and Learning](docs/SIMULATION_AND_LEARNING.md) | Governed corpus, replay engine, policy improvement loop |
-| [Threat Model Summary](docs/THREAT_MODEL_SUMMARY.md) | Six critical threats with mitigations and residual risks |
-| [Enterprise Use Cases](docs/ENTERPRISE_USE_CASES.md) | Invoice payment, data deletion, deployment, access provisioning, agent-to-agent |
-| [Glossary](docs/GLOSSARY.md) | Definitions of all key terms |
-
-**Recommended reading order:** Start with System Overview, then Architecture, then Execution Flow. The remaining documents can be read in any order based on interest.
-
----
-
-## The Problem
-
-AI agents and automated systems can propose and execute consequential actions — payments, data deletions, code deployments, access grants — at machine speed. Without a governance layer between intent and execution, there is no mechanism to enforce authorization, verify compliance, or produce an audit trail. The result is uncontrolled execution with no accountability.
-
-Existing approaches either block AI from acting (removing the value of automation) or allow AI to act without oversight (creating unacceptable risk). Neither is sufficient for regulated industries or high-stakes operations.
-
----
-
-## The Solution
-
-RIO interposes a governed AI control plane between any requester (AI agent, automated system, or human-initiated workflow) and any execution target (payment network, email system, database, deployment pipeline). Built on a Three-Loop Architecture, every action request passes through a deterministic pipeline:
-
-1. The Intake/Discovery Loop translates vague goals into structured intents through validation and AI-assisted refinement.
-2. The Execution/Governance Loop evaluates risk and policies against the structured intent.
-3. A human or delegated authority makes an authorization decision.
-4. The execution gate validates the authorization before releasing the action.
-5. Post-execution verification (Stage 6b) computes intent_hash, action_hash, and verification_hash.
-6. The system produces a v2 cryptographic receipt and a signed, tamper-evident ledger entry.
-7. The Learning Loop analyzes outcomes and proposes policy and model improvements.
-
-No action executes without valid authorization. If any step fails, the system denies execution and generates a denial receipt. This is the fail-closed guarantee.
-
----
-
-## System Overview
-
-```
-External Requesters → Intake/Discovery Loop → Structured Intent → Execution/Governance Loop → Execution Systems
-                                                                                                    ↓
-                                                                              Audit & Attestation → Ledger → Learning Loop
-```
-
-The system overview shows the Three-Loop Architecture: External Requesters submit goals to the Intake/Discovery Loop, which produces structured intents for the Execution/Governance Loop. The Execution/Governance Loop gates execution, verifies actions, and records v2 receipts in the signed ledger. The Learning Loop analyzes historical data and proposes policy updates.
-
----
-
-## Decision Traceability Chain
-
-Every action that passes through RIO produces a chain of seven cryptographically linked records:
-
-```
-canonical_request → risk_evaluation → authorization_record → execution_record → attestation_record → receipt → ledger_entry
-```
-
-| Record | Purpose | Schema |
-|--------|---------|--------|
-| Canonical Request | Normalized, hashed action request | `schemas/canonical_request.json` |
-| Risk Evaluation | Risk score, factors, and recommendation | `schemas/risk_evaluation.json` |
-| Authorization Record | Human or delegated authority decision | `schemas/authorization_record.json` |
-| Execution Record | What was actually performed | `schemas/execution_record.json` |
-| Attestation Record | Cryptographic proof of the full chain | `schemas/attestation_record.json` |
-| Receipt | Human-readable audit summary | `schemas/receipt.json` |
-| Ledger Entry | Tamper-evident hash chain record | Defined in Spec 09 |
-
-Each record is canonically hashed (SHA-256), cryptographically signed (ECDSA-secp256k1), and immutably linked to prior records by ID and hash reference. An auditor can verify the entire chain by recomputing hashes and validating signatures.
-
----
-
-## Three-Loop Architecture
+### Three-Loop Architecture
 
 ![Three-Loop Architecture](docs/three_loop_architecture.png)
 
-The protocol implements a Three-Loop Architecture:
+1. **Intake Loop** — Goal → Intent → Canonical Request
+2. **Governance Loop** — Risk → Policy → Approval → Execution → Receipt → Ledger → Verification
+3. **Learning Loop** — Corpus → Replay → Simulation → Policy Improvement
 
-```
-Goal → Intake/Discovery Loop → Structured Intent → Execution/Governance Loop → Receipt → Ledger → Learning Loop → Policy/Model Updates → Future Decisions
-```
+### Cryptographic Guarantees
 
-The Intake/Discovery Loop translates vague goals into structured intents. The Execution/Governance Loop enforces policy, authorization, execution gating, post-execution verification, v2 receipt generation, and signed ledger recording. The Learning Loop feeds outcomes back into risk evaluation and policy refinement, allowing the system to improve over time without weakening governance controls.
+The protocol provides tamper-evident execution records through:
 
-See [`spec/three_loop_architecture.md`](spec/three_loop_architecture.md) for the full specification.
-
----
-
-## The 15 Protocol Stack
-
-The RIO Protocol consists of 15 specifications organized into five categories.
-
-### Sequential Pipeline (Specs 01–09)
-
-| Spec | Protocol | Purpose |
-|------|----------|---------|
-| 01 | Intake Protocol | Receive and validate raw action requests |
-| 02 | Origin Verification Protocol | Authenticate requester identity and signature |
-| 03 | Canonical Request Protocol | Normalize, hash, and create canonical form |
-| 04 | Risk Evaluation Protocol | Score risk and identify risk factors |
-| 05 | Policy Constraints Protocol | Evaluate organizational policies and rules |
-| 06 | Authorization Protocol | Obtain human or delegated authority decision |
-| 07 | Execution Protocol | Validate authorization and perform action |
-| 08 | Attestation Protocol | Produce cryptographic proof of chain |
-| 09 | Audit Ledger Protocol | Append tamper-evident record to hash chain |
-
-### Feedback (Spec 10)
-
-| Spec | Protocol | Purpose |
-|------|----------|---------|
-| 10 | Learning Protocol | Update risk models from outcomes |
-
-### Structural / Cross-Cutting (Specs 11–13)
-
-| Spec | Protocol | Purpose |
-|------|----------|---------|
-| 11 | Independence Protocol | Control plane isolation from agents |
-| 12 | Role Separation Protocol | No self-authorization, duty separation |
-| 13 | Meta-Governance Protocol | Govern changes to governance itself |
-
-### Control Flow (Spec 14)
-
-| Spec | Protocol | Purpose |
-|------|----------|---------|
-| 14 | Orchestration Protocol | Coordinate protocol execution order |
-
-### Specialized Sub-Protocol (Spec 15)
-
-| Spec | Protocol | Purpose |
-|------|----------|---------|
-| 15 | Time-Bound Authorization Protocol | Enforce expiration on all authorizations |
-
-All specifications are in `spec/` and follow a standardized structure: Protocol Name, Purpose, Scope, Inputs, Outputs, Required Fields, Processing Steps, Decision Logic, Failure Conditions, Security Considerations, Audit Requirements, Dependencies, and Example Flow.
+- **v2 Receipts** — Ed25519/ECDSA signed receipts with `intent_hash`, `action_hash`, `verification_hash`, `verification_status`, ISO 8601 timestamps, and identity fields
+- **Hash-Chain Ledger** — Each entry contains `previous_ledger_hash` for chain integrity, independently verifiable
+- **Denial Receipts** — Blocked actions generate full receipts with `decision=denied` and `execution_status=BLOCKED`
+- **Post-Execution Verification** — Stage 6b verification produces `verification_status` embedded in receipts
 
 ---
 
 ## Repository Structure
 
 ```
-rio-protocol/
-├── spec/                              Protocol specifications
-│   ├── 01_intake_protocol.md
-│   ├── 02_origin_verification.md
-│   ├── 03_canonical_request.md
-│   ├── 04_risk_evaluation.md
-│   ├── 05_policy_constraints.md
-│   ├── 06_authorization.md
-│   ├── 07_execution.md
-│   ├── 08_attestation.md
-│   ├── 09_audit_ledger.md
-│   ├── 10_learning.md
-│   ├── 11_independence.md
-│   ├── 12_role_separation.md
-│   ├── 13_meta_governance.md
-│   ├── 14_orchestration.md
-│   ├── 15_time_bound_authorization.md
-│   ├── governed_execution_protocol.md 8-stage runtime protocol + learning loop
-│   ├── runtime_flow.md               8-step runtime flow with diagram
-│   ├── protocol_invariants.md         8 protocol invariants (INV-01 through INV-08)
-│   ├── system_invariants.md          21 system invariants across 6 categories
-│   ├── governed_corpus.md             Decision-history layer specification
-│   ├── 8_step_to_15_protocol_mapping.md  Maps 8-step flow to 15 control protocols
-│   ├── system_architecture.md         4-layer system architecture
-│   ├── protocol_test_matrix.md        Test-to-invariant mapping
-│   ├── threat_model.md                10 threats with mitigations
-│   ├── verification_tests.md          12 verification test cases
-│   ├── constraint_vs_policy.md        Policy vs. constraint distinction
-│   ├── role_model.md                  8 roles with separation rules
-│   ├── intent_ontology.md             Standard action naming convention
-│   ├── policy_language.md             Policy rule structure and priority
-│   ├── receipt_spec.md                Canonical receipt fields and verification
-│   ├── ledger_interoperability.md     Hash chain verification and anchoring
-│   ├── governance_learning.md         Learning inputs and policy update workflow
-│   ├── protocol_flow.md              Full protocol flow reference (11 steps)
-│   ├── protocol_state_machine.md     Formal state transitions and terminal states
-│   ├── execution_envelope.md         Bounded execution model with kill switch
-│   ├── api_endpoints.md              REST API surface definition
-│   ├── identity_and_credentials.md   DID, Verifiable Credentials, trust registry
-│   ├── oracle_attestation.md         External signed attestations for risk/policy
-│   ├── cross_domain_verification.md  Cross-system receipt and ledger verification
-│   ├── content_addressing_and_lineage.md  Content hashing and provenance chains
-│   ├── canonical_intent_schema.json   Core schema: canonical intent (Stage 3)
-│   ├── authorization_token_schema.json Core schema: authorization token (Stage 5)
-│   ├── receipt_schema.json            Core schema: receipt (Stage 7)
-│   ├── ledger_entry_schema.json       Core schema: ledger entry (Stage 8)
-│   ├── protocol_blueprint_template.md Standard template for all protocol stages
-│   ├── reference_architecture.md      Reference architecture: components, boundaries, flow
-│   ├── canonical_intent_schema.md     Canonical intent format (human-readable spec)
-│   ├── receipt_protocol.md            Receipt structure, hash chain, verification
-│   ├── audit_ledger_protocol.md       Append-only ledger model and audit procedures
-│   ├── verification_model.md          Verification model for protocol and ledger integrity
-│   ├── governance_learning_protocol.md Governance learning protocol specification
-│   ├── three_loop_architecture.md     Three-Loop Architecture (intake, execution/governance, learning)
-│   ├── two_loop_architecture.md       Two-loop architecture (superseded by three_loop_architecture.md)
-│   ├── intent_translation_layer.md    Intent translation layer (universal grammar)
-│   ├── master_protocol_index.md       Master index linking all specifications
-│   ├── rio_gateway_protocol_v1.0.json RIO Gateway Protocol Spec (Sovereign Gate Edition)
-│   ├── RIO_Protocol_Specification_v1.0.md  Canonical Protocol Specification (101K chars)
-│   ├── RIO_Protocol_Specification_v1.0.json Canonical Protocol Specification (structured JSON)
-│   └── Independent_Verifier_Spec.md       Independent verifier formal specification
-│
-├── architecture/                      System architecture models
-│   └── 15_layer_model.md             15-layer system architecture
-│
-├── runtime/                           Reference runtime (Python)
-│   ├── __init__.py                    Package init with execution flow docs
-│   ├── models.py                      Data structures: Request, Intent, Authorization, Receipt, LedgerEntry
-│   ├── invariants.py                  Protocol invariant checks (INV-01 through INV-08)
-│   ├── state.py                       System state: kill switch, token registry, ledger head
-│   ├── kill_switch.py                 EKS-0 kill switch engage/disengage/check
-│   ├── intake.py                      Stage 1: Register and authenticate requests
-│   ├── classification.py              Stage 2: Classify action type and risk
-│   ├── intent_validation.py           Stage 3a: Validate required fields and schema
-│   ├── structured_intent.py           Stage 3b: Form canonical intent object
-│   ├── policy_risk.py                 Stage 4: Policy evaluation and risk scoring
-│   ├── authorization.py               Stage 5: Authorization decisions and token issuance
-│   ├── execution_gate.py              Stage 6: Final gate checks before execution
-│   ├── receipt.py                     Stage 7: Receipt generation, hashing, signing
-│   ├── ledger.py                      Stage 8: Append-only ledger with hash chain
-│   ├── verification.py                Verification of receipts, ledger, and invariants
-│   ├── governance_learning.py         Stage 9: Asynchronous learning recommendations
-│   ├── test_harness.py                57-test harness (run with python -m runtime.test_harness)
-│   ├── receipts/                      v2 receipt generation, signing, and verification
-│   ├── ledger_v2/                     v2 hash-chain ledger writer and verifier
-│   ├── policy/                        Policy and risk engines + rules
-│   ├── governance/                    Versioned policy/risk management + change logs
-│   ├── approvals/                     Approval queue and manager
-│   ├── connectors/                    Email, file, HTTP connectors
-│   ├── adapters/                      Execution adapters
-│   ├── iam/                           Identity, roles, permissions, sessions
-│   ├── corpus/                        Governed corpus and replay engine
-│   ├── keys/                          RSA-2048 key pair (generated by init)
-│   └── data/                          Runtime data files (ledger, receipts, users)
-│
-├── schemas/                           JSON Schema 2020-12 definitions
-│   ├── canonical_request.json
-│   ├── risk_evaluation.json
-│   ├── authorization_record.json
-│   ├── execution_record.json
-│   ├── attestation_record.json
-│   ├── receipt.json
-│   ├── execution_token.json
-│   └── nonce_registry.json
-│
-├── examples/                          End-to-end example flows
-│   ├── financial_transaction.md       Wire transfer requiring approval
-│   ├── email_send.md                  External client email
-│   ├── data_deletion.md              Production data deletion (GDPR)
-│   ├── code_deploy.md                Production code deployment
-│   ├── access_grant.md               System access grant
-│   ├── canonical_request_example.json
-│   ├── risk_evaluation_example.json
-│   ├── authorization_record_example.json
-│   ├── execution_record_example.json
-│   ├── attestation_record_example.json
-│   ├── receipt_example.json
-│   ├── engine_manifest.json            Live Merkaba Sovereign Engine manifest (26 endpoints)
-│   ├── gateway/                        Gateway-specific examples
-│   │   ├── example_intent.json
-│   │   ├── example_receipt_v2.json
-│   │   ├── example_ledger.json
-│   │   └── example_verification_result.json
-│   ├── full_cycle/                     Complete end-to-end reference (live capture)
-│   │   ├── README.md                   Full cycle walkthrough and verification
-│   │   ├── example_intent_signed.json  Signed intent (ECDSA secp256k1)
-│   │   ├── example_execution_result.json 4-step execution trace
-│   │   ├── example_receipt_v2.json     Cryptographic receipt (v2)
-│   │   ├── example_ledger_entry.json   Single ledger entry with chain linkage
-│   │   ├── example_ledger_chain.json   Complete hash-chain ledger (2 entries)
-│   │   ├── example_verification_result.json Independent verification (PASS)
-│   │   ├── example_audit_log.json      Governance enforcement evidence
-│   │   ├── example_debug_test_flow.json 5-test diagnostic pipeline (all PASS)
-│   │   └── example_nonce_stats.json    Replay protection statistics
-│   └── simulator/                      RIO Protocol Simulator artifacts (Ed25519)
-│       ├── README.md                   Simulator artifact index and hash formulas
-│       ├── intent_signed.json          Valid signed intent
-│       ├── governance_decision.json    Approved governance decision
-│       ├── execution_result.json       Model execution output
-│       ├── receipt.json                Cryptographic receipt
-│       ├── ledger_chain.json           3-entry hash-chained ledger
-│       ├── ledger_entry.json           Single ledger entry
-│       ├── verification_result.json    4/4 checks PASS
-│       ├── invalid_signature_intent.json  Corrupt signature (Stage 2 rejection)
-│       ├── tampered_ledger_chain.json  Row 2 tampered — chain broken
-│       ├── tampered_ledger_verification_result.json  3/4 PASS, 1 FAIL
-│       └── full_*.json                 Narrated 8-stage flow (7 files)
-│
-├── reference-architecture/            Architecture diagrams and patterns
-│   ├── 01_system_overview.png
-│   ├── 02_decision_traceability_chain.png
-│   ├── 03_governed_execution_loop.png
-│   ├── 04_protocol_stack.png
-│   ├── 05_trust_boundaries.png
-│   ├── *.mmd                         Mermaid source files (editable)
-│   └── governed_action_pattern.md     Cross-industry pattern analysis
-│
-├── manifest/                          System configuration
-│   └── rio_system_manifest.json       Protocol stack, crypto, governance
-│
-├── tests/                             Protocol conformance test cases
-│   ├── TC-RIO-001.md                  Allowed execution with receipt and ledger
-│   ├── TC-RIO-002.md                  Denied execution due to policy
-│   ├── TC-RIO-003.md                  Kill switch blocks execution
-│   ├── conformance/                   WS3 Conformance Test Suite
-│   │   ├── rio_conformance_suite_v1.json  Master suite (57 tests, invariants, formulas)
-│   │   ├── TEST_MATRIX.md             Human-readable test case matrix
-│   │   └── README.md                  Conformance levels and interoperability bar
-│   └── vectors/                       Deterministic test vectors
-│       ├── public_key.pem             Ed25519 test public key
-│       ├── receipt_valid_approved.json Valid approved receipt
-│       ├── receipt_valid_denied.json   Valid denied receipt
-│       ├── receipt_invalid_*.json      Invalid receipt variants (3 files)
-│       ├── receipt_missing_fields.json Receipt with missing required fields
-│       ├── hash_computation_examples.json  7 worked hash examples
-│       ├── signing_payload_examples.json   3 signing/verification examples
-│       ├── ledger_chain_valid.json     Valid hash chain
-│       ├── ledger_chain_tampered.json  Tampered hash chain
-│       ├── ledger_chain_deleted_entry.json  Chain with deleted entry
-│       └── README.md                  Vector index and cryptographic constants
-│
-├── ledger/                            Ledger protocol documentation
-│   └── README.md                      Hash chain structure, integrity rules, verification rules
-│
-├── security/                          Security and threat model documentation
-│   └── README.md                      Threat model, kill switch, fail-closed behavior, trust boundaries
-│
-├── verification/                      Independent verifier (Ed25519 reference impl)
-│   ├── __init__.py                    Package exports (verify_receipt, verify_ledger)
-│   ├── models.py                      Protocol constants, signed fields, result types
-│   ├── hash_utils.py                  SHA-256 hash functions (canonical JSON)
-│   ├── crypto_utils.py                Ed25519 key loading and signature verification
-│   ├── schema_validator.py            Receipt (22-field) and ledger entry validation
-│   ├── receipt_verifier.py            7-check receipt verification
-│   ├── ledger_verifier.py             4-check ledger chain verification
-│   ├── cli.py                         CLI: verify-receipt, verify-ledger, verify-all
-│   ├── __main__.py                    Entry point for python -m verification.cli
-│   ├── requirements.txt               Single dependency: cryptography>=41.0.0
-│   ├── tests/test_verifier.py         32 tests + 13 subtests (all passing)
-│   └── README.md                      Package docs, CLI reference, PASS/FAIL criteria
-│
-├── safety/                            Safety mechanisms
-│   └── EKS-0_kill_switch.md           Global execution kill switch specification
-│
-├── dashboard/                         Audit dashboard (FastAPI + Jinja2)
-│   ├── app.py                         Main dashboard application
-│   ├── admin/                         Policy & Risk Admin UI
-│   │   ├── policies.py                Policy admin routes
-│   │   ├── risk_models.py             Risk model admin routes
-│   │   └── templates/                 Admin HTML templates
-│   ├── templates/                     Dashboard HTML templates
-│   └── static/                        CSS and static assets
-│
-├── scripts/                           Setup and run scripts
-│   ├── init_rio.py                    System initialization
-│   ├── create_admin_user.py           Admin user creation
-│   └── run_all.py                     Server startup
-│
-├── docker/                            Docker configuration
-│   ├── Dockerfile                     Container image definition
-│   └── docker-compose.yml             Multi-service orchestration
-│
-├── sdk/                               Protocol SDKs (zero-dependency)
-│   ├── README.md                      SDK overview, installation, API reference
-│   ├── python/                        Python SDK
-│   │   ├── setup.py                   pip install configuration
-│   │   └── rio_sdk/                   Package source
-│   │       ├── __init__.py            Package init and exports
-│   │       ├── verifier.py            Receipt + ledger verification (4 checks)
-│   │       ├── conformance.py         Conformance test runner (7 vectors)
-│   │       └── compliance.py          Compliance level checker (L1/L2/L3)
-│   ├── javascript/                    JavaScript SDK
-│   │   ├── package.json               npm package configuration
-│   │   └── src/                       Package source
-│   │       ├── index.js               Package entry point and exports
-│   │       ├── verifier.js            Receipt + ledger verification
-│   │       └── conformance.js         Conformance test runner
-│   └── examples/                      SDK usage examples
-│       ├── python_verify.py           Python verification example
-│       ├── python_conformance.py      Python conformance + compliance example
-│       └── javascript_verify.js       JavaScript verification example
-│
-├── tools/                             Protocol tooling
-│   └── check_compliance.py            Compliance level validator (L0/L1/L2/L3)
-│
-├── docs/                              System documentation
-│   ├── SYSTEM_OVERVIEW.md             What RIO is and why it exists
-│   ├── ARCHITECTURE.md                Component architecture with diagram
-│   ├── EXECUTION_FLOW.md              Step-by-step pipeline walkthrough
-│   ├── LEDGER_AND_RECEIPTS.md         Cryptographic audit system
-│   ├── POLICY_AND_RISK.md             Policy engine, risk engine, versioning
-│   ├── IDENTITY_AND_APPROVALS.md      Users, roles, permissions, approvals
-│   ├── SIMULATION_AND_LEARNING.md     Corpus, replay, policy improvement
-│   ├── THREAT_MODEL_SUMMARY.md        Security threats and mitigations
-│   ├── ENTERPRISE_USE_CASES.md        Real-world governance scenarios
-│   ├── GLOSSARY.md                    Key terms and definitions
-│   ├── GOVERNANCE.md                  Protocol governance structure and change process
-│   ├── CERTIFICATION.md               Certification levels and process
-│   ├── CERTIFICATION_CHECKLIST.md     Certification submission checklist
-│   ├── RELEASE_CHECKLIST.md           Pre-publish release checklist
-│   ├── RELEASE_PROCESS.md             Version numbering and release workflow
-│   ├── QUICKSTART.md                  Clone-to-verify quickstart (Ed25519 verifier)
-│   ├── QUICKSTART_sdk.md              SDK-specific quickstart guide
-│   ├── QUICKSTART_gateway.md          Gateway-specific quickstart (ECDSA secp256k1)
-│   ├── CONFORMANCE.md                 Conformance level definitions (L1/L2/L3)
-│   ├── CONFORMANCE_sdk.md             SDK conformance guide
-│   ├── CONFORMANCE_gateway.md         Gateway conformance guide
-│   ├── COMPLIANCE_BADGES.md           Compliance badge definitions and usage
-│   ├── VERSIONING.md                  Protocol versioning policy (SemVer 2.0.0)
-│   ├── PROTOCOL_CHANGE_TEMPLATE.md    Protocol Change Proposal (PCP) template
-│   ├── VERIFICATION_OUTPUT_EXAMPLE.md Verification output examples and diagnosis
-│   └── adoption/                      Regulatory and adoption documentation
-│       ├── REGULATORY_MAPPING.md      EU AI Act, NIST AI RMF, SOC 2 mapping
-│       ├── CERTIFICATION_CRITERIA.md  Conformance level certification criteria
-│       ├── IMPLEMENTATION_GUIDE.md    Step-by-step adoption guide
-│       └── QUICKSTART.md              Minimal viable deployment guide
-│
-├── diagrams/                          Diagram source files (reserved)
-├── whitepaper/                        White paper (Markdown + PDF)
-│
-├── requirements.txt                   Python dependencies
-├── setup.py                           Package installation script
-├── pyproject.toml                     Modern Python packaging metadata
-├── Makefile                           Common development targets
-├── .env.example                       Environment variable template
-├── .dockerignore                      Docker build exclusions
-├── rio_sdk/                           WS9 Developer SDK (Python, v0.1.0)
-│   ├── __init__.py                    Package exports (26 public symbols)
-│   ├── gateway_client.py              RIOClient — HTTP client for 13 gateway endpoints
-│   ├── intent_builder.py              IntentBuilder — Fluent intent construction
-│   ├── receipt_verifier.py            ReceiptVerifier (7 checks) + LedgerVerifier
-│   ├── ledger_client.py               LedgerClient — High-level ledger operations
-│   ├── signing.py                     Ed25519Key/Signer + ECDSAKey/Signer
-│   ├── models.py                      8 data models (Intent, Receipt, etc.)
-│   ├── exceptions.py                  9 typed exceptions (RIOError hierarchy)
-│   ├── setup.py                       pip install configuration
-│   └── examples/                      SDK usage examples
-│       ├── send_intent_example.py     Full flow: evaluate → verify → ledger
-│       ├── governor_submit_example.py Human approval flow
-│       └── key_generation_example.py  Ed25519 + ECDSA keygen/sign/verify
-│
-├── simulate.py                        RIO Protocol Simulator (4 modes + verify)
-├── SDK_README.md                      Developer SDK documentation
-├── RIO_Core_Runtime_Behavior.md       Implementation-independent behavior reference (8,545 words)
-├── README.md
-├── LICENSE                            Apache License 2.0
-├── CONTRIBUTING.md                    Contribution guidelines and PR workflow
-└── CHANGELOG.md                       Release history (Keep a Changelog format)
+spec/                                  Canonical protocol specifications
+├── RIO_Protocol_Specification_v1.0.md   Master specification (101K characters)
+├── RIO_Protocol_Specification_v1.0.json Structured JSON specification
+├── rio_gateway_protocol_v1.0.json       Gateway protocol specification
+├── Independent_Verifier_Spec.json       Verifier requirements
+├── 01_intake_protocol.md                Stage 1: Intake
+├── 02_origin_verification.md            Stage 2: Origin verification
+├── 03_canonical_request.md              Stage 3: Canonical request
+├── 04_risk_evaluation.md                Stage 4: Risk evaluation
+├── 05_policy_constraints.md             Stage 5: Policy constraints
+├── 06_authorization.md                  Stage 6: Authorization
+├── 07_execution.md                      Stage 7: Execution
+├── 08_attestation.md                    Stage 8: Attestation
+├── 09_audit_ledger.md                   Stage 9: Audit ledger
+├── 10_learning.md                       Stage 10: Learning
+├── 11_independence.md                   Independence specification
+├── 12_role_separation.md                Role separation
+├── 13_meta_governance.md                Meta governance
+├── 14_orchestration.md                  Orchestration
+├── 15_time_bound_authorization.md       Time-bound authorization
+├── *.md                                 Design documents and architecture specs
+└── *.json                               Schema definitions (in-spec)
+
+schemas/                               JSON Schema 2020-12 definitions
+├── canonical_intent.json                Canonical request structure
+├── receipt.json                         Cryptographic receipt
+├── ledger_entry.json                    Ledger entry
+├── auth_token.json                      Authorization token
+├── risk_evaluation.json                 Risk evaluation record
+├── authorization_record.json            Authorization record
+├── execution_record.json                Execution record
+└── attestation_record.json              Attestation record
+
+examples/                              Reference artifacts and use cases
+├── full_cycle/                          Complete end-to-end reference (live capture)
+│   ├── README.md                        Full cycle walkthrough
+│   ├── example_intent_signed.json       Signed intent (ECDSA secp256k1)
+│   ├── example_execution_result.json    4-step execution trace
+│   ├── example_receipt_v2.json          Cryptographic receipt (v2)
+│   ├── example_ledger_entry.json        Single ledger entry
+│   ├── example_ledger_chain.json        Complete hash-chain ledger
+│   ├── example_verification_result.json Independent verification (PASS)
+│   ├── example_audit_log.json           Governance enforcement evidence
+│   ├── example_debug_test_flow.json     5-test diagnostic pipeline
+│   └── example_nonce_stats.json         Replay protection statistics
+├── gateway/                             Gateway example artifacts
+├── quickstart/                          Quickstart example artifacts
+├── *.md                                 Use case narratives (5 scenarios)
+├── *_example.json                       Schema example instances
+└── engine_manifest.json                 Live engine manifest
+
+tests/                                 Conformance test materials
+├── vectors/                             Deterministic test vectors
+│   ├── public_key.pem                   Ed25519 test public key
+│   ├── receipt_valid_approved.json      Valid approved receipt
+│   ├── receipt_valid_denied.json        Valid denied receipt
+│   ├── receipt_invalid_*.json           Invalid receipt variants
+│   ├── hash_computation_examples.json   7 worked hash examples
+│   ├── signing_payload_examples.json    3 signing/verification examples
+│   ├── ledger_chain_valid.json          Valid hash chain
+│   ├── ledger_chain_tampered.json       Tampered hash chain
+│   └── README.md                        Vector index and constants
+├── conformance/                         Conformance suite
+│   ├── rio_conformance_suite_v1.json    Master suite (57 tests)
+│   ├── TEST_MATRIX.md                   Test case matrix
+│   ├── README.md                        Conformance documentation
+│   └── *.json                           Conformance test vectors
+└── TC-RIO-*.md                          Protocol test case definitions
+
+docs/                                  Protocol documentation
+├── SYSTEM_OVERVIEW.md                   What RIO is and why it exists
+├── ARCHITECTURE.md                      Component architecture
+├── EXECUTION_FLOW.md                    Pipeline walkthrough
+├── LEDGER_AND_RECEIPTS.md               Cryptographic audit system
+├── POLICY_AND_RISK.md                   Policy/risk specification
+├── IDENTITY_AND_APPROVALS.md            Identity specification
+├── SIMULATION_AND_LEARNING.md           Learning specification
+├── THREAT_MODEL_SUMMARY.md              Threat model
+├── ENTERPRISE_USE_CASES.md              Enterprise use cases
+├── GLOSSARY.md                          Key terms and definitions
+├── GOVERNANCE.md                        Protocol governance structure
+├── CERTIFICATION.md                     Certification levels and process
+├── CERTIFICATION_CHECKLIST.md           Certification submission checklist
+├── RELEASE_CHECKLIST.md                 Pre-publish release checklist
+├── RELEASE_PROCESS.md                   Version numbering and release workflow
+├── CONFORMANCE.md                       Conformance level definitions
+├── COMPLIANCE_BADGES.md                 Badge definitions and usage
+├── VERSIONING.md                        Protocol versioning policy (SemVer 2.0.0)
+├── PROTOCOL_CHANGE_TEMPLATE.md          Protocol Change Proposal template
+├── VERIFICATION_OUTPUT_EXAMPLE.md       Verification output examples
+├── QUICKSTART.md                        Protocol quickstart guide
+├── three_loop_architecture.png          Architecture diagram
+└── adoption/                            Regulatory and adoption docs
+    ├── REGULATORY_MAPPING.md            EU AI Act, NIST AI RMF, SOC 2
+    ├── CERTIFICATION_CRITERIA.md        Conformance certification criteria
+    ├── IMPLEMENTATION_GUIDE.md          Step-by-step adoption guide
+    └── QUICKSTART.md                    Minimal viable deployment
+
+reference-architecture/                Architecture diagrams
+├── 01_system_overview.mmd + .png
+├── 02_decision_traceability_chain.mmd + .png
+├── 03_governed_execution_loop.mmd + .png
+├── 04_protocol_stack.mmd + .png
+├── 05_trust_boundaries.mmd + .png
+└── governed_action_pattern.md
+
+whitepaper/                            Protocol white paper
+├── rio_protocol_whitepaper.md + .pdf
+└── rio_protocol_whitepaper_v2.md + .pdf
+
+architecture/15_layer_model.md         15-layer architecture model
+diagrams/                              Diagram source files
+manifest/rio_system_manifest.json      System manifest
+safety/EKS-0_kill_switch.md            Kill switch specification
+security/README.md                     Security documentation
+ledger/README.md                       Ledger protocol documentation
+
+RIO_Core_Runtime_Behavior.md           Implementation-independent behavior reference
+README.md                              This file
+LICENSE                                Apache License 2.0
+CONTRIBUTING.md                        Contribution guidelines
+CHANGELOG.md                           Release history
 ```
+
+---
+
+## Conformance Levels
+
+Implementations are assessed at three conformance levels:
+
+| Level | Name | Requirements |
+|-------|------|-------------|
+| L1 | Structural | Correct receipt and ledger entry structure, all required fields present |
+| L2 | Cryptographic | L1 + valid signatures, correct hash computation, chain integrity |
+| L3 | Full Protocol | L2 + complete 8-stage pipeline, denial receipts, post-execution verification, learning loop |
+
+See [docs/CONFORMANCE.md](docs/CONFORMANCE.md) for complete definitions and [tests/conformance/](tests/conformance/) for the test suite.
 
 ---
 
 ## Example Use Cases
 
-The `examples/` directory contains five end-to-end flows. Each shows all seven records in the decision traceability chain with cross-referenced IDs and an explanation of what happened and why.
+The `examples/` directory contains five end-to-end flows. Each shows all seven records in the decision traceability chain with cross-referenced IDs.
 
 | Example | Scenario | Risk Level |
 |---------|----------|------------|
@@ -670,257 +234,18 @@ The `examples/` directory contains five end-to-end flows. Each shows all seven r
 
 ---
 
-## Security Model (Fail-Closed)
+## Certification
 
-Every component in the RIO Protocol defaults to denying action execution when it cannot positively verify a required condition. There is no fail-open mode.
-
-| Condition | System Response |
-|-----------|----------------|
-| Origin signature invalid | Request rejected |
-| Risk score cannot be computed | Request held |
-| Authorization signature invalid | Execution blocked |
-| Nonce already consumed | Execution blocked |
-| Authorization expired | Execution blocked |
-| Attestation verification fails | Attestation not issued |
-| Ledger append fails | Pipeline halted |
+Organizations can certify their RIO implementations at three levels: Structural, Cryptographic, and Full Protocol. See [docs/CERTIFICATION.md](docs/CERTIFICATION.md) for the process and [docs/CERTIFICATION_CHECKLIST.md](docs/CERTIFICATION_CHECKLIST.md) for the submission checklist.
 
 ---
 
-## Threat Model
+## Protocol Governance
 
-The threat model (`spec/threat_model.md`) defines 10 threats with severity ratings, attack vectors, mitigations, and residual risks:
-
-| ID | Threat | Severity |
-|----|--------|----------|
-| T-01 | Replay Attack | Critical |
-| T-02 | Forged Signature | Critical |
-| T-03 | Tampered Payload | Critical |
-| T-04 | Expired Authorization Reuse | High |
-| T-05 | Direct Execution Bypass | Critical |
-| T-06 | Ledger Tampering | High |
-| T-07 | Unauthorized Policy Change | High |
-| T-08 | Role Collusion | High |
-| T-09 | Execution Outside Authorization Scope | Critical |
-| T-10 | Time Skew Attack | High |
-
-The document also includes a consolidated mitigations table, 8 foundational assumptions, and 3 security boundary definitions with cross-boundary isolation rules.
-
----
-
-## Verification Tests
-
-The verification test suite (`spec/verification_tests.md`) defines 12 test cases that validate the security properties of any RIO implementation:
-
-| ID | Test | Priority |
-|----|------|----------|
-| VT-01 | Unsigned request blocked | Critical |
-| VT-02 | Tampered payload rejected | Critical |
-| VT-03 | Replay attack blocked | Critical |
-| VT-04 | Expired timestamp rejected | Critical |
-| VT-05 | Approved request executes | Critical |
-| VT-06 | Denied request blocked | Critical |
-| VT-07 | Ledger hash chain integrity verified | High |
-| VT-08 | Receipt signature valid | High |
-| VT-09 | Forged signature rejected | Critical |
-| VT-10 | Direct execution blocked without approval | Critical |
-| VT-11 | Execution outside approved scope blocked | Critical |
-| VT-12 | Expired authorization cannot execute | Critical |
-
-An implementation must pass all Critical-priority tests to be considered minimally compliant.
-
----
-
-## Reference Architecture
-
-| Diagram | Description |
-|---------|-------------|
-| `01_system_overview.png` | High-level system overview with four zones |
-| `02_decision_traceability_chain.png` | Seven-record chain with ID references |
-| `03_governed_execution_loop.png` | Nine-stage governance loop with deny paths |
-| `04_protocol_stack.png` | All 15 protocols organized by category |
-| `05_trust_boundaries.png` | Three trust boundaries with enforcement points |
-| `governed_action_pattern.md` | Cross-industry analysis of the governed action pattern across 9 industries |
-
-All diagrams include editable Mermaid source files (`.mmd`).
-
----
-
-## Cryptography
-
-| Parameter | Value |
-|-----------|-------|
-| Signature Algorithm | ECDSA |
-| Curve | secp256k1 |
-| Hash Algorithm | SHA-256 |
-| Canonicalization | Minified sorted JSON |
-| Fail-Closed Default | Enabled |
-| Time Skew Allowance | 300 seconds |
-
----
-
-## System Architecture (15 Layers)
-
-The RIO system is organized into 15 architectural layers that describe where each function lives. This model defines system structure, not runtime order. The 15 layers are: Intake, Interpretation, Planning, Tools, Memory, Risk, Policy, Authority, Gate, Execution, Verification, Receipt, Ledger, Audit, and Learning.
-
-See [`architecture/15_layer_model.md`](architecture/15_layer_model.md) for the full layer definitions.
-
----
-
-## Runtime Protocol (8 Steps + Verification)
-
-The Governed Execution Protocol defines the mandatory runtime path for every request: Intake, Classification, Structured Intent, Policy & Risk Check, Authorization, Execution Gate, Post-Execution Verification (Stage 6b), v2 Receipt Generation, and v2 Ledger Entry. Governance Learning operates asynchronously and does not bypass runtime controls. Stage 6b computes intent_hash, action_hash, and verification_hash (SHA-256) to cryptographically bind the intent to the executed action.
-
-See [`spec/runtime_flow.md`](spec/runtime_flow.md) for the runtime flow diagram and [`spec/governed_execution_protocol.md`](spec/governed_execution_protocol.md) for the full stage definitions.
-
----
-
-## Protocol Invariants
-
-Eight protocol invariants (INV-01 through INV-08) define safety and correctness properties that must never be violated by any implementation. These cover completeness (every action traverses all stages), authorization safety (valid, time-bound, single-use tokens with distinct requester/authorizer), and fail-closed behavior (denials and kill switch events follow deterministic, auditable paths).
-
-See [`spec/protocol_invariants.md`](spec/protocol_invariants.md) for the full invariant definitions and [`spec/system_invariants.md`](spec/system_invariants.md) for the 21 system-level invariants.
-
----
-
-## Safety (Kill Switch)
-
-The EKS-0 Kill Switch is a global execution halt mechanism that overrides normal authorization and execution behavior. When engaged, no new executions may proceed regardless of policy decisions. All kill switch events and blocked requests still generate receipts and ledger entries.
-
-See [`safety/EKS-0_kill_switch.md`](safety/EKS-0_kill_switch.md) for the specification and [`tests/TC-RIO-003.md`](tests/TC-RIO-003.md) for the test case.
-
----
-
-## Test Cases
-
-Three protocol-level test cases validate the core runtime behavior:
-
-| Test Case | Description | Protocol Steps Covered |
-|-----------|-------------|------------------------|
-| [TC-RIO-001](tests/TC-RIO-001.md) | Allowed execution with receipt and ledger | Stages 1–8 |
-| [TC-RIO-002](tests/TC-RIO-002.md) | Denied execution due to policy | Stages 1–5, 7–8 |
-| [TC-RIO-003](tests/TC-RIO-003.md) | Kill switch blocks execution | Stages 5–8 |
-
-See [`spec/protocol_test_matrix.md`](spec/protocol_test_matrix.md) for the test-to-invariant mapping.
-
----
-
-## Governed Corpus
-
-The Governed Corpus is a structured decision-history layer that records intent, classification, policy decisions, authorization outcomes, execution results, receipts, ledger references, and eventual outcomes. It serves as the data source for Governance Learning (Step 9) and provides the foundation for audit, simulation, and risk modeling.
-
-See [`spec/governed_corpus.md`](spec/governed_corpus.md) for the full specification.
-
----
-
-## Intent Translation Layer
-
-RIO is designed to sit under an Intent Translation Layer (also known as the Intake/Discovery Loop) that maps canonical intents to specific external systems and APIs while preserving a common governed execution model. The Intent Translation Layer translates human/agent goals into structured intents, maps those intents to system-specific actions, and normalizes execution results for receipt generation.
-
-See [`spec/intent_translation_layer.md`](spec/intent_translation_layer.md) for the full specification and [`spec/three_loop_architecture.md`](spec/three_loop_architecture.md) for the Three-Loop Architecture that defines the relationship between the Intake/Discovery, Execution/Governance, and Learning loops.
-
----
-
-## Ledger & Receipts (v2)
-
-Every protocol decision — whether approved, denied, or blocked — produces a v2 cryptographic receipt (Stage 7) and a signed ledger entry (Stage 8). v2 receipts contain intent_hash, action_hash, verification_hash, verification_status, risk scoring, policy decisions, three ISO 8601 timestamps, and RSA-PSS signature. Denial receipts are generated for blocked actions. Ledger entries include per-entry ledger_signature and previous_ledger_hash for tamper-evident chain verification. There are no silent failures and no unrecorded decisions.
-
-See [`spec/receipt_spec.md`](spec/receipt_spec.md) for receipt fields and verification, and [`spec/ledger_interoperability.md`](spec/ledger_interoperability.md) for hash chain verification and anchoring.
-
----
-
-## Contributing
-
-Contributions are welcome. Please follow these guidelines:
-
-1. **Fork and branch.** Create a feature branch from `main` for your changes.
-2. **Follow existing patterns.** New runtime modules should follow the same structure as existing ones (docstring, imports, class/function definitions, logging).
-3. **Write tests.** Every new feature or bug fix should include test cases in `runtime/test_harness.py`. Run the full suite with `python -m runtime.test_harness` and confirm all tests pass before submitting.
-4. **Update documentation.** If your change affects system behavior, update the relevant document in `docs/`. If it affects the protocol specification, update the relevant file in `spec/`.
-5. **Governance changes.** Changes to policy rules, risk models, or governance workflows must follow the governed change process described in [Policy and Risk](docs/POLICY_AND_RISK.md).
-6. **Commit messages.** Use clear, descriptive commit messages that explain what changed and why.
-
----
-
-## Status
-
-**Current release: v1.0.0** (tagged March 23, 2026)
-
-| Component | Count | Status |
-|-----------|-------|--------|
-| Core Protocol Definition | 1 | Complete |
-| Protocol Specifications | 15 | Complete |
-| JSON Schemas (original) | 8 | Complete |
-| Core Protocol Schemas | 4 | Complete |
-| Protocol Blueprint Template | 1 | Complete |
-| End-to-End Examples | 5 | Complete |
-| Architecture Diagrams | 5 | Complete |
-| Threat Model | 10 threats + 7 control mappings | Complete |
-| Reference Architecture | 1 | Complete |
-| Canonical Intent Schema (doc) | 1 | Complete |
-| Receipt Protocol | 1 | Complete |
-| Audit Ledger Protocol | 1 | Complete |
-| Verification Tests | 12 tests | Complete |
-| System Manifest | 1 | Complete |
-| Governed Action Pattern | 1 | Complete |
-| Role Model | 8 roles | Complete |
-| Protocol Standardization | 5 docs | Complete |
-| Core Protocol Mechanics | 5 docs | Complete |
-| Infrastructure Extensions | 4 docs | Complete |
-| Protocol Invariants | 8 invariants | Complete |
-| Protocol Test Cases | 3 tests | Complete |
-| Safety Mechanisms | 1 (EKS-0) | Complete |
-| Governed Corpus | 1 | Complete |
-| System Architecture (4-layer) | 1 | Complete |
-| 15-Layer Architecture | 1 | Complete |
-| Runtime Flow | 1 | Complete |
-| 8-Step to 15-Protocol Mapping | 1 | Complete |
-| Verification Model | 1 | Complete |
-| Governance Learning Protocol | 1 | Complete |
-| Three-Loop Architecture | 1 | Complete |
-| Intent Translation Layer | 1 | Complete |
-| Master Protocol Index | 1 | Complete |
-| Runtime Skeleton | 15 Python modules | Complete |
-| White Paper | 1 | Complete |
-| Audit Dashboard | 1 (FastAPI + Jinja2) | Complete |
-| Policy Admin UI | 6 routes | Complete |
-| Risk Model Admin UI | 6 routes | Complete |
-| IAM System | 5 roles, 9 seed users | Complete |
-| Approval Workflow | 4 API endpoints | Complete |
-| Connector Framework | 3 connectors (email, file, HTTP) | Complete |
-| Adapter Framework | 4 adapters | Complete |
-| Governed Corpus + Replay | 2 modules | Complete |
-| Test Harness | 57 tests (12 suites + v2) | Complete |
-| Packaging (pip, Docker, Make) | 3 methods | Complete |
-| System Documentation | 10 documents | Complete |
-| Apache 2.0 License | 1 | Complete |
-| Contribution Guidelines | 1 | Complete |
-| Changelog | 1 | Complete |
-| Ledger Protocol Documentation | 1 | In Progress (WS2/WS3) |
-| Security Model Documentation | 1 | In Progress (WS2) |
-| Independent Verifier Spec | 1 | Complete (WS4) |
-| Independent Verifier Implementation | 7 receipt + 4 ledger checks, 32 tests | Complete (WS4) |
-| Canonical Protocol Specification | 1 | Complete (WS2) |
-| Conformance Test Suite | 57 tests + 12 vectors | Complete (WS3) |
-| RIO Gateway Protocol Spec | 20 sections | Complete |
-| Regulatory Mapping (EU AI Act, NIST, SOC 2) | 1 | Complete (WS5) |
-| Certification Criteria (3 levels) | 1 | Complete (WS5) |
-| Implementation Guide | 1 | Complete (WS5) |
-| Quickstart Guide | 1 | Complete (WS5) |
-
----
-
-## Authorship and Roles
-
-| Role | Name |
-|------|------|
-| System Architecture and Protocol Design | Brian K. Rasmussen |
-| Technical Implementation and Documentation | Manny |
-
-**Repository:** RIO Protocol
-**Project Type:** AI Control Plane and Audit Plane / Execution Governance Protocol
+Changes to the protocol follow the Protocol Change Proposal (PCP) process defined in [docs/GOVERNANCE.md](docs/GOVERNANCE.md). The versioning policy follows SemVer 2.0.0 as defined in [docs/VERSIONING.md](docs/VERSIONING.md).
 
 ---
 
 ## License
 
-See `LICENSE` for terms.
+Apache License 2.0 — see [LICENSE](LICENSE).

@@ -9,6 +9,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Repository Restructure:** Split monorepo into three focused repositories:
+  - `rio-protocol` (this repo) — Canonical protocol specification, schemas, conformance vectors, governance documents, reference artifacts. No executable implementation code.
+  - [`rio-reference-impl`](https://github.com/bkr1297-RIO/rio-reference-impl) — Working reference implementation: runtime engine (90 files), audit dashboard, policy engine, scripts, Docker deployment.
+  - [`rio-tools`](https://github.com/bkr1297-RIO/rio-tools) — Developer ecosystem: SDKs (Python + JavaScript), protocol simulator, independent verifier CLI, compliance checker, demos.
+- **README Rewritten:** Protocol-only README with cross-references to related repositories, implementer/evaluator/contributor getting-started paths.
+
+### Removed
+
+- `runtime/` — Moved to [rio-reference-impl](https://github.com/bkr1297-RIO/rio-reference-impl)
+- `dashboard/` — Moved to [rio-reference-impl](https://github.com/bkr1297-RIO/rio-reference-impl)
+- `scripts/` — Moved to [rio-reference-impl](https://github.com/bkr1297-RIO/rio-reference-impl)
+- `docker/` — Moved to [rio-reference-impl](https://github.com/bkr1297-RIO/rio-reference-impl)
+- `rio_sdk/`, `sdk/` — Moved to [rio-tools](https://github.com/bkr1297-RIO/rio-tools)
+- `verification/` — Moved to [rio-tools](https://github.com/bkr1297-RIO/rio-tools)
+- `simulate.py` — Moved to [rio-tools](https://github.com/bkr1297-RIO/rio-tools)
+- `demo/` — Moved to [rio-tools](https://github.com/bkr1297-RIO/rio-tools)
+- `tools/` — Moved to [rio-tools](https://github.com/bkr1297-RIO/rio-tools)
+- Implementation config files (`setup.py`, `pyproject.toml`, `Makefile`, `requirements.txt`, `.dockerignore`) — Moved to [rio-reference-impl](https://github.com/bkr1297-RIO/rio-reference-impl)
+
 ### Added
 
 - **WS3 Conformance Test Suite:** Machine-readable conformance suite (`tests/conformance/rio_conformance_suite_v1.json`) with 57 test case definitions, 8 protocol invariants, and interoperability bar.
