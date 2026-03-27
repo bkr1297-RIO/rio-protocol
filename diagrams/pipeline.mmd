@@ -1,0 +1,39 @@
+graph TD
+    classDef intake fill:#1a365d,stroke:#b8963e,color:#fff,stroke-width:2px
+    classDef governance fill:#1e3a5f,stroke:#b8963e,color:#fff,stroke-width:2px
+    classDef execution fill:#2d4a6f,stroke:#b8963e,color:#fff,stroke-width:2px
+    classDef attestation fill:#1a365d,stroke:#b8963e,color:#fff,stroke-width:2px
+    classDef decision fill:#8b0000,stroke:#b8963e,color:#fff,stroke-width:2px
+    classDef learning fill:#2f4f2f,stroke:#b8963e,color:#fff,stroke-width:2px
+
+    A["Stage 1: INTAKE<br/>Goal Reception &amp; Origin Verification"]:::intake
+    B["Stage 2: CANONICAL INTENT<br/>Structured Intent + Identity Binding"]:::intake
+    C["Stage 3: RISK EVALUATION<br/>4-Component Risk Scoring"]:::governance
+    D["Stage 4: POLICY CONSTRAINTS<br/>Rule Evaluation &amp; Enforcement"]:::governance
+    E{"Risk Threshold<br/>Exceeded?"}:::decision
+    F["Stage 5a: HUMAN APPROVAL<br/>Approver Notified"]:::governance
+    G["Stage 5b: AUTO-APPROVED<br/>Low-Risk Pass-Through"]:::governance
+    H["EXECUTION TOKEN<br/>Signed · TTL-Bound · Single-Use Nonce"]:::execution
+    I["Stage 6: EXECUTION GATE<br/>Verify Token → Release Action<br/>FAIL-CLOSED"]:::execution
+    J["Stage 7: ATTESTATION<br/>Three-Hash Binding → Signed Receipt"]:::attestation
+    K["Stage 8: LEDGER ENTRY<br/>Hash-Chained · Append-Only"]:::attestation
+    L["VERIFICATION<br/>Independent Audit"]:::attestation
+    M["LEARNING LOOP<br/>Corpus → Replay → Policy Improvement"]:::learning
+    N["DENIAL RECEIPT<br/>Blocked Action Recorded"]:::decision
+
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+    E -->|"Yes"| F
+    E -->|"No"| G
+    F --> H
+    G --> H
+    I -->|"Token Invalid / Expired / Replayed"| N
+    H --> I
+    I -->|"Token Valid"| J
+    J --> K
+    K --> L
+    L --> M
+    N --> K
+    M -.->|"Proposes policy updates<br/>(cannot execute directly)"| D
