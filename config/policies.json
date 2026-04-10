@@ -1,0 +1,19 @@
+{
+  "enforcement": {
+    "monitor_file": "GOVERNANCE.md",
+    "hash_algorithm": "SHA-256",
+    "alert_on_mismatch": true,
+    "log_path": "MANTIS_Activation_Log_v1.0.doc"
+  },
+  "mechanical_guard": {
+    "enable_dynamic_loading": true,
+    "memo_directory": "/memos",
+    "configurable_thresholds": {
+      "hash_check_interval": "5s"
+    }
+  },
+  "admin_controls": {
+    "log_level": "INFO",
+    "allow_override": false
+  }
+}
