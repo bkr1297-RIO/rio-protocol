@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rio-protocol.local/schemas/policies.schema.json",
+  "title": "RIO Policies Config Schema",
+  "description": "Schema definition for rio-protocol config/policies.json",
+  "type": "object",
+  "properties": {
+    "governance_files": {
+      "type": "object",
+      "properties": {
+        "primary": {"type": "string", "minLength": 1},
+        "additional": {"type": "array", "items": {"type": "string"}}
+      },
+      "required": ["primary"]
+    },
+    "file_hash_checks": {
+      "type": "object",
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "files": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "path": {"type": "string"},
+              "expected_hash": {"type": "string"}
+            },
+            "required": ["path", "expected_hash"]
+          }
+        }
+      }
+    },
+    "paths": {
+      "type": "object",
+      "properties": {
+        "policy_dir": {"type": "string"},
+        "governance_root": {"type": "string"}
+      }
+    },
+    "alerts": {
+      "type": "object",
+      "properties": {
+        "on_hash_mismatch": {
+          "type": "object",
+          "properties": {
+            "enabled": {"type": "boolean"},
+            "severity": {"type": "string"},
+            "message": {"type": "string"}
+          }
+        },
+        "on_missing_file": {
+          "type": "object",
+          "properties": {
+            "enabled": {"type": "boolean"},
+            "severity": {"type": "string"},
+            "message": {"type": "string"}
+          }
+        }
+      }
+    }
+  },
+  "required": ["governance_files", "file_hash_checks", "paths"]
+}
