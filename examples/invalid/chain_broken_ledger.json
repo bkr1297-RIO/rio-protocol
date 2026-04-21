@@ -1,0 +1,28 @@
+{
+  "_description": "Ledger with broken hash chain — entry 2 prev_ledger_hash does not match entry 1 current_ledger_hash. Triggers CHAIN_BROKEN.",
+  "_error_code": "CHAIN_BROKEN",
+  "_vocabulary_version": "1.0",
+  "_expected_result": {
+    "valid": false,
+    "vocabulary_version": "1.0",
+    "error_code": "CHAIN_BROKEN",
+    "message": "Hash chain link between entry 1 and entry 2 is broken"
+  },
+  "ledger": [
+    {
+      "sequence_number": 1,
+      "receipt_hash": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+      "prev_ledger_hash": "901131d8afd67a8b9a33a86ebab0e8e1e27f9da5e3c6c2f8f9a1b2c3d4e5f6a1",
+      "current_ledger_hash": "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+      "timestamp": "2026-04-21T01:00:01.000000Z"
+    },
+    {
+      "sequence_number": 2,
+      "receipt_hash": "c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3",
+      "prev_ledger_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+      "current_ledger_hash": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+      "timestamp": "2026-04-21T01:00:02.000000Z",
+      "_note": "prev_ledger_hash should be b2b2...b2b2 but is zeroed — chain is broken"
+    }
+  ]
+}

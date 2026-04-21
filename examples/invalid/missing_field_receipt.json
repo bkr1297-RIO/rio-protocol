@@ -1,0 +1,28 @@
+{
+  "_description": "Receipt missing required fields (receipt_hash, signature, public_key_fingerprint) — triggers MISSING_FIELD",
+  "_error_code": "MISSING_FIELD",
+  "_vocabulary_version": "1.0",
+  "_expected_result": {
+    "valid": false,
+    "vocabulary_version": "1.0",
+    "error_code": "MISSING_FIELD",
+    "message": "Required field 'receipt_hash' is absent from receipt"
+  },
+  "receipt": {
+    "receipt_version": "2.0",
+    "receipt_id": "err-missing-field-0001",
+    "timestamp": "2026-04-21T01:00:00.000000Z",
+    "runtime_id": "rio-gateway",
+    "runtime_version": "2.9.0",
+    "environment": "test",
+    "intent_id": "intent-test-0002",
+    "intent_text": "Transfer funds to vendor account",
+    "proposer_id": "user-alice",
+    "approver_id": "user-bob",
+    "decision": "allow",
+    "risk_score": 0.7,
+    "policy_hash": "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2",
+    "execution_result": "transfer completed",
+    "_note": "receipt_hash, signature, and public_key_fingerprint are intentionally omitted"
+  }
+}

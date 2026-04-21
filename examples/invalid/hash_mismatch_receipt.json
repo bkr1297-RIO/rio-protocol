@@ -1,0 +1,31 @@
+{
+  "_description": "Receipt with corrupted receipt_hash — triggers HASH_MISMATCH",
+  "_error_code": "HASH_MISMATCH",
+  "_vocabulary_version": "1.0",
+  "_expected_result": {
+    "valid": false,
+    "vocabulary_version": "1.0",
+    "error_code": "HASH_MISMATCH",
+    "message": "Receipt hash does not match recomputed value"
+  },
+  "receipt": {
+    "receipt_version": "2.0",
+    "receipt_id": "err-hash-mismatch-0001",
+    "timestamp": "2026-04-21T01:00:00.000000Z",
+    "runtime_id": "rio-gateway",
+    "runtime_version": "2.9.0",
+    "environment": "test",
+    "intent_id": "intent-test-0001",
+    "intent_text": "Send quarterly report to compliance team",
+    "proposer_id": "user-alice",
+    "approver_id": "user-bob",
+    "decision": "allow",
+    "risk_score": 0.3,
+    "policy_hash": "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2",
+    "execution_result": "email sent successfully",
+    "receipt_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+    "prev_ledger_hash": "901131d8afd67a8b9a33a86ebab0e8e1e27f9da5e3c6c2f8f9a1b2c3d4e5f6a1",
+    "public_key_fingerprint": "b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4",
+    "signature": "deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef"
+  }
+}

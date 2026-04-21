@@ -1,0 +1,109 @@
+{
+  "_meta": {
+    "type": "error_vocabulary",
+    "vocabulary_version": "1.0",
+    "locked": "2026-04-21T01:00:00Z",
+    "immutability_rule": "Existing codes MUST NOT change. New codes may only be added in future versions.",
+    "authority": "spec/error_vocabulary.md"
+  },
+  "codes": {
+    "HASH_MISMATCH": {
+      "code": "HASH_MISMATCH",
+      "severity": "critical",
+      "description": "A recomputed hash does not match the stored hash value. Indicates potential tampering or corruption.",
+      "applies_to": ["receipt", "ledger"],
+      "example_trigger": "receipt_hash differs from SHA-256 of the 19 signed fields"
+    },
+    "CHAIN_BROKEN": {
+      "code": "CHAIN_BROKEN",
+      "severity": "critical",
+      "description": "The hash chain link between consecutive ledger entries is broken. An entry's prev_ledger_hash does not match the previous entry's current_ledger_hash.",
+      "applies_to": ["ledger"],
+      "example_trigger": "ledger entry N prev_ledger_hash != ledger entry N-1 current_ledger_hash"
+    },
+    "MISSING_FIELD": {
+      "code": "MISSING_FIELD",
+      "severity": "critical",
+      "description": "A required field is absent from the receipt or ledger entry. The artifact is structurally invalid.",
+      "applies_to": ["receipt", "ledger"],
+      "example_trigger": "receipt is missing receipt_hash or timestamp"
+    },
+    "INVALID_SIGNATURE": {
+      "code": "INVALID_SIGNATURE",
+      "severity": "critical",
+      "description": "The Ed25519 signature on the receipt does not verify against the public key. Indicates forgery or key mismatch.",
+      "applies_to": ["receipt"],
+      "example_trigger": "Ed25519 signature verification fails"
+    },
+    "INVALID_GENESIS": {
+      "code": "INVALID_GENESIS",
+      "severity": "critical",
+      "description": "The first ledger entry's prev_ledger_hash does not equal SHA-256(b'GENESIS'). The chain has no valid anchor.",
+      "applies_to": ["ledger"],
+      "example_trigger": "first entry prev_ledger_hash != 901131d8...1416a"
+    },
+    "INVALID_DECISION": {
+      "code": "INVALID_DECISION",
+      "severity": "error",
+      "description": "The decision field contains a value outside the allowed set: allow, modify, block, escalate.",
+      "applies_to": ["receipt"],
+      "example_trigger": "decision = 'approve' (not in allowed set)"
+    },
+    "INVALID_LEDGER_LINK": {
+      "code": "INVALID_LEDGER_LINK",
+      "severity": "error",
+      "description": "The prev_ledger_hash field is not a well-formed 64-character hex digest.",
+      "applies_to": ["receipt", "ledger"],
+      "example_trigger": "prev_ledger_hash is 63 characters or contains non-hex characters"
+    },
+    "ORPHANED_RECEIPT": {
+      "code": "ORPHANED_RECEIPT",
+      "severity": "error",
+      "description": "A receipt exists without a corresponding ledger entry. Every receipt must be recorded in the ledger.",
+      "applies_to": ["receipt", "ledger"],
+      "example_trigger": "receipt_hash not found in any ledger entry"
+    },
+    "ORPHANED_LEDGER_ENTRY": {
+      "code": "ORPHANED_LEDGER_ENTRY",
+      "severity": "error",
+      "description": "A ledger entry exists without a corresponding receipt. Every ledger entry must reference a valid receipt.",
+      "applies_to": ["ledger"],
+      "example_trigger": "ledger entry receipt_hash does not match any known receipt"
+    },
+    "REPLAY_DETECTED": {
+      "code": "REPLAY_DETECTED",
+      "severity": "critical",
+      "description": "A previously consumed authorization token or nonce was submitted again. Replay attack detected.",
+      "applies_to": ["execution"],
+      "example_trigger": "nonce already exists in the nonce registry"
+    },
+    "TOKEN_EXPIRED": {
+      "code": "TOKEN_EXPIRED",
+      "severity": "error",
+      "description": "The authorization token has exceeded its TTL and is no longer valid.",
+      "applies_to": ["execution"],
+      "example_trigger": "token issued_at + TTL < current_time"
+    },
+    "UNAUTHORIZED": {
+      "code": "UNAUTHORIZED",
+      "severity": "critical",
+      "description": "An execution or intent submission was attempted without valid authentication.",
+      "applies_to": ["execution", "intent"],
+      "example_trigger": "no API key or JWT provided in request"
+    },
+    "FINGERPRINT_MISMATCH": {
+      "code": "FINGERPRINT_MISMATCH",
+      "severity": "critical",
+      "description": "The public_key_fingerprint does not match SHA-256 of the raw 32-byte Ed25519 public key.",
+      "applies_to": ["receipt"],
+      "example_trigger": "public_key_fingerprint != SHA-256(public_key_bytes)"
+    },
+    "CHAIN_GAP": {
+      "code": "CHAIN_GAP",
+      "severity": "critical",
+      "description": "The ledger contains a gap — entries are missing or out of sequence.",
+      "applies_to": ["ledger"],
+      "example_trigger": "ledger entry sequence_number skips from 5 to 7"
+    }
+  }
+}

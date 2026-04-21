@@ -7,6 +7,19 @@ RIO is a governed execution system that sits between AI, humans, and real-world 
 > **This repository is the canonical protocol specification.** It contains everything an external team needs to implement a RIO-compliant gateway: specifications, JSON schemas, conformance test vectors, governance documents, and reference artifacts. It contains no executable implementation code.
 
 **Version:** v1.0.0
+**Error Vocabulary Version:** v1.0 (locked April 21, 2026, 01:00)
+
+---
+
+## Verify Immediately
+
+```bash
+git clone https://github.com/bkr1297-RIO/rio-system.git
+cd rio-system
+python3 verifier/verify.py
+```
+
+Expected output: 5/5 PASS with structured error vocabulary output. See [spec/error_vocabulary.md](spec/error_vocabulary.md) for the full output contract.
 
 ---
 
@@ -16,6 +29,8 @@ RIO is a governed execution system that sits between AI, humans, and real-world 
 |----------|----------|------|
 | RIO Standard | [spec/RIO_STANDARD_v1.0.md](spec/RIO_STANDARD_v1.0.md) | Authoritative specification |
 | Conformance Spec | [spec/RIO_CONFORMANCE_v1.0.md](spec/RIO_CONFORMANCE_v1.0.md) | How compliance is verified |
+| Error Vocabulary | [spec/error_vocabulary.v1.json](spec/error_vocabulary.v1.json) | Canonical error codes (immutable) |
+| Error Vocabulary Spec | [spec/error_vocabulary.md](spec/error_vocabulary.md) | Versioning and immutability rules |
 | Runtime Map | [rio-system: SYSTEM_RUNTIME_MAP.md](https://github.com/bkr1297-RIO/rio-system/blob/main/SYSTEM_RUNTIME_MAP.md) | How the spec maps to a running system |
 
 `RIO_STANDARD_v1.0.md` is the authoritative specification. `RIO_CONFORMANCE_v1.0.md` defines how compliance is verified. `SYSTEM_RUNTIME_MAP.md` defines how the spec maps to a running system.

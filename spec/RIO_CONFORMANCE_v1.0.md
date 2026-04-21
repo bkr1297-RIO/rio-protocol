@@ -109,7 +109,25 @@ Test vectors are provided in `tests/conformance/` and `tests/vectors/` for exter
 
 ---
 
-## 9. Claiming Conformance
+## 9. Error Vocabulary Requirement
+
+All verification output — whether from a standalone verifier, an SDK, or a gateway endpoint — MUST conform to the Error Vocabulary defined in `spec/error_vocabulary.v1.json` (specification: `spec/error_vocabulary.md`).
+
+Every verification result MUST include:
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `vocabulary_version` | string | Yes | The vocabulary version used (e.g., "1.0") |
+| `error_code` | string or null | Yes | Canonical error code from the vocabulary, or null if valid |
+| `message` | string | Yes | Human-readable description |
+
+Implementations that return verification results without `vocabulary_version` are NOT conformant at any level.
+
+Boolean-only verification responses (e.g., `{"valid": false}` with no error code) are NOT conformant.
+
+---
+
+## 10. Claiming Conformance
 
 To claim RIO conformance at any level:
 
@@ -121,12 +139,15 @@ Compliance is binary: either the verifier reports PASS on all checks, or the imp
 
 ---
 
-## 10. Reference Documents
+## 11. Reference Documents
 
 | Document | Role |
 |----------|------|
 | `spec/RIO_STANDARD_v1.0.md` | Authoritative specification |
 | `spec/RIO_CONFORMANCE_v1.0.md` | How compliance is verified (this document) |
+| `spec/error_vocabulary.v1.json` | Canonical error vocabulary (machine-readable) |
+| `spec/error_vocabulary.md` | Error vocabulary specification |
 | `docs/CONFORMANCE.md` | Detailed conformance level definitions |
 | `tests/conformance/` | Machine-readable test suite |
 | `tests/vectors/` | Cryptographic test vectors |
+| `examples/invalid/` | Example artifacts that trigger specific error codes |
