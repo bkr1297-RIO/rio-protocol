@@ -10,6 +10,22 @@ RIO is a governed execution system that sits between AI, humans, and real-world 
 
 ---
 
+## Standard and Verification
+
+| Document | Location | Role |
+|----------|----------|------|
+| RIO Standard | [spec/RIO_STANDARD_v1.0.md](spec/RIO_STANDARD_v1.0.md) | Authoritative specification |
+| Conformance Spec | [spec/RIO_CONFORMANCE_v1.0.md](spec/RIO_CONFORMANCE_v1.0.md) | How compliance is verified |
+| Runtime Map | [rio-system: SYSTEM_RUNTIME_MAP.md](https://github.com/bkr1297-RIO/rio-system/blob/main/SYSTEM_RUNTIME_MAP.md) | How the spec maps to a running system |
+
+`RIO_STANDARD_v1.0.md` is the authoritative specification. `RIO_CONFORMANCE_v1.0.md` defines how compliance is verified. `SYSTEM_RUNTIME_MAP.md` defines how the spec maps to a running system.
+
+### Document Authority
+
+This repository (`rio-protocol`) is the canonical protocol specification. It defines what a RIO-compliant system must do. The implementation repository (`rio-system`) contains the reference runtime that implements this specification. Where any implementation detail in `rio-system` conflicts with the protocol specification in this repository, the protocol specification governs.
+
+---
+
 ## What RIO Guarantees
 
 These are not features. They are properties enforced by the protocol's cryptographic and architectural mechanisms. Each is independently testable.
