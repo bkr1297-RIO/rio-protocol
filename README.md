@@ -4,7 +4,7 @@
 
 RIO is a governed execution system that sits between AI, humans, and real-world actions. It translates goals into structured intent, evaluates risk and policy, requires approval when necessary, controls execution, verifies outcomes, and generates cryptographically signed receipts recorded in a tamper-evident ledger. **The system enforces the rules, not the AI.**
 
-> **This repository is the canonical protocol specification.** It contains everything an external team needs to implement a RIO-compliant gateway: specifications, JSON schemas, conformance test vectors, governance documents, and reference artifacts. It contains no executable implementation code.
+> **This repository is the canonical protocol specification.** It contains the protocol specification and reference verification implementation used to validate receipts and ledger integrity. Everything an external team needs to implement a RIO-compliant gateway is here: specifications, JSON schemas, conformance test vectors, governance documents, and reference artifacts.
 
 **Version:** v1.0.0
 **Error Vocabulary Version:** v1.0 (locked April 21, 2026, 01:00)
@@ -14,12 +14,12 @@ RIO is a governed execution system that sits between AI, humans, and real-world 
 ## Verify Immediately
 
 ```bash
-git clone https://github.com/bkr1297-RIO/rio-system.git
-cd rio-system
-python3 verifier/verify.py
+git clone https://github.com/bkr1297-RIO/rio-protocol.git
+cd rio-protocol
+pip install pynacl
 ```
 
-Expected output: 5/5 PASS with structured error vocabulary output. See [spec/error_vocabulary.md](spec/error_vocabulary.md) for the full output contract.
+Then follow the 5-step verification in [VERIFY_THIS_SYSTEM.md](VERIFY_THIS_SYSTEM.md). All test vectors, schemas, and verification instructions are in this repository. No external repos required.
 
 ---
 
@@ -31,19 +31,19 @@ Expected output: 5/5 PASS with structured error vocabulary output. See [spec/err
 | Conformance Spec | [spec/RIO_CONFORMANCE_v2.3.0.md](spec/RIO_CONFORMANCE_v2.3.0.md) | How compliance is verified (7 levels) |
 | Error Vocabulary | [spec/error_vocabulary.v1.json](spec/error_vocabulary.v1.json) | Canonical error codes (immutable) |
 | Error Vocabulary Spec | [spec/error_vocabulary.md](spec/error_vocabulary.md) | Versioning and immutability rules |
-| Runtime Map | [rio-system: SYSTEM_RUNTIME_MAP.md](https://github.com/bkr1297-RIO/rio-system/blob/main/SYSTEM_RUNTIME_MAP.md) | How the spec maps to a running system |
+| Verification Guide | [VERIFY_THIS_SYSTEM.md](VERIFY_THIS_SYSTEM.md) | Clone → run → break → verify in under 5 minutes |
 
-`RIO_STANDARD_v1.0.md` is the authoritative specification. `RIO_CONFORMANCE_v2.3.0.md` defines how compliance is verified (7 conformance levels). `SYSTEM_RUNTIME_MAP.md` defines how the spec maps to a running system.
+`RIO_STANDARD_v1.0.md` is the authoritative specification. `RIO_CONFORMANCE_v2.3.0.md` defines how compliance is verified (7 conformance levels).
 
 ### Document Authority
 
-This repository (`rio-protocol`) is the canonical protocol specification. It defines what a RIO-compliant system must do. The implementation repository (`rio-system`) contains the reference runtime that implements this specification. Where any implementation detail in `rio-system` conflicts with the protocol specification in this repository, the protocol specification governs.
+This repository (`rio-protocol`) is the canonical protocol specification. It defines what a RIO-compliant system must do. Where any implementation conflicts with the protocol specification in this repository, the protocol specification governs.
 
 ---
 
 ## Normative Boundary
 
-This repository contains both normative protocol artifacts and a reference implementation.
+This repository contains the protocol specification and reference verification implementation used to validate receipts and ledger integrity.
 
 ### Normative artifacts
 
@@ -185,9 +185,8 @@ spec/                                  Canonical protocol specifications
 └── *.md / *.json                        Design documents and schema defs
 
 schemas/                               JSON Schema 2020-12 definitions
-├── canonical_intent.json                Canonical request structure
+├── canonical_request.json               Canonical request structure
 ├── receipt.json                         Cryptographic receipt
-├── ledger_entry.json                    Ledger entry
 ├── authorization_record.json            Authorization record
 ├── execution_record.json                Execution record
 ├── risk_evaluation.json                 Risk evaluation record
@@ -250,15 +249,19 @@ NOTICE                                 Attribution notice
 
 ## Conformance Levels
 
-Implementations are assessed at three conformance levels:
+The authoritative conformance specification defines 7 levels in [spec/RIO_CONFORMANCE_v2.3.0.md](spec/RIO_CONFORMANCE_v2.3.0.md):
 
-| Level | Name | Requirements |
-|-------|------|-------------|
-| L1 | Structural | Correct receipt and ledger entry structure, all required fields present |
-| L2 | Cryptographic | L1 + valid signatures, correct hash computation, chain integrity |
-| L3 | Full Protocol | L2 + complete 8-stage pipeline, denial receipts, post-execution verification, learning loop |
+| Level | Name | Scope |
+|-------|------|-------|
+| 1 | Receipt Generation | All required fields present, correct types |
+| 2 | Receipt + Verification | Level 1 + independently verifiable hashes |
+| 3 | Receipt + Ledger | Level 2 + append-only hash-chained ledger |
+| 4 | Receipt + Ledger + Verification | Level 3 + chain integrity independently verifiable |
+| 5 | Full Proof Pipeline | Level 4 + 3-hash proof chain (result, previous_receipt, receipt) |
+| 6 | Governed Receipts | Level 5 + 5-hash chain (adds request_hash, intent_hash) |
+| 7 | Signed Receipts | Level 6 + Ed25519 signatures |
 
-See [docs/CONFORMANCE.md](docs/CONFORMANCE.md) for complete definitions and [tests/conformance/](tests/conformance/) for the test suite.
+See [spec/RIO_CONFORMANCE_v2.3.0.md](spec/RIO_CONFORMANCE_v2.3.0.md) for complete definitions and [tests/conformance/](tests/conformance/) for the test suite.
 
 ---
 

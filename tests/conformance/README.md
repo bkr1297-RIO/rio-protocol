@@ -4,11 +4,19 @@ Machine-readable conformance test suite for any implementation of the RIO protoc
 
 ## Conformance Levels
 
+The authoritative conformance specification is [spec/RIO_CONFORMANCE_v2.3.0.md](../../spec/RIO_CONFORMANCE_v2.3.0.md), which defines 7 levels:
+
 | Level | Name | Scope |
 |-------|------|-------|
-| 1 | Receipt Format | Static hash, signature, and field checks — no pipeline required |
-| 2 | Pipeline | Governance pipeline, gate enforcement, ledger chain |
-| 3 | Full Protocol | Adapter layer, AI routing, multi-tool governance |
+| 1 | Receipt Generation | All required fields present, correct types |
+| 2 | Receipt + Verification | Level 1 + independently verifiable hashes |
+| 3 | Receipt + Ledger | Level 2 + append-only hash-chained ledger |
+| 4 | Receipt + Ledger + Verification | Level 3 + chain integrity independently verifiable |
+| 5 | Full Proof Pipeline | Level 4 + 3-hash proof chain (result, previous_receipt, receipt) |
+| 6 | Governed Receipts | Level 5 + 5-hash chain (adds request_hash, intent_hash) |
+| 7 | Signed Receipts | Level 6 + Ed25519 signatures |
+
+The test vectors in this suite cover Levels 1–3. Higher levels require a running governance pipeline and are validated at the system level.
 
 ## Files
 
