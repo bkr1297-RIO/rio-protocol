@@ -86,18 +86,19 @@ If the key files do not exist when the system starts, a new key pair is generate
 
 ### Signing Process
 
-1. The receipt is generated with all fields populated (receipt_id, request_id, intent_id, authorization_id, decision, action_type, execution_status, execution_timestamp, result_hash).
-2. A canonical JSON representation of these fields is created (sorted keys, deterministic).
-3. The receipt hash is computed: `receipt_hash = SHA-256(canonical_json + previous_receipt_hash)`.
-4. The receipt hash is signed: `signature = RSA-PSS-Sign(private_key, receipt_hash)`.
-5. The signature is stored as a base64-encoded string in the receipt's `signature` field.
+1. The receipt is generated with all 22 fields populated (see `spec/receipt_schema.json` for the canonical field list).
+2. The signed fields are extracted (all fields except `receipt_hash`, `signature`, and `signature_algorithm`).
+3. A canonical JSON representation of the signed fields is created (`sort_keys=True`, `separators=(',', ':')`).
+4. The receipt hash is computed: `receipt_hash = SHA-256(canonical_json)`.
+5. The signature is computed: `signature = Ed25519_Sign(private_key, canonical_json)`.
+6. The signature is stored as a base64-encoded string in the receipt's `signature` field.
 
 ### Ledger Entry Signing
 
 Ledger entries follow the same pattern:
 
-1. The entry hash is computed from all fields (see formula above).
-2. The entry hash is signed: `ledger_signature = RSA-PSS-Sign(private_key, ledger_hash)`.
+1. The ledger hash is computed: `ledger_hash = SHA-256(prev_ledger_hash + receipt_hash)` where `+` is string concatenation.
+2. The genesis entry uses `SHA-256("GENESIS")` = `901131d838b17aac0f7885b81e03cbdc9f5157a00343d30ab22083685ed1416a` as its `prev_ledger_hash`.
 3. The signature is stored as a base64-encoded string.
 
 ---

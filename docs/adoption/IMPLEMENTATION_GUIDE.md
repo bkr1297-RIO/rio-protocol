@@ -90,10 +90,9 @@ Implement the signing and verification functions using either RSA-PSS or Ed25519
 The ledger writer appends entries to the hash chain. Each entry requires:
 
 1. Construct the ledger entry fields from the receipt data.
-2. Look up the `ledger_hash` of the most recent entry (or use empty string for genesis).
-3. Set `previous_ledger_hash` to that value.
-4. Concatenate all fields in the exact order specified (Section 6.3 of the behavior document) with no separator.
-5. Compute `ledger_hash` as SHA-256 of the UTF-8 encoded concatenation.
+2. Look up the `ledger_hash` of the most recent entry (or use `SHA-256("GENESIS")` = `901131d838b17aac0f7885b81e03cbdc9f5157a00343d30ab22083685ed1416a` for the first entry).
+3. Set `prev_ledger_hash` to that value.
+4. Compute `ledger_hash` as `SHA-256(prev_ledger_hash + receipt_hash)` where `+` is string concatenation of the hex hashes.
 6. Sign the `ledger_hash` to produce `ledger_signature`.
 7. Persist the entry.
 

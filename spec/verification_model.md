@@ -33,7 +33,7 @@ An auditor should be able to verify the following properties using the artifacts
 | Every receipt is in ledger | Check ledger entries for matching `receipt_id`; verify no receipt exists without a ledger entry |
 | Ledger is append-only | Verify hash chain from genesis to head; recompute all `entry_hash` values |
 | Receipt integrity | Recompute `receipt_hash` from canonical JSON and verify it matches the stored value |
-| Receipt authenticity | Verify ECDSA-secp256k1 signature using Receipt Service public key from key registry |
+| Receipt authenticity | Verify Ed25519 signature using the published public key |
 | Kill switch events recorded | Check ledger for EKS-0 engagement/disengagement receipts; verify no executions during engaged periods |
 | Tokens not reused | Check `authorization_id` uniqueness across all receipts; verify single-use enforcement |
 | No execution without receipt | Cross-check execution logs and ledger; every execution must have a receipt and a ledger entry |
@@ -67,13 +67,13 @@ To verify ledger integrity, an auditor performs the following steps:
 
 2. **For each entry, perform the following checks:**
 
-   a. **Recompute `entry_hash`.** Compute `SHA-256(receipt_hash + previous_receipt_hash + timestamp)` and verify it matches the stored `entry_hash`.
+   a. **Recompute ledger hash.** Compute `SHA-256(prev_ledger_hash + receipt_hash)` and verify it matches the stored ledger hash.
 
-   b. **Verify `previous_receipt_hash` linkage.** Confirm that the `previous_receipt_hash` in this entry matches the `entry_hash` of the immediately preceding entry. For the genesis entry, verify it equals the null hash (`0x0000...0000`, 64 hex characters).
+   b. **Verify `prev_ledger_hash` linkage.** Confirm that the `prev_ledger_hash` in this entry matches the ledger hash of the immediately preceding entry. For the genesis entry, verify it equals `SHA-256("GENESIS")` = `901131d838b17aac0f7885b81e03cbdc9f5157a00343d30ab22083685ed1416a`.
 
    c. **Verify `receipt_hash` matches stored receipt.** Retrieve the receipt referenced by `receipt_id`, compute the SHA-256 hash of its canonical JSON representation, and verify it matches the `receipt_hash` in the ledger entry.
 
-   d. **Verify receipt signature.** Verify the receipt's ECDSA-secp256k1 signature using the Receipt Service's public key obtained from the key registry.
+   d. **Verify receipt signature.** Verify the receipt's Ed25519 signature using the published public key.
 
 3. **If any hash mismatch occurs, the ledger is invalid.** The auditor must report the specific entry where the chain breaks, the nature of the inconsistency, and the timestamp of the affected entry.
 
@@ -83,10 +83,10 @@ To verify ledger integrity, an auditor performs the following steps:
 
 To verify protocol compliance for a governed request, an auditor examines each receipt and confirms the following:
 
-- **Confirm `request_id` exists.** The receipt must reference a valid intake request.
-- **Confirm `intent_id` exists.** The receipt must reference a valid canonical intent produced by Stage 3.
-- **Confirm authorization decision exists.** The receipt must reference a valid authorization decision produced by Stage 5.
-- **Confirm execution only occurred if decision = ALLOW.** If the receipt's `decision` is DENY, ESCALATE, or BLOCKED, the `execution_status` must not be `executed`.
+- **Confirm `request_hash` and `request_canonical_payload` exist.** The receipt must contain the canonical request data.
+- **Confirm `policy_bundle_id` and `policy_bundle_hash` exist.** The receipt must reference the policy bundle used for evaluation.
+- **Confirm `decision` is valid.** The `decision` field must be `allow` or `block`.
+- **Confirm `invariant_results` and `threshold_results` exist.** The receipt must contain evaluation results.
 - **Confirm receipt exists.** Every governed action must have produced a signed receipt.
 - **Confirm receipt is stored in ledger.** Every receipt must have a corresponding ledger entry.
 
@@ -109,7 +109,7 @@ The system must support independent audit by allowing auditors to access the fol
 
 - **Receipts.** The complete set of signed receipts for the audit window.
 - **Ledger entries.** The complete append-only ledger with hash chain data.
-- **Hash chain data.** All `entry_hash`, `previous_receipt_hash`, and `receipt_hash` values for chain verification.
+- **Hash chain data.** All ledger hashes, `prev_ledger_hash`, and `receipt_hash` values for chain verification.
 - **Policy decision logs.** Records of which policies were evaluated and what decisions they produced.
 - **Authorization logs.** Records of who authorized each action, when, and under what constraints.
 

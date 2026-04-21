@@ -36,17 +36,21 @@ Each ledger entry contains:
 | `ledger_entry_id` | string (UUID) | Unique identifier for this ledger entry |
 | `receipt_id` | string (UUID) | Reference to the receipt recorded by this entry |
 | `receipt_hash` | string (SHA-256) | Hash of the referenced receipt's canonical JSON representation |
-| `previous_receipt_hash` | string (SHA-256) | Hash of the immediately preceding ledger entry (genesis uses null hash) |
+| `prev_ledger_hash` | string (SHA-256) | Hash of the immediately preceding ledger entry. Genesis uses `SHA-256("GENESIS")` = `901131d8...1416a` |
 | `timestamp` | string (ISO 8601) | Time this entry was appended |
 | `entry_hash` | string (SHA-256) | Hash of this ledger entry |
 
 Entries are linked using a hash chain:
 
 ```
-entry_hash = SHA-256(receipt_hash + previous_receipt_hash + timestamp)
+ledger_hash = SHA-256(prev_ledger_hash + receipt_hash)
 ```
 
-This creates a tamper-evident chain of records. Any modification to a historical entry changes its `entry_hash`, which breaks the `previous_receipt_hash` reference in the next entry and all subsequent entries. The genesis entry (the first entry in the ledger) uses a null hash (`0x0000...0000`, 64 hex characters) as its `previous_receipt_hash`.
+This creates a tamper-evident chain of records. Any modification to a historical entry changes its hash, which breaks the chain for all subsequent entries. The genesis entry uses `SHA-256("GENESIS")` as its `prev_ledger_hash`:
+
+```
+SHA-256("GENESIS") = 901131d838b17aac0f7885b81e03cbdc9f5157a00343d30ab22083685ed1416a
+```
 
 ---
 
@@ -86,9 +90,9 @@ Ledger integrity must be verifiable by any party with read access to the ledger 
 
 The following verification procedures are supported:
 
-**Recomputing the hash chain.** An auditor recomputes all `entry_hash` values from the genesis entry forward using the formula `SHA-256(receipt_hash + previous_receipt_hash + timestamp)` and verifies that each computed hash matches the stored `entry_hash`. Any mismatch indicates tampering, deletion, or reordering.
+**Recomputing the hash chain.** An auditor recomputes all ledger hashes from the genesis entry forward using the formula `SHA-256(prev_ledger_hash + receipt_hash)` and verifies that each computed hash matches the stored hash. Any mismatch indicates tampering, deletion, or reordering.
 
-**Verifying receipt signatures.** For each ledger entry, the auditor retrieves the referenced receipt and verifies its ECDSA-secp256k1 signature using the Receipt Service's public key from the key registry.
+**Verifying receipt signatures.** For each ledger entry, the auditor retrieves the referenced receipt and verifies its Ed25519 signature using the published public key.
 
 **Checking invariant compliance.** The auditor verifies that every receipt in the system has a corresponding ledger entry (INV-03) and that the hash chain is unbroken from genesis to the current head (INV-04).
 
@@ -151,13 +155,12 @@ Using the ledger, an auditor must be able to reconstruct the following for any g
 
 | Question | Source |
 |----------|--------|
-| What was requested? | Canonical intent (via receipt's `intent_id`) |
-| How was it classified? | Risk category and action type (via canonical intent) |
-| What policies were applied? | Policy IDs (via receipt's `policy_ids`) |
-| Who authorized it? | Authorizer identity (via receipt's `authorization_id`) |
-| What was executed? | Execution result (via receipt's `result_hash` and `execution_status`) |
-| What was the result? | Execution outcome (via receipt's `decision` and `execution_status`) |
-| When did it happen? | Timestamps (via receipt's `timestamps` and ledger entry's `timestamp`) |
+| What was requested? | `request_hash` and `request_canonical_payload` in the receipt |
+| What policies were applied? | `policy_bundle_id` and `policy_bundle_hash` in the receipt |
+| What was decided? | `decision` and `decision_reason_codes` in the receipt |
+| What invariants were checked? | `invariant_results` in the receipt |
+| What was the model output? | `model_output_hash` and `model_output_preview` in the receipt |
+| When did it happen? | `timestamp` in the receipt and ledger entry |
 
 The ledger is the authoritative history of system behavior. If a dispute arises about what the system did, the ledger record is definitive. No runtime log, operational metric, or external record supersedes the ledger.
 

@@ -133,15 +133,13 @@ Each receipt contains:
 | Field | Description |
 |-------|-------------|
 | `receipt_id` | Unique identifier |
-| `intent_hash` | SHA-256 hash of the canonical intent |
-| `decision_hash` | SHA-256 hash of the policy decision |
-| `execution_hash` | SHA-256 hash of the execution result (or denial/block reason) |
+| `request_hash` | SHA-256 hash of the canonical request payload |
+| `decision` | The decision (`allow` or `block`) |
+| `receipt_hash` | SHA-256 hash of the canonical JSON of signed fields |
 | `timestamp` | ISO 8601 timestamp |
-| `signature` | ECDSA-secp256k1 signature over the receipt content |
-| `policy_decision` | The policy engine's decision (ALLOW, DENY, ESCALATE) |
-| `risk_level` | The risk engine's assessment (LOW, MEDIUM, HIGH) |
+| `signature` | Ed25519 signature over the canonical JSON of signed fields |
 
-The receipt is signed with the system's RSA-2048 private key stored at `runtime/keys/private_key.pem`.
+The receipt is signed with Ed25519. See `spec/receipt_schema.json` for the full 22-field canonical schema and `spec/SIGNING_ALGORITHMS.md` for the signing architecture.
 
 **Input:** Pipeline outcome (intent, decision, execution result or denial reason).
 

@@ -20,7 +20,7 @@ The act of a human authorizer (manager or admin) reviewing a pending request and
 
 ### Authorization
 
-The process of issuing a time-bound, single-use token that permits a specific action to be executed. Authorization occurs after policy and risk evaluation. The token contains the intent hash, authorizer identity, nonce, expiration, and ECDSA signature.
+The process of issuing a time-bound, single-use token that permits a specific action to be executed. Authorization occurs after policy and risk evaluation. The token contains the intent hash, authorizer identity, nonce, expiration, and cryptographic signature. Gateway-level tokens use ECDSA-secp256k1; receipts use Ed25519 (see `spec/SIGNING_ALGORITHMS.md`).
 
 > Implementation: `runtime/authorization.py`
 
@@ -56,7 +56,7 @@ See **Governed Corpus**.
 
 ### Decision
 
-The output of the policy engine. One of three values: **ALLOW** (the action may proceed without additional approval), **DENY** (the action is prohibited), or **ESCALATE** (the action requires human approval before proceeding). Also referred to as REQUIRE_APPROVAL when the decision is ESCALATE.
+The output of the policy engine. In the receipt schema, the decision field uses lowercase values: **allow** (the action may proceed) or **block** (the action is denied). The broader pipeline may also use ESCALATE (requires human approval). See `spec/receipt_schema.json` for the canonical receipt decision enum.
 
 ---
 
@@ -173,10 +173,9 @@ The component that evaluates a canonical intent against the active policy rules.
 
 ### Receipt
 
-A cryptographic proof of a single pipeline decision. Each receipt contains the intent hash, decision hash, execution hash, timestamp, and ECDSA-secp256k1 signature. Receipts prove that a specific decision was made about a specific request at a specific time, and that the proof has not been altered.
+A cryptographic proof of a single pipeline decision. Each receipt contains 22 fields including the request hash, canonical payload, decision, invariant results, threshold results, model output hash, and an Ed25519 signature. Receipts prove that a specific decision was made about a specific request at a specific time, and that the proof has not been altered.
 
-> Implementation: `runtime/receipt.py`
-> Schema: `schemas/receipt.json`
+> Schema: `spec/receipt_schema.json`
 
 ### Replay
 
@@ -212,6 +211,6 @@ The process of running what-if analyses against the governed corpus using propos
 
 ### Verification
 
-The process of validating the integrity of receipts and the ledger. Receipt verification checks the ECDSA signature. Ledger verification walks the hash chain to detect any broken links, tampered entries, or missing receipts.
+The process of validating the integrity of receipts and the ledger. Receipt verification checks the Ed25519 signature. Ledger verification walks the hash chain to detect any broken links, tampered entries, or missing receipts.
 
 > Implementation: `runtime/verification.py`, `runtime/verify_ledger.py`

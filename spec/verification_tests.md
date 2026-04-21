@@ -276,7 +276,7 @@ A conformant test environment MUST include:
 2. For each entry starting from the second entry:
    a. Compute the SHA-256 hash of the preceding entry (using minified, sorted JSON canonicalization).
    b. Compare the computed hash against the current entry's `previous_entry_hash` field.
-3. For the first entry, verify that `previous_entry_hash` is the defined genesis hash (e.g., `"0000000000000000000000000000000000000000000000000000000000000000"`).
+3. For the first entry, verify that `prev_ledger_hash` is `SHA-256("GENESIS")` = `901131d838b17aac0f7885b81e03cbdc9f5157a00343d30ab22083685ed1416a`.
 4. Record any mismatches.
 
 **Expected Result:** Every entry's `previous_entry_hash` MUST match the computed hash of the preceding entry. The chain MUST be unbroken from genesis to the latest entry.
@@ -312,12 +312,12 @@ A conformant test environment MUST include:
 3. Obtain the public key corresponding to `signature.public_key_id` from the key registry.
 4. Reconstruct the signed content by canonicalizing the receipt fields covered by the signature (minified, sorted JSON).
 5. Compute the SHA-256 hash of the canonicalized content.
-6. Verify the ECDSA-secp256k1 signature using the public key and the computed hash.
+6. Verify the Ed25519 signature using the public key and the canonical JSON of the signed fields.
 
 **Expected Result:** The signature verification MUST succeed, confirming that the receipt was signed by the receipt service and has not been modified since signing.
 
 **Pass Criteria:**
-- ECDSA signature verification returns `true`.
+- Ed25519 signature verification returns `true`.
 - The computed hash matches the `signed_fields_hash` in the signature object.
 - The `public_key_id` resolves to a valid, non-revoked key in the registry.
 

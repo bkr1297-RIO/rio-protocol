@@ -1,6 +1,6 @@
 # Receipt / Attestation Protocol
 
-**Version:** 2.0.0
+**Version:** 3.0.0
 **Status:** Core Specification
 **Category:** Protocol Stage (Stage 7)
 
@@ -12,13 +12,13 @@ The Receipt Protocol defines how the system generates a cryptographic receipt fo
 
 Receipts serve as:
 
-- **Proof of what was requested.** The receipt contains the canonical intent hash, linking the receipt to the original structured request.
-- **Proof of what was decided.** The receipt records the authorization decision (ALLOW, DENY, ESCALATE, or BLOCKED) and the identity of the authorizer.
-- **Proof of what was executed or denied.** The receipt records the execution status and a hash of the execution result, providing a tamper-evident record of the outcome.
-- **Input records for the audit ledger.** Receipts are the atomic unit of the append-only audit ledger. The ledger stores receipts, not raw logs.
-- **Input records for the governed corpus and learning system.** The Governed Corpus derives its structured decision history from receipts and their associated execution outcomes.
+- **Proof of what was requested.** The receipt contains the request hash and canonical payload, linking the receipt to the original request.
+- **Proof of what was decided.** The receipt records the decision (`allow` or `block`), invariant results, and threshold results.
+- **Proof of what was evaluated.** The receipt records the model output hash and preview, providing a tamper-evident record of the evaluation.
+- **Input records for the audit ledger.** Receipts are the atomic unit of the append-only audit ledger.
+- **Input records for the governed corpus and learning system.** The Governed Corpus derives its structured decision history from receipts.
 
-Every governed request must produce a receipt, whether the action is allowed, denied, or blocked. There are no exceptions. A request that does not produce a receipt is a protocol violation.
+Every governed request must produce a receipt, whether the action is allowed or blocked. There are no exceptions. A request that does not produce a receipt is a protocol violation.
 
 This enforces:
 
@@ -29,64 +29,87 @@ This enforces:
 
 ## 2. Receipt Structure
 
-Each receipt must contain the following fields:
+The canonical receipt schema is defined in `spec/receipt_schema.json`. Each receipt contains exactly 22 fields:
 
 | Field | Type | Description |
 |-------|------|-------------|
+| `receipt_version` | string | Protocol version (e.g., "1.0") |
 | `receipt_id` | string (UUID) | Unique receipt identifier |
-| `request_id` | string (UUID) | Intake request ID |
-| `intent_id` | string (UUID) | Canonical intent ID |
-| `authorization_id` | string (UUID) | Authorization decision ID |
-| `decision` | string (enum) | ALLOW / DENY / ESCALATE / BLOCKED |
-| `action_type` | string | Action requested |
-| `execution_status` | string (enum) | `executed` / `denied` / `blocked` / `failed` |
-| `risk_score` | number | Risk score at decision time |
-| `policy_ids` | array of strings | Policies applied during evaluation |
-| `timestamps` | object | Contains `intake_time`, `authorization_time`, `execution_time` (all ISO 8601) |
-| `result_hash` | string (SHA-256) | Hash of execution result (or null hash if not executed) |
-| `previous_receipt_hash` | string (SHA-256) | Hash of previous ledger receipt (genesis receipt uses null hash) |
-| `receipt_hash` | string (SHA-256) | Hash of this receipt |
-| `signature` | string (ECDSA-secp256k1) | Cryptographic signature of the Receipt Service |
+| `timestamp` | string (ISO 8601) | Timestamp with microsecond precision and UTC (Z suffix) |
+| `runtime_id` | string | Identifier of the runtime that produced this receipt |
+| `runtime_version` | string | Version of the runtime |
+| `environment` | string | Execution environment (test, staging, production) |
+| `request_summary` | string | Human-readable summary of the original request |
+| `request_hash` | string (SHA-256) | Hash of the canonical request payload |
+| `request_canonical_payload` | object | Canonical representation of the original request |
+| `policy_bundle_id` | string | Identifier of the policy bundle used for evaluation |
+| `policy_bundle_hash` | string (SHA-256) | Hash of the policy bundle |
+| `decision` | string (enum) | `allow` or `block` |
+| `decision_reason_codes` | array of strings | Machine-readable codes explaining the decision |
+| `invariant_results` | object | Results of invariant checks |
+| `threshold_results` | object | Results of threshold evaluations |
+| `model_output_hash` | string (SHA-256) | Hash of the model output |
+| `model_output_preview` | string | Truncated preview of the model output |
+| `prev_ledger_hash` | string (SHA-256) | Hash of the previous ledger entry |
+| `public_key_fingerprint` | string (SHA-256) | Fingerprint of the Ed25519 signing key |
+| `receipt_hash` | string (SHA-256) | Hash of the canonical JSON of all signed fields |
+| `signature_algorithm` | string | Always `Ed25519` |
+| `signature` | string (base64) | Ed25519 signature over the canonical JSON |
 
-All fields are required. If a field is not applicable (e.g., `authorization_id` for a kill-switch-blocked request), the field must contain a null sentinel value, not be omitted.
+All fields are required. No additional fields are permitted.
 
 ---
 
 ## 3. Receipt Types
 
-The system must generate receipts for every governed action. The receipt type is determined by the outcome:
+The system must generate receipts for every governed action. The receipt type is determined by the `decision` field:
 
-| Receipt Type | When Generated | `decision` Value | `execution_status` Value |
-|--------------|----------------|------------------|--------------------------|
-| Allow Receipt | Action approved and executed successfully | ALLOW | `executed` |
-| Denial Receipt | Action denied by policy or authorization | DENY | `denied` |
-| Blocked Receipt | Execution blocked by gate or kill switch | BLOCKED | `blocked` |
-| Failure Receipt | Execution attempted but failed | ALLOW | `failed` |
-| Kill Switch Event Receipt | EKS-0 engaged or disengaged | BLOCKED | `blocked` |
+| Decision | When Generated |
+|----------|----------------|
+| `allow` | Action approved and executed |
+| `block` | Action denied by policy, invariant failure, or kill switch |
 
-Every receipt type follows the same structure and signing process. There is no distinction in how different receipt types are stored or verified — the `decision` and `execution_status` fields encode the outcome.
+Every receipt type follows the same structure and signing process.
 
 ---
 
 ## 4. Hash Chain Requirement
 
-Receipts must be linked using a hash chain:
+### receipt_hash
+
+The `receipt_hash` is computed over the **signed fields** — all receipt fields except `receipt_hash`, `signature`, and `signature_algorithm`:
 
 ```
-receipt_hash = SHA-256(canonical_json(receipt_data) + previous_receipt_hash)
+signed_fields = {all fields} - {receipt_hash, signature, signature_algorithm}
+canonical_json = JSON.stringify(signed_fields, sort_keys=True, separators=(',', ':'))
+receipt_hash = SHA-256(canonical_json)
 ```
 
-The `canonical_json` function produces a deterministic JSON serialization (sorted keys, no whitespace, UTF-8 encoding) of all receipt fields except `receipt_hash` and `signature`. The `previous_receipt_hash` is the `receipt_hash` of the immediately preceding receipt in the ledger.
+The `receipt_hash` covers the full signed payload. It is the integrity root for the receipt.
+
+### Ledger chain
+
+Receipts are linked into a tamper-evident ledger chain:
+
+```
+ledger_hash = SHA-256(prev_ledger_hash + receipt_hash)
+```
+
+Where `+` is string concatenation of the two hex-encoded hashes.
+
+### Genesis
+
+The genesis entry uses `SHA-256("GENESIS")` as its `prev_ledger_hash`:
+
+```
+SHA-256("GENESIS") = 901131d838b17aac0f7885b81e03cbdc9f5157a00343d30ab22083685ed1416a
+```
 
 This ensures:
 
 - **Ledger entries cannot be modified.** Changing any field in a receipt changes its hash, which breaks the chain for all subsequent entries.
-- **Tampering is detectable.** An auditor can recompute all hashes from the genesis receipt forward and verify that each `previous_receipt_hash` matches.
-- **Full execution history is verifiable.** The hash chain provides a total ordering of all governed actions and makes deletion or reordering detectable.
-
-The genesis receipt (the first receipt in the ledger) uses a null hash (`0x0000...0000`, 64 hex zeros) as its `previous_receipt_hash`.
-
-The `receipt_hash` binds only the hash chain fields and timestamp. Other fields are descriptive metadata and are not part of cryptographic integrity.
+- **Tampering is detectable.** An auditor can recompute all hashes from genesis forward.
+- **Full execution history is verifiable.** The hash chain provides a total ordering of all governed actions.
 
 This supports invariant:
 
@@ -96,21 +119,23 @@ This supports invariant:
 
 ## 5. Signing Requirement
 
-Each receipt must be cryptographically signed by the Receipt Service using ECDSA-secp256k1.
+Each receipt must be cryptographically signed using **Ed25519**.
 
-The signature is computed over the `receipt_hash`:
+The signature is computed over the canonical JSON of the signed fields (the same bytes used to compute `receipt_hash`):
 
 ```
-signature = ECDSA_SIGN(receipt_service_private_key, receipt_hash)
+signature = Ed25519_SIGN(private_key, canonical_json)
 ```
 
 The signature attests that:
 
-- **The protocol executed correctly.** The Receipt Service only signs receipts that were generated through the full protocol flow.
-- **The decision and execution data are authentic.** The signature binds the Receipt Service's identity to the receipt content.
-- **The receipt can be independently verified.** Any party with access to the Receipt Service's public key (from the key registry) can verify the signature without trusting any runtime component.
+- **The protocol executed correctly.** The signing service only signs receipts generated through the full protocol flow.
+- **The decision and execution data are authentic.** The signature binds the signing key's identity to the receipt content.
+- **The receipt can be independently verified.** Any party with the Ed25519 public key can verify the signature.
 
-The Receipt Service's public key is published in the key registry and is subject to the key rotation and revocation procedures defined in the identity and credentials specification.
+The public key is published in PEM format (SPKI-encoded). The raw 32-byte Ed25519 key is the last 32 bytes of the DER-decoded payload.
+
+See `spec/SIGNING_ALGORITHMS.md` for the full signing architecture.
 
 ---
 
@@ -124,20 +149,13 @@ The flow is:
 Execution → Receipt Generated → Receipt Signed → Receipt Written to Ledger
 ```
 
-A receipt that is generated but not written to the ledger is a protocol violation (INV-03). The Receipt Service must confirm ledger write acknowledgment before considering the receipt finalized. If the ledger write fails, the Receipt Service must retry until the write succeeds or escalate to the kill switch if the ledger is unavailable.
+A receipt that is generated but not written to the ledger is a protocol violation (INV-03).
 
 ---
 
 ## 7. Relationship to Governed Corpus
 
-The Governed Corpus stores structured decision history derived from receipts and execution outcomes. The corpus is used for:
-
-- **Audit.** Reconstructing the full decision chain for any governed action.
-- **Risk modeling.** Analyzing patterns in risk scores, outcomes, and failure rates.
-- **Policy tuning.** Identifying policies that produce excessive false positives or false negatives.
-- **Governance learning.** Training updated risk and classification models on historical decision data.
-
-Receipts are the ground-truth record. The Governed Corpus may enrich receipt data with additional context (e.g., eventual outcomes, post-execution observations), but the receipt itself is immutable and serves as the authoritative record of what was decided and executed at runtime.
+The Governed Corpus stores structured decision history derived from receipts and execution outcomes. Receipts are the ground-truth record. The Governed Corpus may enrich receipt data with additional context, but the receipt itself is immutable and serves as the authoritative record.
 
 ---
 
@@ -145,13 +163,13 @@ Receipts are the ground-truth record. The Governed Corpus may enrich receipt dat
 
 The Receipt Protocol ensures four fundamental security properties:
 
-**Non-repudiation.** No party can deny that an action occurred. The receipt contains the canonical intent, the authorization decision, and the execution result, all signed by the Receipt Service and linked to the authorizer's identity.
+**Non-repudiation.** No party can deny that an action occurred. The receipt contains the request hash, the decision, and the evaluation results, all signed and linked to the signing key.
 
-**Integrity.** A receipt cannot be modified after generation. The hash chain and cryptographic signature make any modification detectable. Changing a single bit in any receipt field invalidates the receipt hash, breaks the chain, and invalidates the signature.
+**Integrity.** A receipt cannot be modified after generation. The hash chain and cryptographic signature make any modification detectable.
 
-**Traceability.** Every action is linked to its authorization. The receipt contains the `authorization_id`, which links to the signed authorization token, which links to the authorizer's identity. The full chain from request to execution to authorization to identity is reconstructable.
+**Traceability.** Every action is linked to its request via `request_hash` and `request_canonical_payload`.
 
-**Auditability.** Independent verification is possible without trusting any runtime component. An auditor needs only the ledger contents and the Receipt Service's public key to verify every receipt in the system.
+**Auditability.** Independent verification is possible without trusting any runtime component. An auditor needs only the ledger contents and the Ed25519 public key.
 
 ---
 
@@ -159,10 +177,8 @@ The Receipt Protocol ensures four fundamental security properties:
 
 | Document | Path |
 |----------|------|
-| Governed Execution Protocol | `/spec/governed_execution_protocol.md` |
-| Audit Ledger Protocol | `/spec/audit_ledger_protocol.md` |
-| Receipt JSON Schema | `/spec/receipt_schema.json` |
-| Ledger Entry JSON Schema | `/spec/ledger_entry_schema.json` |
-| Protocol Invariants | `/spec/protocol_invariants.md` |
-| Governed Corpus | `/spec/governed_corpus.md` |
-| EKS-0 Kill Switch | `/safety/EKS-0_kill_switch.md` |
+| Receipt JSON Schema | `spec/receipt_schema.json` |
+| Signing Algorithms | `spec/SIGNING_ALGORITHMS.md` |
+| Audit Ledger Protocol | `spec/audit_ledger_protocol.md` |
+| Ledger Entry JSON Schema | `spec/ledger_entry_schema.json` |
+| Conformance Specification | `spec/RIO_CONFORMANCE_v2.3.0.md` |

@@ -118,17 +118,19 @@ Every receipt MUST be signed by the attestation service. The signature provides 
 
 ### 4.1 Signature Algorithm
 
-- **Algorithm:** ECDSA with secp256k1 curve
-- **Hash function:** SHA-256
-- **Encoding:** DER-encoded signature, represented as lowercase hexadecimal
+- **Algorithm:** Ed25519
+- **Hash function:** SHA-256 (for receipt_hash computation)
+- **Encoding:** Base64-encoded signature
+
+> **Note:** Gateway-level tokens use ECDSA-secp256k1. Receipts use Ed25519. See `spec/SIGNING_ALGORITHMS.md` for the dual-signing architecture.
 
 ### 4.2 Signature Object Fields
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `algorithm` | string | `ECDSA-secp256k1` |
+| `algorithm` | string | `Ed25519` |
 | `public_key_id` | string | Identifier of the signing key |
-| `signature_value` | string | Hexadecimal-encoded DER signature |
+| `signature_value` | string | Base64-encoded Ed25519 signature |
 | `signed_fields_hash` | string | SHA-256 hash of the receipt body (excluding signature) |
 | `signed_at` | string (ISO 8601) | Timestamp of signature creation |
 
@@ -180,7 +182,7 @@ An auditor MUST follow these steps to verify a receipt:
 ### Step 2: Verify Signature
 
 1. Retrieve the public key identified by `signature.public_key_id`.
-2. Verify the ECDSA signature over `signature.signed_fields_hash`.
+2. Verify the Ed25519 signature over the canonical JSON of the signed fields.
 3. If verification fails, the signature is invalid. **FAIL.**
 
 ### Step 3: Verify Chain Integrity
