@@ -136,7 +136,7 @@ An independent party can audit the system using only the public key and the ledg
 
 ## 11. Conformance
 
-Compliance with this standard is defined in [RIO_CONFORMANCE_v1.0.md](RIO_CONFORMANCE_v1.0.md). Compliance is not self-declared; it is demonstrated by passing the conformance test suite.
+Compliance with this standard is defined in [RIO_CONFORMANCE_v2.3.0.md](RIO_CONFORMANCE_v2.3.0.md). Compliance is not self-declared; it is demonstrated by passing the conformance test suite.
 
 ---
 
@@ -147,5 +147,5 @@ This document is the authoritative specification for the RIO protocol. Where any
 | Document | Role |
 |----------|------|
 | `RIO_STANDARD_v1.0.md` | Authoritative specification (this document) |
-| `RIO_CONFORMANCE_v1.0.md` | Defines how compliance is verified |
+| `RIO_CONFORMANCE_v2.3.0.md` | Defines how compliance is verified (7 levels) |
 | `SYSTEM_RUNTIME_MAP.md` | Defines how the spec maps to a running system (in `rio-system`) |

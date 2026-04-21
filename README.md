@@ -28,12 +28,12 @@ Expected output: 5/5 PASS with structured error vocabulary output. See [spec/err
 | Document | Location | Role |
 |----------|----------|------|
 | RIO Standard | [spec/RIO_STANDARD_v1.0.md](spec/RIO_STANDARD_v1.0.md) | Authoritative specification |
-| Conformance Spec | [spec/RIO_CONFORMANCE_v1.0.md](spec/RIO_CONFORMANCE_v1.0.md) | How compliance is verified |
+| Conformance Spec | [spec/RIO_CONFORMANCE_v2.3.0.md](spec/RIO_CONFORMANCE_v2.3.0.md) | How compliance is verified (7 levels) |
 | Error Vocabulary | [spec/error_vocabulary.v1.json](spec/error_vocabulary.v1.json) | Canonical error codes (immutable) |
 | Error Vocabulary Spec | [spec/error_vocabulary.md](spec/error_vocabulary.md) | Versioning and immutability rules |
 | Runtime Map | [rio-system: SYSTEM_RUNTIME_MAP.md](https://github.com/bkr1297-RIO/rio-system/blob/main/SYSTEM_RUNTIME_MAP.md) | How the spec maps to a running system |
 
-`RIO_STANDARD_v1.0.md` is the authoritative specification. `RIO_CONFORMANCE_v1.0.md` defines how compliance is verified. `SYSTEM_RUNTIME_MAP.md` defines how the spec maps to a running system.
+`RIO_STANDARD_v1.0.md` is the authoritative specification. `RIO_CONFORMANCE_v2.3.0.md` defines how compliance is verified (7 conformance levels). `SYSTEM_RUNTIME_MAP.md` defines how the spec maps to a running system.
 
 ### Document Authority
 

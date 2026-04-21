@@ -1,15 +1,17 @@
 # RIO Protocol — Conformance Definition
 
-**Version:** 1.0
+**Version:** 2.3.0
 **Status:** Normative
+
+> **Note:** The authoritative conformance specification is `spec/RIO_CONFORMANCE_v2.3.0.md`. This document provides a summary of the conformance levels and verification requirements. When conflicts exist, the spec-level document takes precedence.
 
 ---
 
 ## What "RIO Compliant" Means
 
-A system is **RIO Compliant** when it produces cryptographic receipts and maintains an audit ledger that can be independently verified by any third party using only the public key and the RIO Independent Verifier. Compliance is not self-declared; it is demonstrated by passing the conformance test vectors published in this repository.
+A system is **RIO Compliant** when it produces cryptographic receipts and maintains an audit ledger that can be independently verified by any third party using only the public key and the published test vectors. Compliance is not self-declared; it is demonstrated by passing the conformance test vectors published in this repository.
 
-RIO compliance is defined at three levels. Each level builds on the previous one. An implementation must satisfy all requirements of a given level before claiming that level of compliance.
+RIO compliance is defined at seven levels. Each level builds on the previous one. An implementation must satisfy all requirements of a given level before claiming that level of compliance.
 
 ---
 
@@ -147,9 +149,10 @@ There is no self-certification. Compliance is binary: either the verifier report
 
 | Document | Location | Purpose |
 |----------|----------|---------|
+| Conformance Specification (v2.3.0) | `spec/RIO_CONFORMANCE_v2.3.0.md` | Authoritative conformance definition |
+| Receipt Schema | `spec/receipt_schema.json` | Canonical receipt structure (normative) |
 | Canonical Protocol Specification | `spec/RIO_Protocol_Specification_v1.0.json` | Defines the protocol standard |
-| Independent Verifier Specification | `spec/Independent_Verifier_Spec.json` | Defines verification checks |
-| Independent Verifier Implementation | `verification/` | Reference verifier package |
 | Conformance Test Suite | `tests/conformance/rio_conformance_suite_v1.json` | Machine-readable test definitions |
 | Test Vectors | `tests/vectors/` | Cryptographic test data |
+| Error Vocabulary | `spec/error_vocabulary.v1.json` | Canonical error codes |
 | Quickstart Guide | `docs/QUICKSTART.md` | Clone-to-verify walkthrough |

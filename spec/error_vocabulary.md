@@ -95,7 +95,7 @@ For passing verification:
 
 The error vocabulary is the bridge between the verifier implementation and the conformance specification:
 
-- The **conformance spec** (`RIO_CONFORMANCE_v1.0.md`) defines what must be checked.
+- The **conformance spec** (`RIO_CONFORMANCE_v2.3.0.md`) defines what must be checked.
 - The **error vocabulary** (`error_vocabulary.v1.json`) defines how failures are reported.
 - The **verifier** implements the checks and reports using the vocabulary.
 
@@ -134,5 +134,5 @@ The machine-readable source of truth is `spec/error_vocabulary.v1.json`.
 |----------|------|
 | `spec/error_vocabulary.v1.json` | Machine-readable canonical vocabulary (source of truth) |
 | `spec/error_vocabulary.md` | This specification document |
-| `spec/RIO_CONFORMANCE_v1.0.md` | Conformance requirements (references this vocabulary) |
+| `spec/RIO_CONFORMANCE_v2.3.0.md` | Conformance requirements (references this vocabulary) |
 | `examples/invalid/` | Example artifacts that trigger specific error codes |
