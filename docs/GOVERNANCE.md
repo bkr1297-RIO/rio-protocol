@@ -19,6 +19,70 @@ A single person may hold multiple roles. The Protocol Steward role may be delega
 
 ---
 
+## 1a. Governance Model (Current Phase)
+
+The protocol is currently governed by a single steward.
+
+This is intentional and ensures:
+
+- consistency of decisions
+- clarity of authority
+- preservation of the core invariant
+
+---
+
+## 1b. Trigger for Multi-Maintainer Governance
+
+Additional maintainers will be introduced when:
+
+- external contributors submit pull requests to modify the standard
+- or multiple independent organizations request change authority
+
+At that point, governance MAY expand to include:
+
+- co-maintainers with merge authority
+- defined approval rules for changes
+
+---
+
+## 1c. Maintainer Role Definition
+
+A maintainer is defined as:
+
+- a trusted reviewer of proposed changes
+- an approver of specification updates
+- a guardian of invariant preservation
+
+Maintainers:
+
+- review and approve PRs
+- enforce versioning rules
+- ensure backward compatibility
+
+Maintainers do NOT:
+
+- alter the core invariant
+- introduce breaking changes without versioning
+- bypass governance rules
+
+---
+
+## 1d. Governance Principle
+
+Early-stage governance prioritizes:
+
+- coherence
+- speed
+- correctness
+
+Later-stage governance prioritizes:
+
+- distributed authority
+- resilience
+- community participation
+
+---
+
 ## 2. Who Can Propose Protocol Changes
 
 Anyone may propose a protocol change. Proposals are not restricted to maintainers or certified implementors.
