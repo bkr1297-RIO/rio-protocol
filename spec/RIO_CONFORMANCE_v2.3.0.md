@@ -12,6 +12,8 @@ This document defines how conformance with the RIO Receipt Protocol is verified.
 
 Conformance is not self-declared. It is demonstrated by passing the tests defined in this document against the normative schemas and test vectors published in this repository.
 
+Compliance is binary. Any violation results in non-conformance.
+
 ---
 
 ## 2. Normative Ordering

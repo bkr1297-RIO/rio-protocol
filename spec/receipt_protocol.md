@@ -86,6 +86,8 @@ This ensures:
 
 The genesis receipt (the first receipt in the ledger) uses a null hash (`0x0000...0000`, 64 hex zeros) as its `previous_receipt_hash`.
 
+The `receipt_hash` binds only the hash chain fields and timestamp. Other fields are descriptive metadata and are not part of cryptographic integrity.
+
 This supports invariant:
 
 - **INV-04:** Ledger is append-only.

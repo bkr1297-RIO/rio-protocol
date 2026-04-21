@@ -41,6 +41,26 @@ This repository (`rio-protocol`) is the canonical protocol specification. It def
 
 ---
 
+## Normative Boundary
+
+This repository contains both normative protocol artifacts and a reference implementation.
+
+### Normative artifacts
+
+The protocol contract is defined by:
+
+1. `spec/receipt_schema.json`
+2. `spec/receipt_protocol.md`
+3. `spec/RIO_CONFORMANCE_v2.3.0.md`
+
+These define protocol conformance.
+
+### Reference implementation
+
+Code in this repository is a reference implementation, not the protocol itself.
+
+---
+
 ## What RIO Guarantees
 
 These are not features. They are properties enforced by the protocol's cryptographic and architectural mechanisms. Each is independently testable.
@@ -54,6 +74,8 @@ These are not features. They are properties enforced by the protocol's cryptogra
 | **Stale authorizations expire** | TTL-bound tokens (default 300s) | Submit expired token → gate rejects |
 | **Denied actions are auditable** | Denial receipts recorded in ledger | Query ledger for `decision=denied` entries |
 | **Intent is bound to outcome** | Three-hash binding: `intent_hash`, `action_hash`, `verification_hash` | Compare hashes; mismatch = drift or tampering |
+
+A RIO Receipt proves that a system produced a record and that it has not been altered. It does not independently prove that the action occurred in the external world.
 
 ---
 
@@ -263,6 +285,10 @@ Organizations can certify their RIO implementations at three levels: Structural,
 ## Protocol Governance
 
 Changes to the protocol follow the Protocol Change Proposal (PCP) process defined in [docs/GOVERNANCE.md](docs/GOVERNANCE.md). The versioning policy follows SemVer 2.0.0 as defined in [docs/VERSIONING.md](docs/VERSIONING.md).
+
+---
+
+See [SYSTEM-LAYERS.md](SYSTEM-LAYERS.md) for system structure.
 
 ---
 
