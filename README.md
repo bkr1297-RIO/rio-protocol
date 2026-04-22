@@ -295,6 +295,23 @@ See [SYSTEM-LAYERS.md](SYSTEM-LAYERS.md) for system structure.
 
 ---
 
+## Status
+
+This repository defines the RIO protocol and provides a reference verification implementation.
+
+It is not a production system.
+
+## Implementation Notes
+
+Implementations intending to align with RIO v1.0 should at minimum:
+- enforce authorization before execution
+- bind actions to exact intent
+- produce verifiable receipts
+
+See the specification and verification materials for conformance requirements.
+
+---
+
 ## License
 
 All Rights Reserved (Apache 2.0 license pending) — see [LICENSE](LICENSE).

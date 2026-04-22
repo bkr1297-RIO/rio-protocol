@@ -29,8 +29,11 @@ All changes to the protocol specification, schemas, or conformance tests follow 
 1. **Open an Issue** describing the proposed change and its rationale.
 2. **Fork the repository** and create a feature branch from `main`.
 3. **Make your changes** following the guidelines below.
-4. **Submit a Pull Request** referencing the issue number.
-5. **Review and discussion** will occur on the PR before merging.
+4. **Verify all invariants** listed below still hold.
+5. **Submit a Pull Request** referencing the issue number.
+6. **Review and discussion** will occur on the PR before merging.
+
+Changes to `spec/`, `schemas/`, or `tests/vectors/` require a Protocol Change Proposal (PCP) per [docs/GOVERNANCE.md](docs/GOVERNANCE.md).
 
 ### What You Can Contribute
 
@@ -43,6 +46,23 @@ All changes to the protocol specification, schemas, or conformance tests follow 
 | Documentation | `/docs` | Implementation guides, regulatory mappings, tutorials |
 | Ledger Protocol | `/ledger` | Ledger format documentation and integrity rules |
 | Security Model | `/security` | Threat model updates, security analysis, trust boundary docs |
+
+---
+
+## Invariants
+
+The following properties must hold after every commit:
+
+1. All test vectors in `tests/vectors/` validate against `spec/receipt_schema.json`
+2. `receipt_hash` is reproducible from the canonical JSON of the 19 signed fields
+3. The genesis hash equals `SHA-256("GENESIS")` = `901131d838b17aac0f7885b81e03cbdc9f5157a00343d30ab22083685ed1416a`
+4. Ledger chain hashes follow `SHA-256(prev_ledger_hash + receipt_hash)`
+5. Ed25519 signatures verify against the published test key
+6. No file in the repository references a file that does not exist
+
+Run the verification steps in [VERIFY_THIS_SYSTEM.md](VERIFY_THIS_SYSTEM.md) before submitting any change.
+
+For security vulnerabilities, see [SECURITY.md](SECURITY.md).
 
 ---
 
