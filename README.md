@@ -310,6 +310,8 @@ Implementations intending to align with RIO v1.0 should at minimum:
 
 See the specification and verification materials for conformance requirements.
 
+See Bondi specifications for orchestration, authority boundaries, and runtime behavior.
+
 ---
 
 ## License
