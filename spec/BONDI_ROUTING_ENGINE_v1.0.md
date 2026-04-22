@@ -114,6 +114,7 @@ Bondi composes normalized responses into a single presentation for the human ope
 
 Composition rules:
 
+- Bondi must not prioritize, suppress, or reorder information without explicitly defined and inspectable criteria
 - Conflicting information from different sources is presented as a conflict, not resolved
 - Uncertainty is preserved, not collapsed
 - Source attribution is maintained through to the final presentation
