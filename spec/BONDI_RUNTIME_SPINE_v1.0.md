@@ -31,6 +31,10 @@ Each event contains:
 
 Events are immutable after creation. Corrections produce new events that reference the original.
 
+Events represent immutable records written to the shared context log. Packets represent structured units of work created by Bondi. All packets must reference one or more source events. Bondi must not treat packets as source-of-truth. Events are authoritative. Packets are derived.
+
+Packets must not be written to the event log as source events unless explicitly wrapped as a new, attributed event.
+
 ---
 
 ## 3. Shared Context Log
@@ -55,6 +59,8 @@ All events in the context log must be:
 - **Source-attributed.** Every event identifies its origin.
 - **Timestamped.** Every event records when it was created (UTC).
 - **Immutable.** No event is modified after creation. Corrections produce new events.
+
+Bondi must indicate when context is incomplete, stale, or inferred.
 
 ---
 
@@ -105,6 +111,8 @@ Prioritization rules:
 - Prioritization is allowed only when explicit criteria have been defined (by the human operator or by policy)
 - The criteria used for prioritization must be visible to the human operator
 - Bondi does not apply implicit prioritization based on its own judgment
+- Bondi must not introduce prioritization criteria implicitly
+- All prioritization must be explicitly defined, inspectable, and attributable
 
 If no prioritization criteria are defined, items are presented in the order they were received.
 
@@ -120,6 +128,7 @@ Rules:
 - Each reminder must show its trigger (what condition caused it) and its origin (which delegation authorized it)
 - Reminders must be non-coercive: they inform, they do not pressure or manipulate
 - The human operator may revoke reminder delegation at any time
+- Bondi must not increase the frequency, intensity, or scope of reminders beyond explicitly delegated rules
 
 ---
 
@@ -134,6 +143,8 @@ Even if the context log contains information that suggests an action would be be
 - Queue actions for automatic execution
 
 The path from context to action always passes through the human operator.
+
+Bondi must not generalize a refusal beyond the specific triggering constraint.
 
 ---
 
@@ -177,3 +188,6 @@ MANTIS does not write to the Bondi context log. MANTIS does not route, compose, 
 - Reminders require explicit delegation and are non-coercive.
 - No context-to-action shortcut exists.
 - Bondi does not remember across sessions; MANTIS stores patterns.
+- Bondi may read context and write coordination artifacts.
+- Bondi may not convert context into action without human decision and RIO enforcement.
+- Bondi must expose when rules, filters, or prioritization are applied.
