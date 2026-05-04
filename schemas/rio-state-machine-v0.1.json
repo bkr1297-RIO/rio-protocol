@@ -1,0 +1,188 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "rio-state-machine-v0.1",
+  "title": "RIO Governed Action State Machine v0.1",
+  "description": "Formal definition of the 16-state governed action lifecycle from RIO Operating Spec v0.1 §7. Vocabulary source: server/rio/specAlignment.ts (Patch Pack 1.1).",
+  "version": "0.1.0",
+  "states": {
+    "SIGNAL": {
+      "description": "Raw input received — not yet interpreted",
+      "outcome_terminal": false,
+      "lifecycle_terminal": false,
+      "phase": "intake",
+      "transitions": ["INTERPRETED"]
+    },
+    "INTERPRETED": {
+      "description": "Input parsed into structured intent",
+      "outcome_terminal": false,
+      "lifecycle_terminal": false,
+      "phase": "intake",
+      "transitions": ["PACKETIZED"]
+    },
+    "PACKETIZED": {
+      "description": "Intent wrapped in governance packet with hash + metadata",
+      "outcome_terminal": false,
+      "lifecycle_terminal": false,
+      "phase": "intake",
+      "transitions": ["PRECHECKED"]
+    },
+    "PRECHECKED": {
+      "description": "Pre-commit validation complete (policy, risk, blast radius)",
+      "outcome_terminal": false,
+      "lifecycle_terminal": false,
+      "phase": "governance",
+      "transitions": ["REVIEWED", "BLOCKED"]
+    },
+    "REVIEWED": {
+      "description": "Presented to human for review",
+      "outcome_terminal": false,
+      "lifecycle_terminal": false,
+      "phase": "governance",
+      "transitions": ["COMMITTED", "REFUSED", "CLARIFY", "HOLD"]
+    },
+    "COMMITTED": {
+      "description": "Human has committed authority — authorization bound to proposal packet",
+      "outcome_terminal": false,
+      "lifecycle_terminal": false,
+      "phase": "governance",
+      "transitions": ["GATE_VALIDATED"],
+      "invariant": "INV-4: COMMITTED ≠ GATE_VALIDATED. Human commitment binds authority. Gate validation confirms execution match. These are distinct events."
+    },
+    "CLARIFY": {
+      "description": "Clarification requested — awaiting additional information from human",
+      "outcome_terminal": false,
+      "lifecycle_terminal": false,
+      "phase": "governance",
+      "transitions": ["REVIEWED"],
+      "note": "First-class status. Action resumes after clarification."
+    },
+    "HOLD": {
+      "description": "Action paused — awaiting condition or human decision",
+      "outcome_terminal": false,
+      "lifecycle_terminal": false,
+      "phase": "governance",
+      "transitions": ["REVIEWED"]
+    },
+    "GATE_VALIDATED": {
+      "description": "Post-commit gate validation passed — execution request matches committed packet",
+      "outcome_terminal": false,
+      "lifecycle_terminal": false,
+      "phase": "execution",
+      "transitions": ["EXECUTED", "FAILED"],
+      "requires_evidence": true,
+      "evidence_sources": [
+        "explicit gate validation event",
+        "status/context flag proving gate validation occurred",
+        "EXECUTED or FAILED status (proves gate attempt)"
+      ]
+    },
+    "EXECUTED": {
+      "description": "Action executed by the executor",
+      "outcome_terminal": false,
+      "lifecycle_terminal": false,
+      "phase": "execution",
+      "transitions": ["RECEIPTED"]
+    },
+    "BLOCKED": {
+      "description": "Action blocked by policy, gate, or kill switch",
+      "outcome_terminal": true,
+      "lifecycle_terminal": false,
+      "phase": "terminal",
+      "transitions": ["RECEIPTED"],
+      "note": "Outcome is final (action will not execute), but the lifecycle continues through receipt and ledger recording."
+    },
+    "REFUSED": {
+      "description": "Action refused by human decision — explicit rejection",
+      "outcome_terminal": true,
+      "lifecycle_terminal": false,
+      "phase": "terminal",
+      "transitions": ["RECEIPTED"],
+      "note": "Outcome is final (human said no), but the lifecycle continues through receipt and ledger recording."
+    },
+    "FAILED": {
+      "description": "Execution attempted but failed",
+      "outcome_terminal": true,
+      "lifecycle_terminal": false,
+      "phase": "terminal",
+      "transitions": ["RECEIPTED"],
+      "note": "Outcome is final (execution failed), but the lifecycle continues through receipt and ledger recording."
+    },
+    "RECEIPTED": {
+      "description": "Canonical receipt generated and signed",
+      "outcome_terminal": false,
+      "lifecycle_terminal": false,
+      "phase": "recording",
+      "transitions": ["RECORDED"]
+    },
+    "RECORDED": {
+      "description": "Receipt written to ledger with hash chain linkage",
+      "outcome_terminal": false,
+      "lifecycle_terminal": false,
+      "phase": "recording",
+      "transitions": ["LEARNED"]
+    },
+    "LEARNED": {
+      "description": "Learning loop has processed the outcome",
+      "outcome_terminal": false,
+      "lifecycle_terminal": true,
+      "phase": "learning",
+      "transitions": []
+    }
+  },
+  "phases": {
+    "intake": {
+      "description": "Goal → Intent: raw input to structured governance packet",
+      "states": ["SIGNAL", "INTERPRETED", "PACKETIZED", "PRECHECKED"]
+    },
+    "governance": {
+      "description": "Policy → Approval: human review, commitment, clarification, hold",
+      "states": ["REVIEWED", "COMMITTED", "CLARIFY", "HOLD"]
+    },
+    "execution": {
+      "description": "Gate → Execute: post-commit validation and execution",
+      "states": ["GATE_VALIDATED", "EXECUTED"]
+    },
+    "terminal": {
+      "description": "Terminal outcomes: blocked, refused, failed",
+      "states": ["BLOCKED", "REFUSED", "FAILED"]
+    },
+    "recording": {
+      "description": "Receipt → Ledger: cryptographic receipt and hash chain",
+      "states": ["RECEIPTED", "RECORDED"]
+    },
+    "learning": {
+      "description": "Ledger → Policy improvement (advisory only)",
+      "states": ["LEARNED"]
+    }
+  },
+  "verdicts": {
+    "PASS": { "description": "All checks passed — action may proceed", "terminal": false },
+    "WARN": { "description": "Checks passed with advisory signals — proceed with caution", "terminal": false },
+    "CLARIFY": { "description": "Insufficient information — human must clarify", "terminal": false },
+    "HOLD": { "description": "Action paused — awaiting condition or decision", "terminal": false },
+    "BLOCK": { "description": "Denied by policy or gate — not permitted", "terminal": true },
+    "REFUSE": { "description": "Denied by human decision — explicit refusal", "terminal": true },
+    "FAILED": { "description": "Execution attempted but failed", "terminal": true },
+    "INVALID": { "description": "Structurally invalid — cannot enter pipeline", "terminal": true }
+  },
+  "invariants": {
+    "INV-1": "Human Root Authority: human remains ultimate authority",
+    "INV-2": "Fail-Closed: verification failure blocks execution",
+    "INV-3": "Proposal Before Movement: no action without prior proposal packet",
+    "INV-4": "Commit ≠ Gate: COMMITTED and GATE_VALIDATED are distinct events",
+    "INV-5": "Proposer ≠ Approver: structural separation or constrained delegation",
+    "INV-6": "Token Lifecycle: issue → validate → burn, no reuse",
+    "INV-7": "Receipt Completeness: all required fields present",
+    "INV-8": "Ledger Integrity: append-only SHA-256 hash chain",
+    "INV-9": "Context Cannot Expand Authority: context restricts, never grants",
+    "INV-10": "Learning is Advisory: learning cannot approve, execute, or bypass"
+  },
+  "canonical_happy_path": [
+    "SIGNAL", "INTERPRETED", "PACKETIZED", "PRECHECKED",
+    "REVIEWED", "COMMITTED", "GATE_VALIDATED",
+    "EXECUTED", "RECEIPTED", "RECORDED", "LEARNED"
+  ],
+  "vocabulary_source": "server/rio/specAlignment.ts",
+  "facade_source": "server/rio/systemCalls.ts",
+  "spec_document": "docs/spec/rio-operating-spec-v0.1.md"
+}
