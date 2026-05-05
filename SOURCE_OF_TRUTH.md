@@ -118,7 +118,21 @@ The current canonical protocol set includes:
 
 ---
 
-## 7. One-Sentence Summary
+## 7. Related Repositories
+
+| Repository | Role | Canonical? |
+|------------|------|------------|
+| **bkr1297-RIO/rio-protocol** (this repo) | Canonical protocol source of truth | Yes |
+| bkr1297-RIO/rio-system | Observation / MANTIS / pattern-awareness runtime | No — non-authoritative advisory layer |
+| bkr1297-RIO/rio-receipt-protocol | Local receipt/proof engine (zero-dependency) | No — reference implementation of proof layer |
+| bkr1297-RIO/rio-proxy | Governed execution runtime implementation | No — implementation reference |
+| bkr1297-RIO/rio-proxy-manus | Manus working/checkpoint mirror of rio-proxy | No — working repo only, not canonical |
+
+The canonical protocol lives here. Implementations reference this repo. If a claim in an implementation repo contradicts this repo, this repo wins.
+
+---
+
+## 8. One-Sentence Summary
 
 RIO now has a canonical protocol baseline in rio-protocol: defined, structured, inspectable, testable, and explainable — but not yet externally validated or production-complete.
 
