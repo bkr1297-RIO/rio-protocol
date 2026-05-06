@@ -718,13 +718,13 @@ A conforming implementation must satisfy all of the following:
 
 1. **No packet for PASS verdicts on private exploration** (PP-TC-01, PP-TC-02, PP-TC-03, PP-TC-17). The system must not construct governance objects for private meaning.
 
-2. **Packet constructed for all HOLD/WARN verdicts involving crossings** (PP-TC-04 through PP-TC-22 where applicable). Every crossing attempt must produce a structured Proposal Packet.
+2. **Packet constructed for all HOLD/WARN verdicts involving crossings** (PP-TC-04 through PP-TC-22 where applicable). Every crossing attempt must produce a structured Proposal Packet. BLOCK and INVALID verdicts do not create a normal Proposal Packet for downstream routing — they produce a refusal record only.
 
 3. **Meaning context is classification tag only** — never narrative interpretation. No packet may contain a summary of what the human's experience "means."
 
 4. **Routing matches consequence level and reliance context.** Irreversible consequence must route through RIO + Sentinel. Public claims must route through ONE Answer Check.
 
-5. **Receipt logic correct.** PASS = no receipt required. WARN = optional. HOLD/BLOCK/INVALID = required. All governance evaluations = required. All executions = required.
+5. **Receipt logic correct.** PASS = no receipt required. WARN = optional. HOLD = evaluation receipt required. BLOCK/INVALID = refusal record with evaluation receipt required (not a normal Proposal Packet). All governance evaluations = required. All executions = required.
 
 6. **Human authority preserved at every stage.** Withdrawal must be possible at any point before execution. No packet may auto-authorize.
 
@@ -757,3 +757,4 @@ A conforming implementation must satisfy all of the following:
 | Version | Date | Change |
 |---------|------|--------|
 | 0.1 | 2026-05-06 | Initial test cases (22 cases across 10 categories) |
+| 0.1.1 | 2026-05-06 | Hardening clarification: BLOCK/INVALID produce refusal records, not normal Proposal Packets |

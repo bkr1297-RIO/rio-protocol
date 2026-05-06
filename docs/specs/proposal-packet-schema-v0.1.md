@@ -209,7 +209,8 @@ Multiple routes may apply simultaneously. The packet traverses all required gove
 |-------|-------------|----------|
 | Packet constructed (PASS verdict) | None | No |
 | Packet constructed (WARN verdict) | Evaluation log | Optional |
-| Packet constructed (HOLD/BLOCK/INVALID) | Evaluation receipt | Yes |
+| Packet constructed (HOLD verdict) | Evaluation receipt | Yes |
+| Refusal record produced (BLOCK/INVALID verdict) | Evaluation receipt | Yes |
 | ONE Answer Check completed | Governance receipt | Yes |
 | RIO evaluation completed | Governance receipt | Yes |
 | Human authorization granted | Authorization receipt | Yes |
@@ -230,8 +231,8 @@ The Grammar Scanner verdict maps to Proposal Packet construction as follows:
 | PASS | No packet constructed. Optional evaluation log. |
 | WARN | Packet constructed with `consequence_level: advisory` or `reliance`. Routes to Answer Check if public_claims present. |
 | HOLD | Packet constructed with `consequence_level: consequential` or `irreversible`. Routes to RIO. |
-| BLOCK | Packet constructed with `state: REFUSED`. Evaluation receipt generated. No further routing. |
-| INVALID | Packet constructed with `state: REFUSED`. Evaluation receipt generated. Input malformed. |
+| BLOCK | **Refusal record only.** Does not create a normal Proposal Packet for downstream routing. Produces a refusal record capturing the attempted crossing, trigger, reason, and receipt requirement. No governance route proceeds unless the human later creates a revised valid crossing. Evaluation receipt generated. |
+| INVALID | **Refusal record only.** Does not create a normal Proposal Packet for downstream routing. Produces a refusal record capturing the attempted crossing, trigger, reason, and receipt requirement. Input malformed. No governance route proceeds. Evaluation receipt generated. |
 
 ---
 
@@ -268,3 +269,4 @@ The human retains authority at every stage:
 | Version | Date | Change |
 |---------|------|--------|
 | 0.1 | 2026-05-06 | Initial schema specification |
+| 0.1.1 | 2026-05-06 | Hardening clarification: BLOCK/INVALID produce refusal records, not normal Proposal Packets |

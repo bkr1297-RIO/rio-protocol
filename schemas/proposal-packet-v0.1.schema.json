@@ -52,7 +52,7 @@
         "WITHDRAWN",
         "REFUSED"
       ],
-      "description": "Current lifecycle state of the packet"
+      "description": "Current lifecycle state. REFUSED state applies only to refusal records (produced by BLOCK/INVALID verdicts), not normal Proposal Packets for downstream routing."
     },
     "human_source": {
       "type": "object",
