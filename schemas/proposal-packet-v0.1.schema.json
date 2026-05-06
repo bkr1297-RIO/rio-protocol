@@ -1,0 +1,333 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rio-protocol.org/schemas/proposal-packet-v0.1.schema.json",
+  "title": "Proposal Packet",
+  "description": "Structured boundary object for governing crossings from human meaning into consequence. Preserves human meaning without allowing meaning to bypass governance.",
+  "type": "object",
+  "required": [
+    "packet_id",
+    "packet_version",
+    "created_at",
+    "state",
+    "human_source",
+    "meaning_context",
+    "reliance_context",
+    "requested_action",
+    "public_claims",
+    "consequence_level",
+    "rio_required",
+    "sentinel_required",
+    "receipt_required",
+    "answer_check_required",
+    "proof_status",
+    "escalation_rules",
+    "revocation_rules"
+  ],
+  "properties": {
+    "packet_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for this Proposal Packet (UUID v4)"
+    },
+    "packet_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Schema version in semver format",
+      "const": "0.1.0"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO-8601 timestamp of packet construction"
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "CONSTRUCTED",
+        "ROUTED",
+        "EVALUATED",
+        "AUTHORIZED",
+        "EXECUTED",
+        "RECEIPTED",
+        "WITHDRAWN",
+        "REFUSED"
+      ],
+      "description": "Current lifecycle state. REFUSED state applies only to refusal records (produced by BLOCK/INVALID verdicts), not normal Proposal Packets for downstream routing."
+    },
+    "human_source": {
+      "type": "object",
+      "required": ["user_id", "session_id", "input_hash"],
+      "properties": {
+        "user_id": {
+          "type": "string",
+          "description": "Human's system identity"
+        },
+        "session_id": {
+          "type": "string",
+          "description": "Session in which the crossing was initiated"
+        },
+        "input_hash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "SHA-256 hash of the original human input"
+        }
+      },
+      "additionalProperties": false
+    },
+    "meaning_context": {
+      "type": "string",
+      "enum": [
+        "private_reflection",
+        "somatic_signal",
+        "symbolic_orientation",
+        "emotional_activation",
+        "existential_positioning",
+        "relational_context",
+        "pattern_recognition",
+        "external_input",
+        "composite"
+      ],
+      "description": "Classification tag for the type of meaning-source. NOT a narrative summary. The system knows the type without claiming to understand the meaning."
+    },
+    "reliance_context": {
+      "type": "string",
+      "enum": [
+        "exploration",
+        "private_meaning",
+        "public_claim",
+        "action_authority",
+        "delegated_authority",
+        "financial_reliance",
+        "legal_reliance",
+        "medical_reliance",
+        "identity_reliance"
+      ],
+      "description": "What type of reliance the crossing involves"
+    },
+    "requested_action": {
+      "type": "object",
+      "required": ["type", "description"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "public_assertion",
+            "external_communication",
+            "delegation",
+            "commitment",
+            "execution",
+            "financial_transaction",
+            "legal_action",
+            "medical_decision"
+          ],
+          "description": "Category of crossing being requested"
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable description of what is being requested"
+        },
+        "target": {
+          "type": "string",
+          "description": "Who or what the action affects"
+        },
+        "scope": {
+          "type": "string",
+          "description": "Boundaries of the requested action"
+        }
+      },
+      "additionalProperties": false
+    },
+    "public_claims": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["claim", "evidence_status"],
+        "properties": {
+          "claim": {
+            "type": "string",
+            "description": "The assertion being made"
+          },
+          "evidence_status": {
+            "type": "string",
+            "enum": ["verified", "unverified", "personal", "contested"],
+            "description": "Whether evidence exists for this claim"
+          },
+          "source": {
+            "type": "string",
+            "description": "Where the claim originates"
+          }
+        },
+        "additionalProperties": false
+      },
+      "description": "List of factual assertions requiring evidence routing. May be empty."
+    },
+    "consequence_level": {
+      "type": "string",
+      "enum": [
+        "private",
+        "advisory",
+        "reliance",
+        "consequential",
+        "irreversible"
+      ],
+      "description": "Severity of consequence if crossing proceeds"
+    },
+    "rio_required": {
+      "type": "boolean",
+      "description": "Whether RIO governance evaluation is needed"
+    },
+    "sentinel_required": {
+      "type": "boolean",
+      "description": "Whether Sentinel execution verification is needed"
+    },
+    "receipt_required": {
+      "type": "boolean",
+      "description": "Whether a MUS receipt must be generated"
+    },
+    "answer_check_required": {
+      "type": "boolean",
+      "description": "Whether ONE Answer Check is needed for claims"
+    },
+    "proof_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "evaluation_logged",
+        "governance_receipted",
+        "execution_receipted",
+        "ledger_written"
+      ],
+      "description": "Current proof state of the packet"
+    },
+    "escalation_rules": {
+      "type": "object",
+      "required": ["escalate_on", "escalate_to"],
+      "properties": {
+        "escalate_on": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Conditions triggering escalation"
+        },
+        "escalate_to": {
+          "type": "string",
+          "description": "Where escalation routes"
+        }
+      },
+      "additionalProperties": false
+    },
+    "revocation_rules": {
+      "type": "object",
+      "required": ["revocable", "revocation_method"],
+      "properties": {
+        "revocable": {
+          "type": "boolean",
+          "description": "Whether the crossing can be revoked after execution"
+        },
+        "revocation_window": {
+          "type": "string",
+          "description": "Time window for revocation (ISO-8601 duration, if applicable)"
+        },
+        "revocation_method": {
+          "type": "string",
+          "description": "How revocation is performed"
+        }
+      },
+      "additionalProperties": false
+    },
+    "scanner_verdict": {
+      "type": "object",
+      "description": "Reference to the Grammar Scanner evaluation that triggered this packet",
+      "properties": {
+        "evaluation_id": {
+          "type": "string",
+          "description": "Scanner evaluation ID (geval-*)"
+        },
+        "verdict": {
+          "type": "string",
+          "enum": ["PASS", "WARN", "HOLD", "BLOCK", "INVALID"]
+        },
+        "triggered_rule": {
+          "type": "string",
+          "description": "Which grammar rule fired"
+        },
+        "grammar_module": {
+          "type": "string",
+          "description": "Which grammar module the rule belongs to"
+        }
+      },
+      "additionalProperties": false
+    },
+    "rio_handoff": {
+      "type": ["object", "null"],
+      "description": "Structured RIO handoff object (null if RIO not required)",
+      "properties": {
+        "trigger": {
+          "type": "string"
+        },
+        "risk_type": {
+          "type": "string"
+        },
+        "action": {
+          "type": "string"
+        },
+        "human_authority_required": {
+          "type": "boolean"
+        },
+        "receipt_required": {
+          "type": "boolean"
+        },
+        "proof_status": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "authorization": {
+      "type": ["object", "null"],
+      "description": "Authorization record (null until human authorizes)",
+      "properties": {
+        "authorized_by": {
+          "type": "string",
+          "description": "User ID of authorizing human"
+        },
+        "authorized_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "authorization_token_id": {
+          "type": "string",
+          "description": "Token issued for execution"
+        },
+        "scope_confirmed": {
+          "type": "boolean",
+          "description": "Whether human confirmed the scope matches intent"
+        }
+      },
+      "additionalProperties": false
+    },
+    "receipt": {
+      "type": ["object", "null"],
+      "description": "MUS receipt reference (null until receipted)",
+      "properties": {
+        "receipt_id": {
+          "type": "string"
+        },
+        "receipt_hash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "previous_receipt_hash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "ledger_entry_id": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
