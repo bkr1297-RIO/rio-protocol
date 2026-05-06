@@ -29,7 +29,7 @@ This section defines what each layer may and may not do. These boundaries are co
 
 **Grammar** clarifies and classifies language patterns. Grammar may detect ambiguity, meaning closure, authority drift, identity assignment, urgency compression, and action leakage. Grammar may not authorize, block, execute, decide consequence, or settle human meaning.
 
-**Policy** evaluates risk and recommends routing. Policy may assign risk tier, suggest CLARIFY/WARN/HOLD/BLOCK/INVALID, and identify receipt requirements. Policy may not become final authority or override the human.
+**Policy** evaluates risk and recommends routing. Policy may assign risk tier, recommend interventions (including clarification routes within WARN or HOLD), and identify receipt requirements. Policy may not become final authority or override the human.
 
 **RIO** governs valid movement into consequence. RIO may hold, block, validate, authorize, or refuse consequential crossings according to authority, scope, consent, policy, and Commit requirements. RIO may not rewrite human meaning.
 
@@ -314,3 +314,4 @@ This specification does not:
 |---------|------|--------|
 | v0.1 | 2026-05-05 | Initial draft — 5 active modules, 8 planned modules |
 | v0.1.1 | 2026-05-05 | Red-team revision — added Layer Boundary, Risk Labeling Rule, Meaning Closure Boundary (exact wording), RIO Handoff Rule/Contract, Readiness Classification, Non-goals expanded |
+| v0.1.2 | 2026-05-06 | Red-team hardening — fixed CLARIFY terminology (intervention/route, not verdict), aligned with Policy Engine v0.1.2 |

@@ -10,7 +10,7 @@
 
 The Language Risk Policy Engine is the enforcement runtime that evaluates messages against the Personal AI Grammar Packet and produces verdicts. It is the mechanism by which grammar rules become enforceable boundaries.
 
-The Grammar Packet defines what is admissible. The Policy Engine evaluates whether a specific message is admissible. The distinction is constitutional: the packet is law, the engine is court.
+The packet defines admissible crossings. The engine evaluates messages against the packet. RIO governs consequence. The human remains final authority.
 
 ---
 
@@ -24,7 +24,7 @@ The Grammar Packet defines what is admissible. The Policy Engine evaluates wheth
 
 This section defines what the Policy Engine may and may not do. These boundaries are constitutional.
 
-**Policy** evaluates risk and recommends routing. Policy may assign risk tier, suggest CLARIFY/WARN/HOLD/BLOCK/INVALID, and identify receipt requirements. Policy may not become final authority or override the human.
+**Policy** evaluates risk and recommends routing. Policy may assign risk tier, recommend interventions (including clarification routes within WARN or HOLD), and identify receipt requirements. Policy may not become final authority or override the human.
 
 **Policy is not Grammar.** Policy does not define admissible crossings — it evaluates messages against them.
 
@@ -171,7 +171,7 @@ Receipt or draft receipt required for:
 
 | Event | Receipt Required |
 |-------|-----------------|
-| CLARIFY verdict | Yes |
+| CLARIFY intervention (within WARN or HOLD) | Yes |
 | WARN verdict | Yes |
 | HOLD verdict | Yes |
 | BLOCK verdict | Yes |
@@ -191,7 +191,13 @@ Receipt or draft receipt required for:
 
 ## §10 Evaluation Receipt
 
-Every evaluation produces a receipt regardless of verdict. The receipt records what was checked, what triggered, and what verdict was produced.
+Receipt scope depends on verdict and governance context:
+
+- **PASS** = optional evaluation log (no required receipt).
+- **WARN / HOLD / BLOCK / INVALID** = required evaluation receipt.
+- **RIO handoff / Commit / override / execution / refusal** = required governance receipt.
+
+Not every private exploratory message requires receipt exhaust. Receipts exist to prove governed crossings, not to surveil exploration.
 
 **Receipt fields:**
 
@@ -273,7 +279,7 @@ Safe revisions are suggestions, not mandates. The human retains authority to rev
 
 ## §15 Fail-Safe Behavior
 
-The Policy Engine operates fail-safe (fail-closed for consequence, fail-open for exploration):
+The Policy Engine operates fail-safe — **fail-closed for consequence, fail-open for private exploration**:
 
 | Failure Mode | Behavior |
 |-------------|----------|
@@ -281,7 +287,7 @@ The Policy Engine operates fail-safe (fail-closed for consequence, fail-open for
 | Rule evaluation error | HOLD the message; do not default to PASS |
 | Context detection ambiguous | Use more restrictive context |
 | Multiple rules trigger at same severity | Report all triggers; use most specific rule for safe revision |
-| Engine unavailable | No messages proceed; system enters safe mode |
+| Engine unavailable | No consequential or externally delivered messages proceed through governed channels. Private exploration remains available without system execution. |
 
 ---
 
@@ -332,3 +338,4 @@ This specification does not:
 |---------|------|--------|
 | v0.1 | 2026-05-05 | Initial draft — 5 verdicts, evaluation flow, receipt structure, integration points |
 | v0.1.1 | 2026-05-05 | Red-team revision — added Layer Boundary, Least Restrictive Intervention Rule, RIO Handoff Rule/Contract, Receipt Trigger Table, Readiness Classification, Non-goals expanded |
+| v0.1.2 | 2026-05-06 | Red-team hardening — replaced authority metaphor, fixed CLARIFY terminology (intervention not verdict), narrowed receipt scope (PASS=optional, non-PASS=required, governance=required), narrowed fail-safe (fail-closed for consequence, fail-open for private exploration) |

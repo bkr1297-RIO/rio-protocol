@@ -530,7 +530,7 @@ These test cases address specific failure modes identified in red-team review.
 A conformant implementation of the Language Risk Policy Engine must:
 
 1. Produce the correct verdict for all 34 test cases.
-2. Generate an evaluation receipt for all non-PASS verdicts.
+2. Generate a required evaluation receipt for all non-PASS verdicts. PASS verdicts may produce an optional evaluation log but do not require a receipt.
 3. Suggest a safe revision for all HOLD and BLOCK verdicts (except TC-34 which cannot be safely revised).
 4. Route correctly based on reliance context.
 5. Not produce PASS for any test case marked HOLD or BLOCK.
