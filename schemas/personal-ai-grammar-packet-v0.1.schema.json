@@ -1,0 +1,273 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rio-protocol.org/schemas/personal-ai-grammar-packet-v0.1.schema.json",
+  "title": "Personal AI Grammar Packet",
+  "description": "A user-owned language governance packet that defines admissible language crossings for AI and language systems operating under human authority.",
+  "type": "object",
+  "required": [
+    "packet_id",
+    "packet_version",
+    "owner",
+    "status",
+    "rules",
+    "planned_modules"
+  ],
+  "properties": {
+    "packet_id": {
+      "type": "string",
+      "description": "Unique identifier for this grammar packet instance.",
+      "pattern": "^GP-[A-Za-z0-9_-]+$"
+    },
+    "packet_version": {
+      "type": "string",
+      "description": "Semantic version of this packet.",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "owner": {
+      "type": "object",
+      "description": "The human owner of this grammar packet. The packet is user-owned.",
+      "required": ["owner_id", "owner_name"],
+      "properties": {
+        "owner_id": {
+          "type": "string",
+          "description": "Unique identifier for the packet owner."
+        },
+        "owner_name": {
+          "type": "string",
+          "description": "Display name of the packet owner."
+        }
+      },
+      "additionalProperties": false
+    },
+    "status": {
+      "type": "string",
+      "description": "Current status of the grammar packet.",
+      "enum": ["draft", "active", "suspended", "archived"]
+    },
+    "rules": {
+      "type": "array",
+      "description": "Active grammar rules in this packet.",
+      "items": {
+        "$ref": "#/$defs/rule"
+      },
+      "minItems": 1
+    },
+    "planned_modules": {
+      "type": "array",
+      "description": "Modules identified for future versions but not yet active.",
+      "items": {
+        "$ref": "#/$defs/planned_module"
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Optional metadata about the packet.",
+      "properties": {
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 UTC timestamp of packet creation."
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 UTC timestamp of last update."
+        },
+        "layer": {
+          "type": "string",
+          "description": "Governance layer this packet belongs to.",
+          "const": "scribe/language-governance"
+        },
+        "cross_links": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Related specs and systems."
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "rule": {
+      "type": "object",
+      "description": "A single grammar rule defining an admissible or inadmissible language crossing.",
+      "required": [
+        "rule_id",
+        "rule_name",
+        "rule_type",
+        "description",
+        "trigger",
+        "verdict_map",
+        "safe_revision",
+        "route"
+      ],
+      "properties": {
+        "rule_id": {
+          "type": "string",
+          "description": "Unique identifier for this rule.",
+          "pattern": "^GR-[A-Za-z0-9_-]+$"
+        },
+        "rule_name": {
+          "type": "string",
+          "description": "Human-readable name of the rule."
+        },
+        "rule_type": {
+          "type": "string",
+          "description": "Category of the rule.",
+          "enum": [
+            "meaning_closure",
+            "authority_drift",
+            "identity",
+            "reliance_routing",
+            "rio_handoff"
+          ]
+        },
+        "description": {
+          "type": "string",
+          "description": "Plain-language description of what this rule governs."
+        },
+        "trigger": {
+          "$ref": "#/$defs/trigger",
+          "description": "Conditions that activate this rule."
+        },
+        "failure_modes": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Named failure modes this rule addresses."
+        },
+        "verdict_map": {
+          "type": "array",
+          "description": "Mapping of trigger conditions to verdicts.",
+          "items": {
+            "$ref": "#/$defs/verdict_entry"
+          },
+          "minItems": 1
+        },
+        "safe_revision": {
+          "type": "string",
+          "description": "Pattern or guidance for reformulating a violating message into a compliant one."
+        },
+        "route": {
+          "$ref": "#/$defs/route",
+          "description": "Where to route the message based on context."
+        },
+        "receipt_required_for": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["WARN", "HOLD", "BLOCK", "INVALID"]
+          },
+          "description": "Which verdicts require a receipt to be generated."
+        }
+      },
+      "additionalProperties": false
+    },
+    "trigger": {
+      "type": "object",
+      "description": "Conditions that activate a grammar rule.",
+      "required": ["conditions"],
+      "properties": {
+        "conditions": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of natural-language trigger conditions.",
+          "minItems": 1
+        },
+        "context_sensitivity": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "exploration",
+              "private_meaning",
+              "public_claim",
+              "action_authority",
+              "delegated_authority"
+            ]
+          },
+          "description": "Reliance contexts in which this trigger is active."
+        }
+      },
+      "additionalProperties": false
+    },
+    "verdict_entry": {
+      "type": "object",
+      "description": "A single trigger-to-verdict mapping.",
+      "required": ["trigger_condition", "verdict"],
+      "properties": {
+        "trigger_condition": {
+          "type": "string",
+          "description": "The specific condition that produces this verdict."
+        },
+        "verdict": {
+          "type": "string",
+          "enum": ["PASS", "WARN", "HOLD", "BLOCK", "INVALID"],
+          "description": "The verdict produced when this condition is met."
+        },
+        "context": {
+          "type": "string",
+          "enum": [
+            "exploration",
+            "private_meaning",
+            "public_claim",
+            "action_authority",
+            "delegated_authority"
+          ],
+          "description": "Optional context qualifier for this verdict."
+        }
+      },
+      "additionalProperties": false
+    },
+    "route": {
+      "type": "object",
+      "description": "Routing instructions based on reliance context.",
+      "required": ["default"],
+      "properties": {
+        "default": {
+          "type": "string",
+          "description": "Default routing destination."
+        },
+        "by_context": {
+          "type": "object",
+          "description": "Context-specific routing overrides.",
+          "properties": {
+            "exploration": { "type": "string" },
+            "private_meaning": { "type": "string" },
+            "public_claim": { "type": "string" },
+            "action_authority": { "type": "string" },
+            "delegated_authority": { "type": "string" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "planned_module": {
+      "type": "object",
+      "description": "A module identified for future implementation.",
+      "required": ["module_name", "status", "target_version"],
+      "properties": {
+        "module_name": {
+          "type": "string",
+          "description": "Name of the planned module."
+        },
+        "status": {
+          "type": "string",
+          "const": "planned_module",
+          "description": "Must be 'planned_module' for unimplemented modules."
+        },
+        "target_version": {
+          "type": "string",
+          "description": "Target version for implementation.",
+          "pattern": "^v\\d+\\.\\d+$"
+        },
+        "description": {
+          "type": "string",
+          "description": "Brief description of the module's intended purpose."
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
