@@ -1,6 +1,6 @@
 # Personal AI Grammar Packet — v0.1
 
-**Status:** Draft  
+**Status:** Draft — Controlled local testing ready  
 **Layer:** Scribe / Language Governance  
 **Owner:** Human (packet is user-owned)  
 **Cross-links:** ONE Answer Check, RIO, MANTIS, Origin / How Built  
@@ -23,30 +23,55 @@ This is not only "grammar for AI." AI is the first runtime, but the deeper objec
 
 ---
 
-## §3 Core Distinction
+## §3 Layer Boundary
+
+This section defines what each layer may and may not do. These boundaries are constitutional. No layer may absorb the function of another.
+
+**Grammar** clarifies and classifies language patterns. Grammar may detect ambiguity, meaning closure, authority drift, identity assignment, urgency compression, and action leakage. Grammar may not authorize, block, execute, decide consequence, or settle human meaning.
+
+**Policy** evaluates risk and recommends routing. Policy may assign risk tier, suggest CLARIFY/WARN/HOLD/BLOCK/INVALID, and identify receipt requirements. Policy may not become final authority or override the human.
+
+**RIO** governs valid movement into consequence. RIO may hold, block, validate, authorize, or refuse consequential crossings according to authority, scope, consent, policy, and Commit requirements. RIO may not rewrite human meaning.
+
+**Receipts** prove events. Receipts may prove that a warning, hold, block, approval, refusal, override, handoff, or execution occurred. Receipts may not prove wisdom, morality, legality, truth, destiny, or ultimate meaning.
+
+**Human** remains root authority. Human owns private meaning, Commit, consent, and final accountable authority.
+
+---
+
+## §4 Core Distinction
 
 The Personal AI Grammar Packet defines **admissible language crossings**. The Language Risk Policy Engine evaluates specific messages against those rules. RIO governs consequence when language crosses into reliance, delivery, action, or delegated authority. Receipts prove what was checked, warned, held, blocked, routed, revised, approved, or relied on.
 
 ---
 
-## §4 Root Invariant
+## §5 Root Invariant
 
 The human remains root authority. Machine-authored meaning closure is not permitted. The system may map, reflect, and attribute — it may not settle, crown, or flatten.
 
 ---
 
-## §5 Active Modules (v0.1)
+## §6 Risk Labeling Rule
 
-### §5.1 Meaning Closure Boundary
+All risk labels must be framed as pattern matches, not settled truths.
 
-**Name:** Meaning Closure Boundary  
-**Layer:** Scribe / Language Governance  
-**Cross-links:** ONE Answer Check, RIO, MANTIS, Origin / How Built  
-**Failure modes:** Inflation + Protective Flattening  
-**Core rule:** Leave meaning open. Govern consequence.  
-**Bridge line:** Meaning remains human-owned; consequence remains governed.
+**Inadmissible (settled truth framing):**
 
-**Constitutional form:**
+- "This is manipulative."
+- "This is unsafe."
+- "This is not authentic."
+- "This is just anxiety."
+- "This means the relationship is unhealthy."
+
+**Admissible (pattern-match framing):**
+
+- "This language matches patterns associated with pressure, urgency, or authority compression."
+- "This may create reliance risk if used as advice or sent externally."
+- "This appears to cross from private meaning into public claim or action authority."
+
+---
+
+## §7 Meaning Closure Boundary
 
 The system may map patterns, mechanisms, risks, possible interpretations, evidence gaps, and consequence pathways.
 
@@ -56,7 +81,11 @@ Human-authored meaning may be reflected as self-attributed meaning.
 
 Machine-authored meaning closure triggers review.
 
-Private meaning may remain open. Public claims require evidence. Consequential action requires governance.
+Inflation closes meaning upward. Protective flattening closes meaning downward. Both require review.
+
+**Failure modes:** Inflation + Protective Flattening  
+**Core rule:** Leave meaning open. Govern consequence.  
+**Bridge line:** Meaning remains human-owned; consequence remains governed.
 
 **Implementation rule:** Human meaning may be self-authored. Machine meaning may only be reflected, mapped, or attributed.
 
@@ -95,7 +124,7 @@ Private meaning may remain open. Public claims require evidence. Consequential a
 
 ---
 
-### §5.2 Authority Drift Boundary
+## §8 Authority Drift Boundary
 
 **Name:** Authority Drift Boundary  
 **Layer:** Scribe / Language Governance  
@@ -122,7 +151,7 @@ Private meaning may remain open. Public claims require evidence. Consequential a
 
 ---
 
-### §5.3 Identity Boundary
+## §9 Identity Boundary
 
 **Name:** Identity Boundary  
 **Layer:** Scribe / Language Governance  
@@ -149,7 +178,7 @@ Private meaning may remain open. Public claims require evidence. Consequential a
 
 ---
 
-### §5.4 Reliance Routing
+## §10 Reliance Routing
 
 **Name:** Reliance Routing  
 **Layer:** Scribe / Language Governance  
@@ -183,29 +212,46 @@ Private meaning may remain open. Public claims require evidence. Consequential a
 
 ---
 
-### §5.5 RIO Handoff Conditions
+## §11 RIO Handoff Rule
 
-**Name:** RIO Handoff Conditions  
-**Layer:** Scribe / Language Governance → RIO  
-**Cross-links:** RIO Operating Spec, Handoff Receipt Protocol  
-**Failure modes:** Ungovern consequence, action without receipt  
-**Core rule:** When language crosses into consequence, it must hand off to RIO.
+The trigger for RIO handoff is not risky language alone. The trigger is **risk + reliance or consequence**.
 
-**Handoff triggers:**
+**RIO handoff triggers:**
 
-| Condition | Handoff Required |
-|-----------|-----------------|
-| Language implies external action (send, publish, commit, pay) | Yes |
-| Language implies binding commitment | Yes |
-| Language implies delegation of authority to a machine | Yes |
-| Language implies reliance on unverified claim for action | Yes |
-| Language remains exploratory or reflective | No |
+- External communication
+- Public claim
+- Money movement
+- Credential sharing
+- Legal reliance
+- Medical reliance
+- Financial reliance
+- Identity representation
+- Delegated action
+- Tool/API execution
+- Commitment to another person
+- Record creation with consequence
+- Override after warning/hold/block
+
+**RIO Handoff Contract:**
+
+Each handoff must include:
+
+```json
+{
+  "trigger": "why this is consequence-relevant",
+  "risk_type": "language | identity | financial | relational | legal | medical | tool_action | public_claim | credential | external_communication",
+  "requested_action": "what may happen next",
+  "human_authority_required": true,
+  "receipt_required": true,
+  "proof_status": "Prompt Run | Human Recorded | Structured Packet | Receipt Created | Ledger Verified"
+}
+```
 
 **Handoff produces:** A Handoff Receipt linking the language context to the consequential action request, per the AI Handoff Receipt Protocol.
 
 ---
 
-## §6 Planned Modules (Not Yet Specified)
+## §12 Planned Modules (Not Yet Specified)
 
 The following modules are identified for future versions. They are not active in v0.1.
 
@@ -222,21 +268,35 @@ The following modules are identified for future versions. They are not active in
 
 ---
 
-## §7 Non-Goals (v0.1)
+## §13 Non-Goals (v0.1)
 
 This specification does not:
 
 - Build a full application
 - Create UI
+- Create production enforcement
+- Create autonomous blocking
 - Create cloud infrastructure
 - Expand beyond v0.1 modules
 - Make therapeutic, spiritual, medical, or legal claims
 - Imply the system can diagnose a human state
 - Imply AI owns or settles human meaning
+- Collapse grammar, policy, RIO, receipts, or human authority into one layer
 
 ---
 
-## §8 Relationship to Other Specs
+## §14 Readiness Classification
+
+| Component | Readiness Level |
+|-----------|----------------|
+| Architecture | Controlled local testing ready |
+| Policy engine | Advisory / scanner mode only |
+| Blocking | Not production-ready |
+| Outbound enforcement | Requires RIO handoff, receipt triggers, override rules, and proof-status labels |
+
+---
+
+## §15 Relationship to Other Specs
 
 | Spec | Relationship |
 |------|-------------|
@@ -248,8 +308,9 @@ This specification does not:
 
 ---
 
-## §9 Version History
+## §16 Version History
 
 | Version | Date | Change |
 |---------|------|--------|
 | v0.1 | 2026-05-05 | Initial draft — 5 active modules, 8 planned modules |
+| v0.1.1 | 2026-05-05 | Red-team revision — added Layer Boundary, Risk Labeling Rule, Meaning Closure Boundary (exact wording), RIO Handoff Rule/Contract, Readiness Classification, Non-goals expanded |
