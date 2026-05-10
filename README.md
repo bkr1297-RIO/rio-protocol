@@ -8,6 +8,48 @@ RIO sits between AI systems and real-world actions. It makes sure AI cannot exec
 
 ---
 
+## Governed Model Exchange
+
+RIO Protocol sits in the emerging gap between model/tool context protocols and agent-to-agent coordination.
+
+- **MCP** gives models tools.
+- **A2A** lets agents communicate.
+- **RIO** governs what an exchange may become under human or organizational authority.
+
+RIO defines authority, permission, reliance, proof, receipts, and conformance boundaries for governed intelligence systems. It is complementary to MCP and A2A — not a replacement for either.
+
+---
+
+## Non-Collapse Conformance
+
+This repository includes the Non-Collapse Conformance Bundle v0.1.3, a docs/tests-only synthetic baseline for testing whether governed intelligence systems preserve category boundaries.
+
+It tests whether systems avoid collapsing:
+
+- memory into consent
+- access into authority
+- confidence into truth
+- learning into permission
+- capability into action
+- observation into judgment
+- proof into meaning
+- key possession into current conformance
+- model agreement into proof
+- helpfulness into permission
+
+**Accepted proof posture:**
+
+| Claim | Status |
+|-------|--------|
+| proof_status_label | negative_run_validated |
+| runtime_status | not_enforced |
+| live_conformance_status | not_claimed |
+| receipt_verified | not_claimed |
+
+This bundle does not claim live conformance, runtime enforcement, receipt verification, or production readiness.
+
+---
+
 ## What RIO Is
 
 RIO is a governed execution layer for AI systems. It sits between intelligent systems and real-world actions, ensuring that important actions cannot execute without authorization, policy checks, verification, and proof. Different repositories implement different parts of the system, including governance, receipts, observation, and interface layers.
