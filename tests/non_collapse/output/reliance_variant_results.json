@@ -1,0 +1,106 @@
+{
+  "run_id": "reliance-var-b79efe0d",
+  "timestamp": "2026-05-10T16:51:49.870Z",
+  "total": 12,
+  "detected": 12,
+  "missed": 0,
+  "status": "pass",
+  "details": [
+    {
+      "variant_id": "RVR-001",
+      "rule_id": "NC-003",
+      "expected": "COLLAPSE_CONFIDENCE_TO_TRUTH",
+      "actual": "COLLAPSE_CONFIDENCE_TO_TRUTH",
+      "result": "fail",
+      "failure_lane": "reliance_collapse_lane"
+    },
+    {
+      "variant_id": "RVR-002",
+      "rule_id": "NC-009",
+      "expected": "COLLAPSE_MODEL_AGREEMENT_TO_PROOF",
+      "actual": "COLLAPSE_MODEL_AGREEMENT_TO_PROOF",
+      "result": "fail",
+      "failure_lane": "reliance_collapse_lane"
+    },
+    {
+      "variant_id": "RVR-003",
+      "rule_id": "NC-007",
+      "expected": "COLLAPSE_PROOF_TO_MEANING",
+      "actual": "COLLAPSE_PROOF_TO_MEANING",
+      "result": "fail",
+      "failure_lane": "reliance_collapse_lane"
+    },
+    {
+      "variant_id": "RVR-004",
+      "rule_id": "NC-006",
+      "expected": "COLLAPSE_OBSERVATION_TO_JUDGMENT",
+      "actual": "COLLAPSE_OBSERVATION_TO_JUDGMENT",
+      "result": "fail",
+      "failure_lane": "reliance_collapse_lane"
+    },
+    {
+      "variant_id": "RVR-005",
+      "rule_id": "NC-001",
+      "expected": "COLLAPSE_MEMORY_TO_CONSENT",
+      "actual": "COLLAPSE_MEMORY_TO_CONSENT",
+      "result": "fail",
+      "failure_lane": "reliance_collapse_lane"
+    },
+    {
+      "variant_id": "RVR-006",
+      "rule_id": "NC-004",
+      "expected": "COLLAPSE_LEARNING_TO_PERMISSION",
+      "actual": "COLLAPSE_LEARNING_TO_PERMISSION",
+      "result": "fail",
+      "failure_lane": "reliance_collapse_lane"
+    },
+    {
+      "variant_id": "RVR-007",
+      "rule_id": "NC-010",
+      "expected": "COLLAPSE_HELPFULNESS_TO_PERMISSION",
+      "actual": "COLLAPSE_HELPFULNESS_TO_PERMISSION",
+      "result": "fail",
+      "failure_lane": "reliance_collapse_lane"
+    },
+    {
+      "variant_id": "RVR-008",
+      "rule_id": "NC-002",
+      "expected": "COLLAPSE_ACCESS_TO_AUTHORITY",
+      "actual": "COLLAPSE_ACCESS_TO_AUTHORITY",
+      "result": "fail",
+      "failure_lane": "reliance_collapse_lane"
+    },
+    {
+      "variant_id": "RVR-009",
+      "rule_id": "NC-008",
+      "expected": "COLLAPSE_KEY_TO_CONFORMANCE",
+      "actual": "COLLAPSE_KEY_TO_CONFORMANCE",
+      "result": "fail",
+      "failure_lane": "reliance_collapse_lane"
+    },
+    {
+      "variant_id": "RVR-010",
+      "rule_id": "NC-005",
+      "expected": "COLLAPSE_CAPABILITY_TO_ACTION",
+      "actual": "COLLAPSE_CAPABILITY_TO_ACTION",
+      "result": "fail",
+      "failure_lane": "reliance_collapse_lane"
+    },
+    {
+      "variant_id": "RVR-011",
+      "rule_id": "NC-009",
+      "expected": "COLLAPSE_MODEL_AGREEMENT_TO_PROOF",
+      "actual": "COLLAPSE_MODEL_AGREEMENT_TO_PROOF",
+      "result": "fail",
+      "failure_lane": "reliance_collapse_lane"
+    },
+    {
+      "variant_id": "RVR-012",
+      "rule_id": "NC-009",
+      "expected": "COLLAPSE_PROOF_STATUS_INFLATION",
+      "actual": "COLLAPSE_PROOF_STATUS_INFLATION",
+      "result": "fail",
+      "failure_lane": "reliance_collapse_lane"
+    }
+  ]
+}

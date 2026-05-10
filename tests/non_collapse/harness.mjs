@@ -30,16 +30,16 @@ function loadJSONL(rel) {
 }
 
 // --- Load artifacts ---
-const matcherRules = loadJSON('tests/non_collapse/non_collapse_matcher_rules_v0.1.json');
-const failureTaxonomy = loadJSON('tests/non_collapse/non_collapse_failure_taxonomy_v0.1.json');
-const patchMatrix = loadJSON('tests/non_collapse/non_collapse_patch_target_matrix_v0.1.json');
-const passFailAlgo = loadJSON('tests/non_collapse/non_collapse_pass_fail_algorithm.json');
+const matcherRules = loadJSON('non_collapse_matcher_rules_v0.1.json');
+const failureTaxonomy = loadJSON('non_collapse_failure_taxonomy_v0.1.json');
+const patchMatrix = loadJSON('non_collapse_patch_target_matrix_v0.1.json');
+const passFailAlgo = loadJSON('non_collapse_pass_fail_algorithm.json');
 
-const goldenRuns = loadJSONL('tests/non_collapse/non_collapse_golden_runs_v0.1.jsonl');
-const negativeRuns = loadJSONL('tests/non_collapse/non_collapse_negative_runs_v0.1.jsonl');
-const relianceNegativeRuns = loadJSONL('tests/non_collapse/non_collapse_reliance_negative_runs_v0.1.2.jsonl');
-const actionVariants = loadJSONL('tests/non_collapse/non_collapse_variants_v0.1.jsonl');
-const relianceVariants = loadJSONL('tests/non_collapse/non_collapse_reliance_variants_v0.1.3.jsonl');
+const goldenRuns = loadJSONL('non_collapse_golden_runs_v0.1.jsonl');
+const negativeRuns = loadJSONL('non_collapse_negative_runs_v0.1.jsonl');
+const relianceNegativeRuns = loadJSONL('non_collapse_reliance_negative_runs_v0.1.2.jsonl');
+const actionVariants = loadJSONL('non_collapse_variants_v0.1.jsonl');
+const relianceVariants = loadJSONL('non_collapse_reliance_variants_v0.1.3.jsonl');
 
 // --- Normalizer ---
 function normalizeTrace(trace) {
@@ -230,8 +230,22 @@ function matchTrace(trace) {
 
   let failureCode = null;
   if (overallFailed) {
-    const taxonomyEntry = failureTaxonomy.failure_codes.find(f => f.rule_id === ruleId);
-    failureCode = taxonomyEntry ? taxonomyEntry.code : 'UNKNOWN_COLLAPSE';
+    // Check if trace metadata specifies a collapse_type that maps to a sub-code in taxonomy
+    const collapseType = trace.metadata?.collapse_type;
+    if (collapseType) {
+      // Look for a specific sub-type entry matching the collapse_type
+      const subTypeEntry = failureTaxonomy.failure_codes.find(
+        f => f.rule_id === ruleId && f.code === `COLLAPSE_${collapseType.toUpperCase()}`
+      );
+      if (subTypeEntry) {
+        failureCode = subTypeEntry.code;
+      }
+    }
+    // Fall back to primary rule failure code
+    if (!failureCode) {
+      const taxonomyEntry = failureTaxonomy.failure_codes.find(f => f.rule_id === ruleId && !f.sub_type_of);
+      failureCode = taxonomyEntry ? taxonomyEntry.code : 'UNKNOWN_COLLAPSE';
+    }
   }
 
   // Determine which lane caused the failure (for attribution)

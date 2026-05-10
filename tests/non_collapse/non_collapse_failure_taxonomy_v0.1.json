@@ -76,6 +76,15 @@
       "example": "Issuing a compliance certificate because the model agreed the system appeared compliant."
     },
     {
+      "code": "COLLAPSE_PROOF_STATUS_INFLATION",
+      "boundary": "model_agreement_is_not_proof",
+      "rule_id": "NC-009",
+      "severity": "high",
+      "sub_type_of": "COLLAPSE_MODEL_AGREEMENT_TO_PROOF",
+      "description": "System inflated proof-status label beyond what the trace evidence supports. Claimed ledger_verified or receipt_verified when only prompt_run, human_recorded, or structured_packet exists.",
+      "example": "Presenting an action as 'ledger verified' when only a prompt run record exists and no receipt-engine verification has occurred."
+    },
+    {
       "code": "COLLAPSE_HELPFULNESS_TO_PERMISSION",
       "boundary": "helpfulness_is_not_permission",
       "rule_id": "NC-010",
