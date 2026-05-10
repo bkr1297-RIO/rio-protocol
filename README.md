@@ -1,13 +1,46 @@
 # RIO Protocol
 
-**Runtime Governance and Execution Control Plane for AI Systems**
+**The governed execution protocol for AI systems.**
 
-RIO is a governed execution system that sits between AI, humans, and real-world actions. It translates goals into structured intent, evaluates risk and policy, requires approval when necessary, controls execution, verifies outcomes, and generates cryptographically signed receipts recorded in a tamper-evident ledger. **The system enforces the rules, not the AI.**
+RIO sits between AI systems and real-world actions. It makes sure AI cannot execute important actions without authorization, policy checks, verification, and proof.
 
-> **This repository is the canonical protocol specification.** It contains the protocol specification and reference verification implementation used to validate receipts and ledger integrity. Everything an external team needs to implement a RIO-compliant gateway is here: specifications, JSON schemas, conformance test vectors, governance documents, and reference artifacts.
+> "RIO governs consequence. Receipts prove what happened."
+
+---
+
+## What RIO Is
+
+RIO is a governed execution layer for AI systems. It sits between intelligent systems and real-world actions, ensuring that important actions cannot execute without authorization, policy checks, verification, and proof. Different repositories implement different parts of the system, including governance, receipts, observation, and interface layers.
+
+**How it works:**
+
+1. AI proposes an action.
+2. The system evaluates risk and checks policy.
+3. Humans approve when required.
+4. RIO gates execution — nothing runs without authorization.
+5. Receipts prove what happened.
+
+---
+
+## What This Repository Contains
+
+This is the **canonical protocol specification** — the authoritative definition of what a RIO-compliant system must do. It contains specifications, JSON schemas, conformance test vectors, governance documents, and reference artifacts. Everything an external team needs to implement a RIO-compliant gateway is here.
+
+Where any implementation conflicts with the protocol specification in this repository, the protocol specification governs.
 
 **Version:** v1.0.0
 **Error Vocabulary Version:** v1.0 (locked April 21, 2026, 01:00)
+
+---
+
+## How This Repo Fits Into the Larger System
+
+| Repository | Role |
+|------------|------|
+| **[rio-protocol](https://github.com/bkr1297-RIO/rio-protocol)** (this repo) | Canonical protocol specification |
+| [rio-receipt-protocol](https://github.com/bkr1297-RIO/rio-receipt-protocol) | Proof layer — local receipt engine |
+| [rio-system](https://github.com/bkr1297-RIO/rio-system) | Observation and monitoring layer |
+| [language-intake-mvp](https://github.com/bkr1297-RIO/language-intake-mvp) | Language governance — crossing detection |
 
 ---
 
@@ -34,10 +67,6 @@ Then follow the 5-step verification in [VERIFY_THIS_SYSTEM.md](VERIFY_THIS_SYSTE
 | Verification Guide | [VERIFY_THIS_SYSTEM.md](VERIFY_THIS_SYSTEM.md) | Clone → run → break → verify in under 5 minutes |
 
 `RIO_STANDARD_v1.0.md` is the authoritative specification. `RIO_CONFORMANCE_v2.3.0.md` defines how compliance is verified (7 conformance levels).
-
-### Document Authority
-
-This repository (`rio-protocol`) is the canonical protocol specification. It defines what a RIO-compliant system must do. Where any implementation conflicts with the protocol specification in this repository, the protocol specification governs.
 
 ---
 
@@ -121,15 +150,6 @@ The Learning Loop analyzes the audit trail and proposes policy updates. It canno
 
 ---
 
-## Related Repositories
-
-| Repository | Purpose |
-|------------|---------|
-| [rio-reference-impl](https://github.com/bkr1297-RIO/rio-reference-impl) | Working reference implementation — runtime engine, audit dashboard, policy engine, Docker deployment |
-| [rio-tools](https://github.com/bkr1297-RIO/rio-tools) | Developer tools — SDKs (Python + JavaScript), protocol simulator, independent verifier CLI, compliance checker |
-
----
-
 ## Getting Started
 
 ### For Implementers
@@ -170,6 +190,38 @@ RIO provides infrastructure for a specific, demonstrable regulatory requirement:
 | **ISO 42001, A.6.2.8** | Event logging for AI management | Automatic signed receipts per action |
 
 For the full analysis, see [docs/EGI_Technical_Assessment.pdf](docs/EGI_Technical_Assessment.pdf).
+
+---
+
+## Conformance Levels
+
+The authoritative conformance specification defines 7 levels in [spec/RIO_CONFORMANCE_v2.3.0.md](spec/RIO_CONFORMANCE_v2.3.0.md):
+
+| Level | Name | Scope |
+|-------|------|-------|
+| 1 | Receipt Generation | All required fields present, correct types |
+| 2 | Receipt + Verification | Level 1 + independently verifiable hashes |
+| 3 | Receipt + Ledger | Level 2 + append-only hash-chained ledger |
+| 4 | Receipt + Ledger + Verification | Level 3 + chain integrity independently verifiable |
+| 5 | Full Proof Pipeline | Level 4 + 3-hash proof chain (result, previous_receipt, receipt) |
+| 6 | Governed Receipts | Level 5 + 5-hash chain (adds request_hash, intent_hash) |
+| 7 | Signed Receipts | Level 6 + Ed25519 signatures |
+
+See [spec/RIO_CONFORMANCE_v2.3.0.md](spec/RIO_CONFORMANCE_v2.3.0.md) for complete definitions and [tests/conformance/](tests/conformance/) for the test suite.
+
+---
+
+## Example Use Cases
+
+The `examples/` directory contains five end-to-end flows. Each shows all seven records in the decision traceability chain with cross-referenced IDs.
+
+| Example | Scenario | Risk Level |
+|---------|----------|------------|
+| Financial Transaction | AI procurement agent requests wire transfer requiring human approval | High |
+| Email Send | AI customer success agent sends executive apology email to client | High |
+| Data Deletion | AI compliance agent processes GDPR right-to-erasure request | Critical |
+| Code Deploy | AI DevOps agent deploys emergency security patch to production | High |
+| Access Grant | AI IT ops agent grants temporary elevated database access | Critical |
 
 ---
 
@@ -225,7 +277,7 @@ docs/                                  Protocol documentation
 ├── CERTIFICATION.md                     Certification levels and process
 ├── CONFORMANCE.md                       Conformance level definitions
 ├── VERSIONING.md                        Protocol versioning policy
-└── adoption/                            Regulatory and adoption docs
+└── three_loop_architecture.png          Architecture diagram
 
 reference-architecture/                Architecture diagrams (Mermaid + PNG)
 whitepaper/                            Protocol white paper (v1 + v2)
@@ -244,38 +296,6 @@ CONTRIBUTING.md                        Contribution guidelines
 CHANGELOG.md                           Release history
 NOTICE                                 Attribution notice
 ```
-
----
-
-## Conformance Levels
-
-The authoritative conformance specification defines 7 levels in [spec/RIO_CONFORMANCE_v2.3.0.md](spec/RIO_CONFORMANCE_v2.3.0.md):
-
-| Level | Name | Scope |
-|-------|------|-------|
-| 1 | Receipt Generation | All required fields present, correct types |
-| 2 | Receipt + Verification | Level 1 + independently verifiable hashes |
-| 3 | Receipt + Ledger | Level 2 + append-only hash-chained ledger |
-| 4 | Receipt + Ledger + Verification | Level 3 + chain integrity independently verifiable |
-| 5 | Full Proof Pipeline | Level 4 + 3-hash proof chain (result, previous_receipt, receipt) |
-| 6 | Governed Receipts | Level 5 + 5-hash chain (adds request_hash, intent_hash) |
-| 7 | Signed Receipts | Level 6 + Ed25519 signatures |
-
-See [spec/RIO_CONFORMANCE_v2.3.0.md](spec/RIO_CONFORMANCE_v2.3.0.md) for complete definitions and [tests/conformance/](tests/conformance/) for the test suite.
-
----
-
-## Example Use Cases
-
-The `examples/` directory contains five end-to-end flows. Each shows all seven records in the decision traceability chain with cross-referenced IDs.
-
-| Example | Scenario | Risk Level |
-|---------|----------|------------|
-| Financial Transaction | AI procurement agent requests wire transfer requiring human approval | High |
-| Email Send | AI customer success agent sends executive apology email to client | High |
-| Data Deletion | AI compliance agent processes GDPR right-to-erasure request | Critical |
-| Code Deploy | AI DevOps agent deploys emergency security patch to production | High |
-| Access Grant | AI IT ops agent grants temporary elevated database access | Critical |
 
 ---
 
