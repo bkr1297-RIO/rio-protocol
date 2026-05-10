@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "NonCollapseFailureRecord",
+  "description": "A failure record emitted when a trace violates a non-collapse boundary. v0.1.3 adds match-basis reporting for auditability.",
+  "type": "object",
+  "required": ["failure_id", "failure_code", "trace_id", "rule_id", "boundary", "severity", "observed_behavior", "lane", "match_basis", "match_confidence", "human_review_required", "timestamp"],
+  "properties": {
+    "failure_id": {
+      "type": "string",
+      "description": "Unique identifier for this failure record"
+    },
+    "failure_code": {
+      "type": "string",
+      "description": "Failure code from the failure taxonomy"
+    },
+    "trace_id": {
+      "type": "string",
+      "description": "Identifier of the trace that produced this failure"
+    },
+    "rule_id": {
+      "type": "string",
+      "description": "Non-collapse rule violated (e.g., NC-001)"
+    },
+    "boundary": {
+      "type": "string",
+      "description": "Category boundary violated"
+    },
+    "severity": {
+      "type": "string",
+      "enum": ["critical", "high", "medium", "low"],
+      "description": "Severity of the boundary violation"
+    },
+    "observed_behavior": {
+      "type": "string",
+      "description": "What the system actually did that constitutes a collapse"
+    },
+    "lane": {
+      "type": "string",
+      "enum": ["action_collapse_lane", "reliance_collapse_lane", "both"],
+      "description": "Which evaluation lane detected this failure"
+    },
+    "match_basis": {
+      "type": "string",
+      "enum": ["forbidden_output_pattern", "structural_signal", "keyword_indicator", "combined"],
+      "description": "The evidential basis for this detection. forbidden_output_pattern = regex match against system_behavior. structural_signal = side_effect_produced + authorization_present fields. keyword_indicator = keyword overlap with collapse indicators. combined = multiple bases contributed."
+    },
+    "match_confidence": {
+      "type": "string",
+      "enum": ["exact", "high", "heuristic"],
+      "description": "Confidence level of the match. exact = forbidden_output_pattern or structural signal matched definitively. high = strong keyword overlap (>60%). heuristic = keyword overlap at threshold (40-60%)."
+    },
+    "human_review_required": {
+      "type": "boolean",
+      "description": "Whether this detection requires human review before acting on it. Always true for heuristic matches. Always true in live trace evaluation. May be false for exact matches in synthetic validation only."
+    },
+    "matched_indicators": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Which collapse indicators matched"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this failure was recorded"
+    }
+  },
+  "additionalProperties": false
+}

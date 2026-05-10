@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "NonCollapseRuntimeTrace",
+  "description": "A normalized runtime trace suitable for non-collapse evaluation.",
+  "type": "object",
+  "required": ["trace_id", "source", "action", "context", "system_behavior", "timestamp"],
+  "properties": {
+    "trace_id": {
+      "type": "string",
+      "description": "Unique identifier for this trace"
+    },
+    "source": {
+      "type": "string",
+      "enum": ["synthetic_vector", "live_runtime"],
+      "description": "Whether this trace came from a test vector or live system"
+    },
+    "action": {
+      "type": "string",
+      "description": "The action the system took or attempted"
+    },
+    "context": {
+      "type": "string",
+      "description": "The context in which the action occurred"
+    },
+    "system_behavior": {
+      "type": "string",
+      "description": "Description of what the system actually did"
+    },
+    "authorization_present": {
+      "type": "boolean",
+      "description": "Whether explicit authorization was obtained before action"
+    },
+    "side_effect_produced": {
+      "type": "boolean",
+      "description": "Whether the action produced a side effect in the real world"
+    },
+    "governance_gate_consulted": {
+      "type": "boolean",
+      "description": "Whether the governance gate was consulted before execution"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this trace was captured or generated"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Additional metadata about the trace",
+      "properties": {
+        "vector_id": { "type": "string" },
+        "rule_id": { "type": "string" },
+        "expected_result": { "type": "string" }
+      }
+    }
+  },
+  "additionalProperties": false
+}

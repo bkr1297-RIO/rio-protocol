@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "NonCollapseConformanceReport",
+  "description": "A batch conformance report produced by the non-collapse harness. Includes per-lane status for action-collapse and reliance-collapse.",
+  "type": "object",
+  "required": ["report_id", "version", "timestamp", "proof_status_label", "proof_status_reason", "validated_evidence", "golden_run_status", "negative_run_status", "action_collapse_status", "reliance_collapse_status", "total_vectors", "total_pass", "total_fail", "failures_by_code", "patch_targets"],
+  "properties": {
+    "report_id": {
+      "type": "string",
+      "description": "Unique identifier for this report"
+    },
+    "version": {
+      "type": "string",
+      "description": "Version of the conformance bundle"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this report was generated"
+    },
+    "proof_status_label": {
+      "type": "string",
+      "enum": ["synthetic_vector_only", "golden_run_validated", "negative_run_validated", "live_trace_evaluated", "receipt_verified"],
+      "description": "Highest proof-status label supported by this run"
+    },
+    "proof_status_reason": {
+      "type": "string",
+      "description": "Short sentence explaining why the highest claimed proof-status label is justified"
+    },
+    "validated_evidence": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "All proof-status labels actually validated during this run"
+    },
+    "golden_run_status": {
+      "type": "string",
+      "enum": ["pass", "fail"],
+      "description": "Whether all golden runs passed both lanes"
+    },
+    "negative_run_status": {
+      "type": "string",
+      "enum": ["detected_expected_failures", "missed_expected_failures", "unexpected_pass"],
+      "description": "Whether negative runs were correctly detected in the correct lanes"
+    },
+    "action_collapse_status": {
+      "type": "string",
+      "enum": ["checked", "not_checked", "detected", "not_detected", "blocked_with_reason"],
+      "description": "Status of the action-collapse lane evaluation"
+    },
+    "reliance_collapse_status": {
+      "type": "string",
+      "enum": ["checked", "not_checked", "detected", "not_detected", "blocked_with_reason"],
+      "description": "Status of the reliance-collapse lane evaluation"
+    },
+    "live_batch_status": {
+      "type": "string",
+      "description": "Status of live trace evaluation"
+    },
+    "total_vectors": {
+      "type": "integer",
+      "description": "Total number of vectors evaluated"
+    },
+    "total_pass": {
+      "type": "integer",
+      "description": "Number of vectors that passed"
+    },
+    "total_fail": {
+      "type": "integer",
+      "description": "Number of vectors that failed (as expected or unexpected)"
+    },
+    "failures_by_code": {
+      "type": "object",
+      "description": "Count of failures grouped by failure code",
+      "additionalProperties": { "type": "integer" }
+    },
+    "failures_by_lane": {
+      "type": "object",
+      "description": "Count of failures grouped by lane",
+      "properties": {
+        "action_collapse_lane": { "type": "integer" },
+        "reliance_collapse_lane": { "type": "integer" }
+      }
+    },
+    "top_gaps": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Top gaps identified by failure frequency"
+    },
+    "patch_targets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["failure_code", "observed_failure", "likely_repair_zone", "repair_vs_rule_review", "rationale", "human_decision_required"],
+        "properties": {
+          "failure_code": { "type": "string" },
+          "observed_failure": { "type": "string" },
+          "likely_repair_zone": { "type": "string" },
+          "repair_vs_rule_review": { "type": "string", "enum": ["repair_system", "review_rule", "requires_human_decision"] },
+          "rationale": { "type": "string" },
+          "human_decision_required": { "type": "boolean", "const": true }
+        }
+      },
+      "description": "Recommended patch targets from the patch target matrix"
+    },
+    "runtime_status": {
+      "type": "string",
+      "const": "not_enforced",
+      "description": "Runtime enforcement status"
+    },
+    "strict_mode": {
+      "type": "boolean",
+      "const": true,
+      "description": "Whether strict mode was applied"
+    }
+  },
+  "additionalProperties": false
+}

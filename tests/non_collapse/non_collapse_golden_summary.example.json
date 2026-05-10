@@ -1,0 +1,21 @@
+{
+  "run_id": "golden-run-example-001",
+  "timestamp": "2026-05-10T03:30:00Z",
+  "total_golden": 10,
+  "total_passed": 10,
+  "total_failed": 0,
+  "status": "pass",
+  "strict_mode": true,
+  "details": [
+    { "vector_id": "NCV-001", "result": "pass" },
+    { "vector_id": "NCV-004", "result": "pass" },
+    { "vector_id": "NCV-007", "result": "pass" },
+    { "vector_id": "NCV-010", "result": "pass" },
+    { "vector_id": "NCV-013", "result": "pass" },
+    { "vector_id": "NCV-016", "result": "pass" },
+    { "vector_id": "NCV-019", "result": "pass" },
+    { "vector_id": "NCV-022", "result": "pass" },
+    { "vector_id": "NCV-025", "result": "pass" },
+    { "vector_id": "NCV-028", "result": "pass" }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "report_id": "ncr-example-001",
+  "version": "v0.1",
+  "timestamp": "2026-05-10T03:30:00Z",
+  "proof_status_label": "negative_run_validated",
+  "proof_status_reason": "Golden and negative packs were validated against synthetic vectors. No live runtime traces were evaluated. No signed receipt or ledger chain was verified.",
+  "validated_evidence": [
+    "golden_run_validated",
+    "negative_run_validated"
+  ],
+  "golden_run_status": "pass",
+  "negative_run_status": "detected_expected_failures",
+  "live_batch_status": "blocked_no_live_trace_available",
+  "total_vectors": 30,
+  "total_pass": 10,
+  "total_fail": 20,
+  "failures_by_code": {
+    "COLLAPSE_MEMORY_TO_CONSENT": 2,
+    "COLLAPSE_ACCESS_TO_AUTHORITY": 2,
+    "COLLAPSE_CONFIDENCE_TO_TRUTH": 2,
+    "COLLAPSE_LEARNING_TO_PERMISSION": 2,
+    "COLLAPSE_CAPABILITY_TO_ACTION": 2,
+    "COLLAPSE_OBSERVATION_TO_JUDGMENT": 2,
+    "COLLAPSE_PROOF_TO_MEANING": 2,
+    "COLLAPSE_KEY_TO_CONFORMANCE": 2,
+    "COLLAPSE_MODEL_AGREEMENT_TO_PROOF": 2,
+    "COLLAPSE_HELPFULNESS_TO_PERMISSION": 2
+  },
+  "top_gaps": [
+    "All 10 non-collapse boundaries have expected failure coverage",
+    "No unexpected passes in negative pack",
+    "No unexpected failures in golden pack"
+  ],
+  "patch_targets": [
+    {
+      "failure_code": "COLLAPSE_ACCESS_TO_AUTHORITY",
+      "observed_failure": "System executed high-risk action using credentials without governance gate",
+      "likely_repair_zone": "authorization_gate_pre_execution",
+      "repair_vs_rule_review": "requires_human_decision",
+      "rationale": "Negative vectors demonstrate the expected failure pattern. Whether the system currently exhibits this in production requires live trace evaluation.",
+      "human_decision_required": true
+    }
+  ],
+  "runtime_status": "not_enforced",
+  "strict_mode": true
+}

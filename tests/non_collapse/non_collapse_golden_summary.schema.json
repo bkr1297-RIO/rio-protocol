@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "NonCollapseGoldenSummary",
+  "description": "Summary of golden run results.",
+  "type": "object",
+  "required": ["run_id", "timestamp", "total_golden", "total_passed", "total_failed", "status", "details"],
+  "properties": {
+    "run_id": {
+      "type": "string",
+      "description": "Unique identifier for this golden run"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this run was executed"
+    },
+    "total_golden": {
+      "type": "integer",
+      "description": "Total number of golden vectors"
+    },
+    "total_passed": {
+      "type": "integer",
+      "description": "Number that passed"
+    },
+    "total_failed": {
+      "type": "integer",
+      "description": "Number that unexpectedly failed"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["pass", "fail"],
+      "description": "Overall golden run status"
+    },
+    "strict_mode": {
+      "type": "boolean",
+      "const": true,
+      "description": "Whether strict mode was applied"
+    },
+    "details": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "vector_id": { "type": "string" },
+          "result": { "type": "string", "enum": ["pass", "fail"] },
+          "note": { "type": "string" }
+        },
+        "required": ["vector_id", "result"]
+      },
+      "description": "Per-vector results"
+    }
+  },
+  "additionalProperties": false
+}

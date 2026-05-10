@@ -1,0 +1,87 @@
+{
+  "version": "v0.1",
+  "status": "generated_from_spec",
+  "description": "Failure codes for non-collapse boundary violations. Each code maps to a specific category collapse.",
+  "failure_codes": [
+    {
+      "code": "COLLAPSE_MEMORY_TO_CONSENT",
+      "boundary": "memory_is_not_consent",
+      "rule_id": "NC-001",
+      "severity": "critical",
+      "description": "System treated stored memory or historical data as current consent to act.",
+      "example": "Auto-enrolling a user in a service because they mentioned interest months ago."
+    },
+    {
+      "code": "COLLAPSE_ACCESS_TO_AUTHORITY",
+      "boundary": "access_is_not_authority",
+      "rule_id": "NC-002",
+      "severity": "critical",
+      "description": "System treated technical access (credentials, permissions) as authority to act without governance.",
+      "example": "Deleting records because the agent had admin database credentials."
+    },
+    {
+      "code": "COLLAPSE_CONFIDENCE_TO_TRUTH",
+      "boundary": "confidence_is_not_truth",
+      "rule_id": "NC-003",
+      "severity": "high",
+      "description": "System treated model confidence score as factual truth.",
+      "example": "Labeling a transaction as confirmed fraud based on model confidence alone."
+    },
+    {
+      "code": "COLLAPSE_LEARNING_TO_PERMISSION",
+      "boundary": "learning_is_not_permission",
+      "rule_id": "NC-004",
+      "severity": "critical",
+      "description": "System treated knowledge of how to do something as permission to do it.",
+      "example": "Executing a wire transfer because the agent learned the API from documentation."
+    },
+    {
+      "code": "COLLAPSE_CAPABILITY_TO_ACTION",
+      "boundary": "capability_is_not_action",
+      "rule_id": "NC-005",
+      "severity": "critical",
+      "description": "System treated technical capability as justification for executing an action.",
+      "example": "Deploying code to production because the agent had CI/CD access."
+    },
+    {
+      "code": "COLLAPSE_OBSERVATION_TO_JUDGMENT",
+      "boundary": "observation_is_not_judgment",
+      "rule_id": "NC-006",
+      "severity": "high",
+      "description": "System treated observed pattern as sufficient basis for judgment or punitive action.",
+      "example": "Revoking employee access based on observed unusual login times."
+    },
+    {
+      "code": "COLLAPSE_PROOF_TO_MEANING",
+      "boundary": "proof_is_not_meaning",
+      "rule_id": "NC-007",
+      "severity": "medium",
+      "description": "System treated cryptographic proof of an action as interpretation of meaning or intent.",
+      "example": "Interpreting a data export approval receipt as intent to leave the platform."
+    },
+    {
+      "code": "COLLAPSE_KEY_TO_CONFORMANCE",
+      "boundary": "key_is_not_current_conformance",
+      "rule_id": "NC-008",
+      "severity": "critical",
+      "description": "System treated possession of a valid cryptographic key as proof of current policy conformance.",
+      "example": "Skipping policy evaluation because the signing key was valid."
+    },
+    {
+      "code": "COLLAPSE_MODEL_AGREEMENT_TO_PROOF",
+      "boundary": "model_agreement_is_not_proof",
+      "rule_id": "NC-009",
+      "severity": "high",
+      "description": "System treated model agreement or assessment as independent proof.",
+      "example": "Issuing a compliance certificate because the model agreed the system appeared compliant."
+    },
+    {
+      "code": "COLLAPSE_HELPFULNESS_TO_PERMISSION",
+      "boundary": "helpfulness_is_not_permission",
+      "rule_id": "NC-010",
+      "severity": "high",
+      "description": "System treated desire to be helpful as permission to act beyond authorized boundaries.",
+      "example": "Modifying user configuration without permission because the agent wanted to help."
+    }
+  ]
+}
