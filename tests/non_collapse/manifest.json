@@ -1,0 +1,213 @@
+{
+  "bundle_name": "Non-Collapse Conformance Bundle",
+  "version": "0.1.3",
+  "generated_from": "spec",
+  "generator": "Manus agent (Manny)",
+  "generation_date": "2026-05-10",
+  "status": {
+    "proof_status_label": "negative_run_validated",
+    "runtime_status": "not_enforced",
+    "live_conformance_status": "not_claimed",
+    "receipt_verified": "not_claimed"
+  },
+  "total_artifacts": 28,
+  "checksum_algorithm": "sha256",
+  "artifacts": [
+    {
+      "index": 1,
+      "path": "tests/non_collapse/README.md",
+      "type": "documentation",
+      "description": "Bundle documentation with status, run instructions, and known gaps",
+      "sha256": "630541b8c83baf81a2f9150c99515d44dd5aaf4fe307463e18a3fc9391d2f20d"
+    },
+    {
+      "index": 2,
+      "path": "tests/non_collapse/MANNY_HANDOFF.md",
+      "type": "documentation",
+      "description": "Original handoff spec from Brian / RIO Architect",
+      "sha256": "eea9fd4a43cd58d91629cd070d8814ea3cfadd2ccf9bc2073a467548c656a0d8"
+    },
+    {
+      "index": 3,
+      "path": "tests/non_collapse/MANNY_RUNTIME_TRACE_HANDOFF.md",
+      "type": "documentation",
+      "description": "Runtime trace integration spec (not yet wired)",
+      "sha256": "8f25a40cfb9c2fbe3386215ad3d6c887e8ef09e95c66e31547c682047d4efe8c"
+    },
+    {
+      "index": 4,
+      "path": "tests/non_collapse/MANNY_RUNTIME_TRACE_BRIEF.json",
+      "type": "integration_brief",
+      "description": "Trace format brief for future integration",
+      "sha256": "10a7740524cdeec5f54d0455a5ffa200a2d80e0ff894b7201c265cfc00af981b"
+    },
+    {
+      "index": 5,
+      "path": "tests/non_collapse/manifest.json",
+      "type": "manifest",
+      "description": "This file — bundle manifest with SHA-256 checksums",
+      "sha256": "self"
+    },
+    {
+      "index": 6,
+      "path": "tests/non_collapse/validate.mjs",
+      "type": "tooling",
+      "description": "Schema and file integrity validator",
+      "sha256": "6bf3a0b7725a492aa6e9ba63c24e9d364ef3355225eab5b191a5e192f7f83494"
+    },
+    {
+      "index": 7,
+      "path": "tests/non_collapse/harness.mjs",
+      "type": "tooling",
+      "description": "Conformance harness runner (two-lane evaluation, match-basis reporting)",
+      "sha256": "1a884fa92300307e4d904b9fd10aa86120136696f69565b61142a4dd309f07be"
+    },
+    {
+      "index": 8,
+      "path": "tests/non_collapse/non_collapse_vectors_v0.1.json",
+      "type": "test_vectors",
+      "description": "Master vector definitions (30 base vectors across 10 rules)",
+      "sha256": "2fb20b4d3d8d469cc91105b75dd05253bd24be4d37a5e14f6b7f52eb20103b5f"
+    },
+    {
+      "index": 9,
+      "path": "tests/non_collapse/non_collapse_matcher_rules_v0.1.json",
+      "type": "matcher_rules",
+      "description": "10 rules with collapse/non-collapse indicators per lane",
+      "sha256": "fdd5dcca0f9f40b19a2e6ac25a6be311e041400e0523fb827b8317203bcfacab"
+    },
+    {
+      "index": 10,
+      "path": "tests/non_collapse/non_collapse_failure_taxonomy_v0.1.json",
+      "type": "taxonomy",
+      "description": "Failure code definitions and severity levels",
+      "sha256": "8701682e6144aec758b574a3f8727fbbb33569eac0bf1f28b0a56d7252258242"
+    },
+    {
+      "index": 11,
+      "path": "tests/non_collapse/non_collapse_golden_runs_v0.1.jsonl",
+      "type": "golden_runs",
+      "description": "10 golden run traces (expected pass, both lanes)",
+      "sha256": "73ccf53bd16f8eb7fba596100bd91e182041ba900dbda6827e43e0d3f908c6fa"
+    },
+    {
+      "index": 12,
+      "path": "tests/non_collapse/non_collapse_negative_runs_v0.1.jsonl",
+      "type": "negative_runs",
+      "description": "20 action-negative traces (side_effect_produced=true)",
+      "sha256": "64237819744de447006bcf2e85c0e86078ecd362b556a5a6bbbcbcdcf389e5dd"
+    },
+    {
+      "index": 13,
+      "path": "tests/non_collapse/non_collapse_reliance_negative_runs_v0.1.2.jsonl",
+      "type": "reliance_negative_runs",
+      "description": "11 reliance-negative traces (side_effect_produced=false, language collapse)",
+      "sha256": "66bde382b3ad4f85abdeb33dc7ee03817800a86d7ada071fd25ff782938dfc9a"
+    },
+    {
+      "index": 14,
+      "path": "tests/non_collapse/non_collapse_variants_v0.1.jsonl",
+      "type": "test_variants",
+      "description": "10 action-collapse variant traces (generalization tests)",
+      "sha256": "4cbb6b6bac7c6a5ebf1f559ed0b129ea942816f3eea1a5be1f98183377ecddef"
+    },
+    {
+      "index": 15,
+      "path": "tests/non_collapse/non_collapse_reliance_variants_v0.1.3.jsonl",
+      "type": "reliance_variants",
+      "description": "11 reliance-collapse variant traces (generalization tests)",
+      "sha256": "95a74d00f7f968be86d0fea821ce78b7bff34b1a9e2d37de45ea984d3e74018d"
+    },
+    {
+      "index": 16,
+      "path": "tests/non_collapse/non_collapse_pass_fail_algorithm.json",
+      "type": "algorithm",
+      "description": "Two-lane evaluation logic definition",
+      "sha256": "e08be01acf1b7d77bd628f87480afac1cdfc914a914462efc72ecc72ba658e42"
+    },
+    {
+      "index": 17,
+      "path": "tests/non_collapse/non_collapse_harness_contract.json",
+      "type": "contract",
+      "description": "Harness behavioral contract (two-lane requirements)",
+      "sha256": "1e41b51cc7a9453d0d821f83a007426b39e7b5479dca5a0c8b246b7a213827e5"
+    },
+    {
+      "index": 18,
+      "path": "tests/non_collapse/non_collapse_patch_target_matrix_v0.1.json",
+      "type": "patch_matrix",
+      "description": "Where to patch if a rule fails in production",
+      "sha256": "4273642815a67d039db40cd6f2bf4dd40a6cfebbc7020dbd48c2e79d66ceaee7"
+    },
+    {
+      "index": 19,
+      "path": "tests/non_collapse/non_collapse_evaluation_record.schema.json",
+      "type": "schema",
+      "description": "JSON Schema for evaluation records",
+      "sha256": "9e89480435245b77840b476211f1840b6128b2faeb908aa02706b90fdd1e697e"
+    },
+    {
+      "index": 20,
+      "path": "tests/non_collapse/non_collapse_failure_record.schema.json",
+      "type": "schema",
+      "description": "JSON Schema for failure records (includes match_basis fields)",
+      "sha256": "86cc8447143a3a2f5a07a06c2467803b21e03a16403df46d9baea20f5dc02298"
+    },
+    {
+      "index": 21,
+      "path": "tests/non_collapse/non_collapse_runtime_trace.schema.json",
+      "type": "schema",
+      "description": "JSON Schema for normalized runtime traces",
+      "sha256": "9ca4d885dee86c7a5ffddf590f9a4739a0ed056049be480665ff57e5cd8338c7"
+    },
+    {
+      "index": 22,
+      "path": "tests/non_collapse/non_collapse_conformance_report.schema.json",
+      "type": "schema",
+      "description": "JSON Schema for conformance reports (includes per-lane status)",
+      "sha256": "4d681cd730430b355fa531007f5b1280fe363185909d5c9a755a994c604a61c7"
+    },
+    {
+      "index": 23,
+      "path": "tests/non_collapse/non_collapse_golden_summary.schema.json",
+      "type": "schema",
+      "description": "JSON Schema for golden summaries",
+      "sha256": "d55c87788f4465b3bcb9de830ade15add131229150b775ecd93570bef094749d"
+    },
+    {
+      "index": 24,
+      "path": "tests/non_collapse/non_collapse_golden_summary.example.json",
+      "type": "example",
+      "description": "Example golden summary output",
+      "sha256": "94659a69c6a8d987ab4eec137431fc64aacb90925a6dc959139530ca67fa1fb1"
+    },
+    {
+      "index": 25,
+      "path": "tests/non_collapse/non_collapse_conformance_report.example.json",
+      "type": "example",
+      "description": "Example conformance report output (v0.1.3)",
+      "sha256": "168bed567bc6eb6bc7211a45a4738d96d2f3c5d1b1b625613435b0e707e8b091"
+    },
+    {
+      "index": 26,
+      "path": "docs/FORBIDDEN_OUTPUT_PATTERN_STATUS.md",
+      "type": "documentation",
+      "description": "Clarification that forbidden_output_pattern is a detector signal, not ground truth",
+      "sha256": "8b8d7f086c92f3cea1e5bf78093ad09dba59cfe26b63711bb91ba132348cf065"
+    },
+    {
+      "index": 27,
+      "path": "docs/architecture/non-collapse-enforcement-spec-v0.1.md",
+      "type": "specification",
+      "description": "Architecture spec: two-lane evaluation, action vs reliance collapse",
+      "sha256": "3a397d125dd3c3d5cd79b9c3e40574ce94cba92c09d0b95b137ab27e2cf9bdaf"
+    },
+    {
+      "index": 28,
+      "path": "non_collapse_bundle_provenance_v0.1.json",
+      "type": "provenance",
+      "description": "Bundle provenance and generation metadata",
+      "sha256": "8690eb087842becfa4bd6246b9538854f885e2d0a939f2ce23b2d02aec595dbf"
+    }
+  ]
+}

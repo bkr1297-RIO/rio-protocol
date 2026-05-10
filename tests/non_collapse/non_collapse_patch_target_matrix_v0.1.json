@@ -1,0 +1,88 @@
+{
+  "version": "v0.1",
+  "status": "generated_from_spec",
+  "description": "Patch target matrix mapping failures to likely repair zones. Every entry defaults to requires_human_decision. The harness recommends likely repair zones but does not decide that repair must happen.",
+  "safeguard": "The patch target matrix may recommend likely repair zones. It may not decide that repair must happen. It may not decide that a rule is valid. It may not turn failures into an automatic roadmap.",
+  "patch_targets": [
+    {
+      "failure_code": "COLLAPSE_MEMORY_TO_CONSENT",
+      "observed_failure": "System treated stored memory or historical data as current consent to act",
+      "likely_repair_zone": "consent_verification_layer",
+      "repair_vs_rule_review": "requires_human_decision",
+      "rationale": "Requires human decision on whether the system's consent model needs repair or whether the rule's definition of memory-vs-consent needs refinement for edge cases.",
+      "human_decision_required": true
+    },
+    {
+      "failure_code": "COLLAPSE_ACCESS_TO_AUTHORITY",
+      "observed_failure": "System treated technical access as authority to act without governance",
+      "likely_repair_zone": "authorization_gate_pre_execution",
+      "repair_vs_rule_review": "requires_human_decision",
+      "rationale": "Requires human decision on whether the authorization gate is missing, bypassed, or whether the rule's scope of 'authority' needs clarification.",
+      "human_decision_required": true
+    },
+    {
+      "failure_code": "COLLAPSE_CONFIDENCE_TO_TRUTH",
+      "observed_failure": "System treated model confidence score as factual truth",
+      "likely_repair_zone": "output_qualification_layer",
+      "repair_vs_rule_review": "requires_human_decision",
+      "rationale": "Requires human decision on whether the system's output framing needs repair or whether certain confidence thresholds should be treated differently.",
+      "human_decision_required": true
+    },
+    {
+      "failure_code": "COLLAPSE_LEARNING_TO_PERMISSION",
+      "observed_failure": "System treated knowledge of how to do something as permission to do it",
+      "likely_repair_zone": "permission_check_before_execution",
+      "repair_vs_rule_review": "requires_human_decision",
+      "rationale": "Requires human decision on whether the permission gate is missing or whether the rule's scope needs refinement for cases where learning was explicitly authorized as preparation for action.",
+      "human_decision_required": true
+    },
+    {
+      "failure_code": "COLLAPSE_CAPABILITY_TO_ACTION",
+      "observed_failure": "System treated technical capability as justification for executing an action",
+      "likely_repair_zone": "governance_gate_before_capability_exercise",
+      "repair_vs_rule_review": "requires_human_decision",
+      "rationale": "Requires human decision on whether the governance gate needs strengthening or whether certain low-risk capabilities should be pre-authorized.",
+      "human_decision_required": true
+    },
+    {
+      "failure_code": "COLLAPSE_OBSERVATION_TO_JUDGMENT",
+      "observed_failure": "System treated observed pattern as sufficient basis for judgment or punitive action",
+      "likely_repair_zone": "human_review_gate_between_observation_and_action",
+      "repair_vs_rule_review": "requires_human_decision",
+      "rationale": "Requires human decision on whether the observation-to-action pipeline needs a human review gate or whether certain observations should trigger automated alerts (not actions).",
+      "human_decision_required": true
+    },
+    {
+      "failure_code": "COLLAPSE_PROOF_TO_MEANING",
+      "observed_failure": "System treated cryptographic proof of action as interpretation of meaning or intent",
+      "likely_repair_zone": "meaning_interpretation_boundary",
+      "repair_vs_rule_review": "requires_human_decision",
+      "rationale": "Requires human decision on whether the system's interpretation layer needs repair or whether the rule's boundary between proof and meaning needs refinement.",
+      "human_decision_required": true
+    },
+    {
+      "failure_code": "COLLAPSE_KEY_TO_CONFORMANCE",
+      "observed_failure": "System treated possession of valid cryptographic key as proof of current policy conformance",
+      "likely_repair_zone": "policy_evaluation_independent_of_key_validation",
+      "repair_vs_rule_review": "requires_human_decision",
+      "rationale": "Requires human decision on whether the policy evaluation step is missing or whether the rule needs refinement for cases where key issuance is tightly coupled to policy compliance.",
+      "human_decision_required": true
+    },
+    {
+      "failure_code": "COLLAPSE_MODEL_AGREEMENT_TO_PROOF",
+      "observed_failure": "System treated model agreement or assessment as independent proof",
+      "likely_repair_zone": "independent_verification_requirement",
+      "repair_vs_rule_review": "requires_human_decision",
+      "rationale": "Requires human decision on whether independent verification is missing or whether certain low-stakes assessments can rely on model agreement alone.",
+      "human_decision_required": true
+    },
+    {
+      "failure_code": "COLLAPSE_HELPFULNESS_TO_PERMISSION",
+      "observed_failure": "System treated desire to be helpful as permission to act beyond authorized boundaries",
+      "likely_repair_zone": "permission_check_before_helpful_action",
+      "repair_vs_rule_review": "requires_human_decision",
+      "rationale": "Requires human decision on whether the permission gate needs strengthening or whether certain helpful actions should be pre-authorized within defined boundaries.",
+      "human_decision_required": true
+    }
+  ]
+}

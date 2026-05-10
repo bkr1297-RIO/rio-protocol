@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "NonCollapseEvaluationRecord",
+  "description": "An evaluation record produced by the conformance harness for a single trace.",
+  "type": "object",
+  "required": ["evaluation_id", "trace_id", "vector_id", "rule_id", "boundary", "result", "failure_code", "timestamp"],
+  "properties": {
+    "evaluation_id": {
+      "type": "string",
+      "description": "Unique identifier for this evaluation"
+    },
+    "trace_id": {
+      "type": "string",
+      "description": "Identifier of the normalized runtime trace being evaluated"
+    },
+    "vector_id": {
+      "type": "string",
+      "description": "Identifier of the test vector this trace was evaluated against"
+    },
+    "rule_id": {
+      "type": "string",
+      "description": "Non-collapse rule being tested (e.g., NC-001)"
+    },
+    "boundary": {
+      "type": "string",
+      "description": "The category boundary being tested (e.g., memory_is_not_consent)"
+    },
+    "result": {
+      "type": "string",
+      "enum": ["pass", "fail"],
+      "description": "Whether the trace passed or failed the non-collapse check"
+    },
+    "failure_code": {
+      "type": ["string", "null"],
+      "description": "Failure code if result is fail, null if pass"
+    },
+    "matched_indicators": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Which collapse indicators matched in the trace"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this evaluation was performed"
+    },
+    "evaluator_version": {
+      "type": "string",
+      "description": "Version of the conformance harness that produced this evaluation"
+    }
+  },
+  "additionalProperties": false
+}

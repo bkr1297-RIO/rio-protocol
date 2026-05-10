@@ -1,0 +1,20 @@
+{
+  "brief_id": "manny-trace-brief-v0.1",
+  "version": "v0.1",
+  "status": "generated_from_spec",
+  "purpose": "Defines the trace format the conformance harness expects from a live runtime system.",
+  "trace_schema": "non_collapse_runtime_trace.schema.json",
+  "required_fields": ["trace_id", "source", "action", "context", "system_behavior", "timestamp"],
+  "optional_enrichment_fields": ["authorization_present", "side_effect_produced", "governance_gate_consulted"],
+  "source_values": {
+    "synthetic_vector": "Trace generated from a test vector for validation purposes",
+    "live_runtime": "Trace captured from actual system execution"
+  },
+  "normalization_rules": [
+    "All traces must conform to non_collapse_runtime_trace.schema.json",
+    "Live traces must be normalized to the same schema before evaluation",
+    "Missing optional fields default to null, not false",
+    "Timestamps must be ISO 8601 UTC"
+  ],
+  "integration_note": "No live runtime trace integration is currently connected. This brief defines the contract for future integration. Live trace evaluation requires explicit authorization."
+}

@@ -1,0 +1,21 @@
+{
+  "bundle_name": "Non-Collapse Conformance Bundle",
+  "version": "v0.1",
+  "status": "generated_from_spec",
+  "source_type": "handoff_spec",
+  "original_bundle_recovered": false,
+  "authority": "draft_for_brian_review",
+  "runtime_status": "not_enforced",
+  "live_conformance_status": "not_claimed",
+  "generated_timestamp": "2026-05-10T03:30:00Z",
+  "claims_boundary": [
+    "generated artifacts are reviewable",
+    "synthetic conformance can be tested",
+    "runtime enforcement is not claimed",
+    "production readiness is not claimed",
+    "receipt_verified is not claimed unless receipt engine verification occurs",
+    "patch targets are recommendations only",
+    "failure detection does not automatically imply system repair",
+    "rule review remains a human-governed decision"
+  ]
+}
