@@ -8,78 +8,229 @@
 #   that records the determination of who is accountable for a governed action
 #   and what evidence supports that determination.
 #
-# Key principle:
+# Key principles:
 #   Receipts make accountability possible.
 #   Conformance makes accountability testable.
 #   Human governance makes accountability real.
+#   No automated system may issue an accountability determination.
+#
+# Authority boundary:
+#   This schema is draft_reference. Only Brian may promote to approved/canonical.
+#   This schema does not claim implementation truth.
 #
 # Role reminder:
+#   Human commits. Scribe-Bondi clarifies. UGIP packages. RIO gates.
+#   Sentinel enforces. MUS acts. Receipt Notary proves. Chronicle preserves.
+#   Conformance verifies. Human Governance accounts. MANTIS learns. Convergence brakes.
+#
 #   MUS acts. Receipt Notary proves. Chronicle preserves.
 #   MANTIS learns. Convergence brakes. Human Governance decides.
+#
+#   MUS does NOT receipt itself.
 
 # TODO:
-# - [ ] Define accountability determination fields
-# - [ ] Define relationship to base receipt and conformance receipt
-# - [ ] Define accountability roles (proposer, approver, executor, verifier)
-# - [ ] Define evidence chain linking
+# - [ ] Validate enum values with Brian
+# - [ ] Define canonicalization order for hashing
 # - [ ] Review with Brian
 
 type: object
-description: "Accountability determination receipt — records who is accountable and the evidence chain."
+description: "Accountability determination receipt — records who is accountable, the evidence chain, and the human governance decision."
+
 required:
   - receipt_id
-  - timestamp
+  - receipt_type
   - action_receipt_id
+  - reviewing_authority
   - determination
-  - accountable_party
-  - receipt_hash
+  - accountability_basis
+  - evidence_chain
+  - conformance_status
+  - timestamp
+  - signer
   - signature
+  - proof_status
+
 properties:
   receipt_id:
     type: string
     format: uuid
     description: "Unique identifier for this accountability determination receipt."
-  timestamp:
+
+  receipt_type:
     type: string
-    format: date-time
-    description: "ISO 8601 creation time."
+    enum:
+      - accountability_determination
+      - accountability_escalation
+      - accountability_amendment
+    description: "Type of accountability receipt."
+
   action_receipt_id:
     type: string
     format: uuid
     description: "The receipt_id of the governed action being assessed."
+
+  conformance_receipt_id:
+    type: string
+    format: uuid
+    description: "The receipt_id of the conformance check associated with this action (if applicable)."
+
+  reviewing_authority:
+    type: object
+    description: "The human governance authority that performed this determination. MUST be human — automated determination is a conformance violation."
+    required:
+      - identity
+      - authority_type
+    properties:
+      identity:
+        type: string
+        description: "Identity of the reviewing human (e.g., human:brian)."
+      authority_type:
+        type: string
+        enum:
+          - owner
+          - delegate
+          - governance_board
+        description: "Type of authority the reviewer holds."
+      delegation_chain:
+        type: array
+        items:
+          type: string
+        description: "If delegated, the chain of delegation from owner to reviewer."
+
   determination:
     type: string
     enum:
       - ACCOUNTABLE_IDENTIFIED
+      - ACCOUNTABILITY_SHARED
       - ACCOUNTABILITY_UNCLEAR
       - ESCALATION_REQUIRED
+      - NO_VIOLATION
     description: "Outcome of the accountability determination."
-  accountable_party:
-    type: object
-    description: "Identity and role of the accountable party."
-    properties:
-      identity:
-        type: string
-        description: "Identity string (e.g., human:brian)."
-      role:
-        type: string
-        description: "Role in the governed action (e.g., approver, proposer)."
-    # TODO: define required fields
+
+  accountable_parties:
+    type: array
+    description: "All parties identified as accountable (may be multiple in shared accountability)."
+    items:
+      type: object
+      required:
+        - identity
+        - role
+        - accountability_share
+      properties:
+        identity:
+          type: string
+          description: "Identity string (e.g., human:brian, system:MUS, system:RIO)."
+        role:
+          type: string
+          enum:
+            - proposer
+            - approver
+            - executor
+            - verifier
+            - notary
+            - governance
+          description: "Role in the governed action."
+        accountability_share:
+          type: string
+          enum:
+            - primary
+            - contributing
+            - supervisory
+            - none
+          description: "Degree of accountability assigned."
+
+  accountability_basis:
+    type: string
+    description: "Human-readable explanation of why this determination was made. Written by the reviewing authority."
+
   evidence_chain:
     type: array
     items:
-      type: string
-      format: uuid
-    description: "Ordered list of receipt_ids forming the evidence chain."
+      type: object
+      required:
+        - receipt_id
+        - receipt_type
+        - relevance
+      properties:
+        receipt_id:
+          type: string
+          format: uuid
+          description: "Receipt ID in the evidence chain."
+        receipt_type:
+          type: string
+          description: "Type of receipt (event, conformance, etc.)."
+        relevance:
+          type: string
+          description: "Why this receipt is relevant to the determination."
+    description: "Ordered list of receipts forming the evidence chain, with relevance annotations."
+
   conformance_status:
     type: string
+    enum:
+      - conformant
+      - non_conformant
+      - partial
+      - unknown
     description: "Whether the action was conformant at time of execution."
-  receipt_hash:
+
+  boundary_that_failed:
     type: string
-    description: "SHA-256 of the canonicalized body."
+    enum:
+      - intent_formation
+      - authority_verification
+      - risk_evaluation
+      - approval_gate
+      - execution_gate
+      - capability_boundary
+      - receipt_generation
+      - ledger_append
+      - conformance_verification
+      - accountability_review
+      - learning_gate
+      - convergence_monitoring
+      - none
+    description: "Which boundary failed (if non-conformant). 'none' if conformant."
+
+  remediation:
+    type: object
+    description: "What remediation was ordered (if any)."
+    properties:
+      action_required:
+        type: string
+        description: "What must be done to remediate."
+      deadline:
+        type: string
+        format: date-time
+        description: "When remediation must be completed."
+      policy_change_required:
+        type: boolean
+        description: "Whether a policy amendment is needed."
+
+  timestamp:
+    type: string
+    format: date-time
+    description: "ISO 8601 UTC timestamp when this determination was issued."
+
+  signer:
+    type: string
+    description: "Identity of the authority that signed this determination receipt."
+
   signature:
     type: string
-    description: "Ed25519 signature over the canonicalized body."
-  public_key:
+    description: "Ed25519 signature over the canonicalized accountability determination body."
+
+  proof_status:
     type: string
-    description: "SPKI DER-encoded Ed25519 public key (hex)."
+    enum:
+      - drafted
+      - structured
+      - human-committed
+      - RIO-evaluated
+      - Sentinel-enforced
+      - executed
+      - receipt-notarized
+      - Chronicle-preserved
+      - conformance-verified
+      - accountability-determined
+      - governance-amended
+    description: "Current proof-status level. An accountability determination receipt should be at least 'accountability-determined' level."

@@ -10,61 +10,186 @@
 # A conformance receipt extends the base receipt protocol
 # (see rio-receipt-protocol spec) with conformance-specific fields.
 #
+# Authority boundary:
+#   This schema is draft_reference. Only Brian may promote to approved/canonical.
+#   This schema does not claim implementation truth.
+#
 # Role reminder:
+#   Human commits. Scribe-Bondi clarifies. UGIP packages. RIO gates.
+#   Sentinel enforces. MUS acts. Receipt Notary proves. Chronicle preserves.
+#   Conformance verifies. Human Governance accounts. MANTIS learns. Convergence brakes.
+#
 #   MUS acts. Receipt Notary proves. Chronicle preserves.
 #   MANTIS learns. Convergence brakes. Human Governance decides.
+#
+#   MUS does NOT receipt itself.
 
 # TODO:
-# - [ ] Define conformance receipt fields
-# - [ ] Define relationship to base receipt schema
-# - [ ] Define conformance-specific validation checks
-# - [ ] Define conformance decision values (CONFORMANT / NON_CONFORMANT / PARTIAL)
+# - [ ] Validate enum values with Brian
+# - [ ] Define canonicalization order for hashing
 # - [ ] Review with Brian
 
 type: object
-description: "Conformance receipt — proves a conformance boundary was checked."
+description: "Conformance receipt — proves a conformance boundary was checked and the result was recorded."
+
 required:
   - receipt_id
+  - receipt_type
+  - boundary_id
+  - safety_claim
+  - must_not_rule
+  - structural_block_owner
+  - boundary_result
+  - actual_verdict
   - timestamp
-  - conformance_boundary
-  - conformance_result
-  - receipt_hash
+  - signer
   - signature
+  - proof_status
+
 properties:
   receipt_id:
     type: string
     format: uuid
     description: "Unique identifier for this conformance receipt."
+
+  receipt_type:
+    type: string
+    enum:
+      - conformance_check
+      - conformance_failure
+      - conformance_success
+      - boundary_hold
+      - boundary_block
+      - boundary_escalate
+    description: "Type of conformance receipt."
+
+  boundary_id:
+    type: string
+    enum:
+      - intent_formation
+      - authority_verification
+      - risk_evaluation
+      - approval_gate
+      - execution_gate
+      - capability_boundary
+      - receipt_generation
+      - ledger_append
+      - conformance_verification
+      - accountability_review
+      - learning_gate
+      - convergence_monitoring
+    description: "Which conformance boundary was checked."
+
+  safety_claim:
+    type: string
+    description: "The safety claim being verified (from the 12-row conformance table)."
+
+  must_not_rule:
+    type: string
+    description: "The MUST NOT invariant being tested (protocol-level prohibition)."
+
+  structural_block_owner:
+    type: string
+    description: "The component or mechanism responsible for the structural CANNOT block."
+
+  tested_event_ref:
+    type: string
+    format: uuid
+    description: "Reference to the event receipt or action that triggered this conformance check."
+
+  violation_type:
+    type: string
+    enum:
+      - none
+      - schema_violation
+      - unauthorized_reclassification
+      - capability_exceeded
+      - invalid_token
+      - self_certification
+      - modification_attempt
+      - unverified_claim
+      - automated_determination
+      - raw_intake
+      - authority_writeback
+      - rubber_stamp_pattern
+    description: "Type of violation detected (none if boundary held without violation attempt)."
+
+  attempted_action:
+    type: string
+    description: "What action was attempted that triggered the conformance check."
+
+  expected_verdict:
+    type: string
+    enum:
+      - HOLD
+      - BLOCK
+      - ESCALATE
+      - PASS
+    description: "What the system was expected to do based on the safety claim."
+
+  actual_verdict:
+    type: string
+    enum:
+      - HOLD
+      - BLOCK
+      - ESCALATE
+      - PASS
+      - FAIL
+    description: "What the system actually did."
+
+  boundary_result:
+    type: string
+    enum:
+      - held
+      - failed
+      - surfaced
+      - inconclusive
+    description: "Outcome at the boundary: held (boundary worked), failed (boundary breached), surfaced (attempt detected and recorded), inconclusive (unable to determine)."
+
+  proof_of_block:
+    type: string
+    description: "Reference to the receipt or evidence artifact that proves the block/hold occurred."
+
+  evidence_refs:
+    type: array
+    items:
+      type: string
+      format: uuid
+    description: "References to supporting evidence (other receipts, log entries, verifier output)."
+
+  policy_version:
+    type: string
+    description: "Version of the policy that was active when this check was performed."
+
+  conformance_version:
+    type: string
+    description: "Version of the conformance declaration this receipt was checked against."
+
   timestamp:
     type: string
     format: date-time
-    description: "ISO 8601 creation time."
-  conformance_boundary:
+    description: "ISO 8601 UTC timestamp when this conformance receipt was generated."
+
+  signer:
     type: string
-    description: "Which boundary was checked (e.g., intent_formation, risk_evaluation, authority_verification)."
-    # TODO: enumerate allowed values
-  conformance_result:
-    type: string
-    enum:
-      - CONFORMANT
-      - NON_CONFORMANT
-      - PARTIAL
-    description: "Result of the conformance check."
-  invariants_checked:
-    type: array
-    items:
-      type: integer
-    description: "List of must-never invariant numbers that were verified."
-  details:
-    type: object
-    description: "Additional context about the conformance check."
-    # TODO: define structure
-  receipt_hash:
-    type: string
-    description: "SHA-256 of the canonicalized conformance receipt body."
+    description: "Identity of the conformance verifier that signed this receipt (must NOT be the actor being verified)."
+
   signature:
     type: string
-    description: "Ed25519 signature over the canonicalized body."
-  public_key:
+    description: "Ed25519 signature over the canonicalized conformance receipt body."
+
+  proof_status:
     type: string
-    description: "SPKI DER-encoded Ed25519 public key (hex)."
+    enum:
+      - drafted
+      - structured
+      - human-committed
+      - RIO-evaluated
+      - Sentinel-enforced
+      - executed
+      - receipt-notarized
+      - Chronicle-preserved
+      - conformance-verified
+      - accountability-determined
+      - governance-amended
+    description: "Current proof-status level of this receipt on the proof ladder. No inflation permitted."
