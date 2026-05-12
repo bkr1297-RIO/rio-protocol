@@ -1,0 +1,85 @@
+# Accountability Determination Receipt Schema v0.1
+# Status: draft_reference
+# Parent: ONE/RIO/MUSS Conformance Declaration — Friction Before Consequence v0.1
+# Date: 2026-05-11
+#
+# Purpose:
+#   Defines the schema for an accountability determination receipt — a receipt
+#   that records the determination of who is accountable for a governed action
+#   and what evidence supports that determination.
+#
+# Key principle:
+#   Receipts make accountability possible.
+#   Conformance makes accountability testable.
+#   Human governance makes accountability real.
+#
+# Role reminder:
+#   MUS acts. Receipt Notary proves. Chronicle preserves.
+#   MANTIS learns. Convergence brakes. Human Governance decides.
+
+# TODO:
+# - [ ] Define accountability determination fields
+# - [ ] Define relationship to base receipt and conformance receipt
+# - [ ] Define accountability roles (proposer, approver, executor, verifier)
+# - [ ] Define evidence chain linking
+# - [ ] Review with Brian
+
+type: object
+description: "Accountability determination receipt — records who is accountable and the evidence chain."
+required:
+  - receipt_id
+  - timestamp
+  - action_receipt_id
+  - determination
+  - accountable_party
+  - receipt_hash
+  - signature
+properties:
+  receipt_id:
+    type: string
+    format: uuid
+    description: "Unique identifier for this accountability determination receipt."
+  timestamp:
+    type: string
+    format: date-time
+    description: "ISO 8601 creation time."
+  action_receipt_id:
+    type: string
+    format: uuid
+    description: "The receipt_id of the governed action being assessed."
+  determination:
+    type: string
+    enum:
+      - ACCOUNTABLE_IDENTIFIED
+      - ACCOUNTABILITY_UNCLEAR
+      - ESCALATION_REQUIRED
+    description: "Outcome of the accountability determination."
+  accountable_party:
+    type: object
+    description: "Identity and role of the accountable party."
+    properties:
+      identity:
+        type: string
+        description: "Identity string (e.g., human:brian)."
+      role:
+        type: string
+        description: "Role in the governed action (e.g., approver, proposer)."
+    # TODO: define required fields
+  evidence_chain:
+    type: array
+    items:
+      type: string
+      format: uuid
+    description: "Ordered list of receipt_ids forming the evidence chain."
+  conformance_status:
+    type: string
+    description: "Whether the action was conformant at time of execution."
+  receipt_hash:
+    type: string
+    description: "SHA-256 of the canonicalized body."
+  signature:
+    type: string
+    description: "Ed25519 signature over the canonicalized body."
+  public_key:
+    type: string
+    description: "SPKI DER-encoded Ed25519 public key (hex)."
