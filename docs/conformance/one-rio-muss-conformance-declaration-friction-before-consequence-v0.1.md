@@ -109,16 +109,16 @@ The following invariants are **never** violated by a conforming system:
 
 ## Derived Artifacts
 
-The following artifacts are planned or in progress. They extend this declaration but do not modify it:
+The following artifacts extend this declaration but do not modify it:
 
-| Artifact | Path | Status |
-|----------|------|--------|
-| Must-Never Invariant Matrix v0.1 | `docs/conformance/must-never-invariant-matrix-v0.1.md` | `draft_reference` |
-| Conformance Receipt Schema | `docs/specs/conformance-receipt.schema.yaml` | `draft_reference` |
-| Accountability Determination Receipt Schema | `docs/specs/accountability-determination-receipt.schema.yaml` | `draft_reference` |
-| Conformance Failure Tests v0.1 | `docs/tests/conformance-failure-tests-v0.1.md` | `draft_reference` |
-| ADR-0006: Friction Before Consequence | `docs/adr/0006-friction-before-consequence.md` | `draft_reference` |
-| ADR-0007: Conformance Receipts | `docs/adr/0007-conformance-receipts.md` | `draft_reference` |
+| Artifact | Path | Status | Key Content (PR #15) |
+|----------|------|--------|---------------------|
+| Must-Never Invariant Matrix v0.1 | `docs/conformance/must-never-invariant-matrix-v0.1.md` | `draft_reference` | MUST NOT/CANNOT/DID NOT discipline, 12-row conformance table, proof ladder |
+| Conformance Receipt Schema | `docs/specs/conformance-receipt.schema.yaml` | `draft_reference` | Full field set with boundary_id enum, violation types, proof_status |
+| Accountability Determination Receipt Schema | `docs/specs/accountability-determination-receipt.schema.yaml` | `draft_reference` | Full field set with reviewing_authority, evidence_chain, remediation |
+| Conformance Failure Tests v0.1 | `docs/tests/conformance-failure-tests-v0.1.md` | `draft_reference` | 12 test scenarios (CF-001 through CF-012) with DID NOT evidence |
+| ADR-0006: Friction Before Consequence | `docs/adr/0006-friction-before-consequence.md` | `draft_reference` | Friction boundary map, anti-collapse doctrine, collapse detection signals |
+| ADR-0007: Conformance Receipts | `docs/adr/0007-conformance-receipts.md` | `draft_reference` | Accountability boundary, receipt type taxonomy, generation rules |
 
 ---
 
