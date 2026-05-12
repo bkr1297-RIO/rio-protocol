@@ -1,0 +1,70 @@
+# Conformance Receipt Schema v0.1
+# Status: draft_reference
+# Parent: ONE/RIO/MUSS Conformance Declaration — Friction Before Consequence v0.1
+# Date: 2026-05-11
+#
+# Purpose:
+#   Defines the schema for a conformance receipt — a receipt that proves
+#   a conformance boundary was checked and the result was recorded.
+#
+# A conformance receipt extends the base receipt protocol
+# (see rio-receipt-protocol spec) with conformance-specific fields.
+#
+# Role reminder:
+#   MUS acts. Receipt Notary proves. Chronicle preserves.
+#   MANTIS learns. Convergence brakes. Human Governance decides.
+
+# TODO:
+# - [ ] Define conformance receipt fields
+# - [ ] Define relationship to base receipt schema
+# - [ ] Define conformance-specific validation checks
+# - [ ] Define conformance decision values (CONFORMANT / NON_CONFORMANT / PARTIAL)
+# - [ ] Review with Brian
+
+type: object
+description: "Conformance receipt — proves a conformance boundary was checked."
+required:
+  - receipt_id
+  - timestamp
+  - conformance_boundary
+  - conformance_result
+  - receipt_hash
+  - signature
+properties:
+  receipt_id:
+    type: string
+    format: uuid
+    description: "Unique identifier for this conformance receipt."
+  timestamp:
+    type: string
+    format: date-time
+    description: "ISO 8601 creation time."
+  conformance_boundary:
+    type: string
+    description: "Which boundary was checked (e.g., intent_formation, risk_evaluation, authority_verification)."
+    # TODO: enumerate allowed values
+  conformance_result:
+    type: string
+    enum:
+      - CONFORMANT
+      - NON_CONFORMANT
+      - PARTIAL
+    description: "Result of the conformance check."
+  invariants_checked:
+    type: array
+    items:
+      type: integer
+    description: "List of must-never invariant numbers that were verified."
+  details:
+    type: object
+    description: "Additional context about the conformance check."
+    # TODO: define structure
+  receipt_hash:
+    type: string
+    description: "SHA-256 of the canonicalized conformance receipt body."
+  signature:
+    type: string
+    description: "Ed25519 signature over the canonicalized body."
+  public_key:
+    type: string
+    description: "SPKI DER-encoded Ed25519 public key (hex)."
