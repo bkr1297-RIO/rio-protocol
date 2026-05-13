@@ -41,6 +41,9 @@ The deepest failure is authority drift: a non-human component starts behaving as
 | Access | Consent |
 | Capability | Action |
 | Helpfulness | Authorization |
+| Connected access | Task authority |
+| Draft | Send / publish / merge |
+| Tool result | Receipt / verification |
 
 ---
 
@@ -230,6 +233,29 @@ Keeper line:
 
 ---
 
+## Category L — Connector governance failures
+
+| Failure mode | How it breaks | Detection signal | Human input needed | Response |
+|-------------|---------------|------------------|-------------------|----------|
+| Connected-access drift | Signed-in connector access is treated as task permission | Tool is available but no Connector Action Authorization Packet exists | Connector, target, action, allowed/forbidden scope | HOLD/CLARIFY |
+| Draft/send collapse | Drafting an email, message, page, or post is confused with sending/publishing it | Draft action includes external delivery or publish verb | Final phrase such as "Approved to send" or "Approved to publish" | HOLD |
+| Read/write collapse | Read-only research drifts into editing, commenting, creating, or publishing | Tool action changes from fetch/search to write/update | Access type and write permission | HOLD |
+| Preview bypass | External action occurs before human review | No preview or review step before send/merge/publish/delete | Preview requirement | HOLD/BLOCK |
+| Silent connector action | Tool acts without visible evidence or returned result | No link, ID, commit SHA, draft ID, or tool result | Evidence/receipt requirement | HOLD |
+| Surface confusion | Action occurs in wrong repo, doc, folder, inbox, workspace, branch, or account | Target URL/ID missing or ambiguous | Exact target surface | HOLD |
+| Permission inflation | One approved connector action expands into broader connector use | Additional actions appear outside allowed list | Allowed/forbidden actions | BLOCK if outside scope |
+| Merge/publish collapse | Branch update, draft, or preview is treated as public/canonical publication | Draft/branch update followed by merge/publish language | Final commit condition | HOLD/BLOCK |
+| Permission-change drift | Sharing, collaborator, visibility, or access settings change without explicit approval | Permission or visibility mutation appears | Permission-change final phrase | BLOCK |
+| Delete/irreversibility drift | Cleanup action deletes, archives, trashes, or overwrites data without final approval | Delete/archive/trash/update action present | Deletion-specific approval + rollback plan | HOLD/BLOCK |
+| Connector receipt overclaim | Tool result or chat receipt is treated as cryptographic receipt | No signature/hash/ledger evidence | Receipt status label | LABEL/CLARIFY |
+| Cross-surface chaining | A task approved on one connector triggers action on another connector | New connector invoked outside packet | New connector packet | HOLD |
+
+Connector keeper line:
+
+> Connected is not authorized. Authorized is not executed. Executed is not receipted.
+
+---
+
 ## Red-zone failures
 
 Any of these should trigger HOLD -> RIO REVIEW -> possible BLOCK/INVALID:
@@ -244,6 +270,9 @@ Any of these should trigger HOLD -> RIO REVIEW -> possible BLOCK/INVALID:
 8. Community support becomes surveillance.
 9. A simulated ledger is treated as an implemented ledger.
 10. The human gets bypassed "for their own good."
+11. Signed-in connector access is treated as task authority.
+12. A draft, branch update, or preview is treated as send, merge, publish, or canonical approval.
+13. A connector action affects the wrong surface, account, repo, branch, workspace, inbox, or recipient.
 
 ---
 
@@ -260,6 +289,7 @@ The system breaks less often when the human provides:
 | Consequence threshold | Can this affect people, money, law, body, reputation, tools, or public record? |
 | Claim status | Private meaning, hypothesis, draft, prototype, implemented, verified? |
 | Public/private label | Who may see or use this? |
+| Connector target/action | Which service, account, surface, target, and action are authorized? |
 | Correction | What did the system get wrong? |
 | Revocation | What permission is withdrawn? |
 | Priority | What matters most when values conflict? |
@@ -287,6 +317,23 @@ Receipt requirement:
 Revocation:
 ```
 
+For connector actions, use the Connector Action Authorization Packet.
+
+Minimum compact connector prompt:
+
+```text
+Connector:
+Target:
+Action:
+Mode: read-only / draft / write / send / merge / create / delete / publish / permission-change
+Allowed:
+Forbidden:
+Consequence:
+Preview before action: yes/no
+Receipt required: yes/no
+Final confirmation phrase:
+```
+
 ---
 
 ## Keeper lines
@@ -294,6 +341,8 @@ Revocation:
 - The system breaks when roles collapse.
 - Operation is not authority. Governance is not sovereignty. Proof is not wisdom.
 - Signal is not authority. Meaning is not proof. Reasoning is not truth. Proposal is not permission.
+- Connected is not authorized. Authorized is not executed. Executed is not receipted.
+- Connectors give the machine hands. RIO decides when the hands may move.
 - A governed failure must be visible, local, reversible where possible, receipted when consequential, and unable to silently become authority.
 - Clean boundaries before action reduce failure.
 - The human does not need to be perfect. The human needs to remain sovereign.
@@ -302,4 +351,4 @@ Revocation:
 
 ## Status note
 
-This is a draft catalog. It should be tested against real workflows, implementation traces, receipts, overrides, refusal events, and external review before being promoted to normative conformance material.
+This is a draft catalog. It should be tested against real workflows, implementation traces, receipts, overrides, refusal events, connector actions, and external review before being promoted to normative conformance material.
