@@ -36,6 +36,8 @@ A concept may be placed in this packet when it satisfies all four conditions:
 | Role-Aware Machine Operation | Promote for review | Human-safe translation of self-observation without consciousness claim | Public-safe language |
 | Self-aware enough to stay in bounds | Human bridge phrase | Explains what people will feel in demos/conversation | Use with explicit caveat: not consciousness |
 | Adaptive Trust Envelope | Promote for review | Names the amoeba-like relationship boundary: hard invariants, adaptive trust/friction inside | Public-safe if defined carefully |
+| Human-Led Operating Grammar | Promote for review | Translation grammar from human expression to governed machine action | Strong public bridge |
+| Open Protocol Repo Topology | Promote for review | Plans future repo family without creating new repositories prematurely | Strategy/reference layer |
 | Human Control Packet | Promote for review | Minimal input packet that helps the human define mode, scope, consequence, consent, claim status, and revocation | Spec-ready |
 | Embodied Co-Regulation Layer | Promote for review | Physical-world extension: robots, exosuits, prosthetics, homes, streets, care settings | Draft/future-layer language |
 | Embodied Assistance Clause | Promote for review | Boundary for physical MUS Units: assist/orient/de-escalate, never command/coerce/punish | Strong public-safe clause |
@@ -67,6 +69,12 @@ The mechanism is:
 
 > Generator -> Governor -> Gate -> Receipt -> Learning/Calibration.
 
+### Grammar language
+
+The operating grammar is:
+
+> Expression is not instruction. Translation is not authorization. Proposal is not approval. Capability is not permission. Execution is not authority. Proof is not wisdom. Receipt is not the person.
+
 ### Constitutional boundary
 
 > Self-observation is not self-authorization.
@@ -80,6 +88,8 @@ The mechanism is:
 | Precision by Friction | `docs/architecture/precision-by-friction-v0.1.md` |
 | Governed Self-Observation Layer | `docs/architecture/governed-self-observation-layer-v0.1.md` |
 | Adaptive Trust Envelope | `docs/architecture/adaptive-trust-envelope-v0.1.md` |
+| Human-Led Operating Grammar | `docs/spec/human-led-operating-grammar-v0.1.md` |
+| Open Protocol Repo Topology | `docs/architecture/open-protocol-repo-topology-v0.1.md` |
 | Embodied Co-Regulation Layer | `docs/architecture/embodied-co-regulation-layer-v0.1.md` |
 | Human Control Packet | `spec/human-control-packet-v0.1.md` |
 | Failure Modes | `docs/failure-modes/one-rio-muss-failure-modes-v0.1.md` |
@@ -100,7 +110,8 @@ They must not be presented as proof that:
 - robots or exosuits are deployed;
 - receipt language inside chat equals a cryptographic receipt;
 - the system can authorize itself;
-- the human has been replaced by governance.
+- the human has been replaced by governance;
+- a new repository must exist simply because a concept has been named.
 
 ---
 
@@ -113,6 +124,8 @@ They must not be presented as proof that:
 - The human remains the source. The machine remains the operator. RIO governs consequence. MUS proves events.
 - Machine presence without machine authority.
 - Help, don't rule. Calm, don't control. Route, don't replace.
+- The Human-Led Operating Grammar is the translation layer that keeps machine operation inside human authority.
+- Repositories should map to authority boundaries, not just feature names.
 
 ---
 
