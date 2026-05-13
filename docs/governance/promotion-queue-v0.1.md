@@ -82,7 +82,8 @@ No artifact may promote itself.
 | Human Control Packet v0.1 | `spec/human-control-packet-v0.1.md` | draft-preserved | promote candidate | Boundary packet for human-authored control | Needs schema/test examples and relation to proposal/commit/token lifecycle |
 | Connector Action Authorization Packet v0.1 | `spec/connector-action-authorization-packet-v0.1.md` | draft-preserved | stress-tested; keep as lineage | Historical v0.1 draft | Superseded for review by v0.2 draft; do not promote v0.1 directly |
 | Connector Action Authorization Packet Stress Test v0.1 | `docs/reviews/connector-action-authorization-packet-stress-test-v0.1.md` | draft-preserved | keep draft | Review artifact supporting v0.2 | Not itself a spec or canonical artifact |
-| Connector Action Authorization Packet v0.2 | `spec/connector-action-authorization-packet-v0.2.md` | draft-preserved | stress test | Connector governance spec candidate | Needs testing against real GitHub/Gmail/Drive/Calendar/Slack/DB workflows; may need JSON Schema and conformance hooks |
+| Connector Action Authorization Packet v0.2 | `spec/connector-action-authorization-packet-v0.2.md` | draft-preserved | promote candidate after schema + conformance outline | Connector governance spec candidate | Passed documentation-level stress test; still needs JSON Schema, conformance tests, canonicalization rules, chain-step receipt linking, connector policy packs, and runtime enforcement evidence |
+| Connector Action Authorization Packet v0.2 Stress Test v0.1 | `docs/reviews/connector-action-authorization-packet-v0.2-stress-test-v0.1.md` | draft-preserved | keep draft | Review artifact supporting schema/conformance next step | Not itself a spec or canonical artifact |
 | Failure Modes Catalog v0.1 | `docs/failure-modes/one-rio-muss-failure-modes-v0.1.md` | draft-preserved | high-priority stress test | Failure-mode review and conformance-test seed | Needs verdict mapping: HOLD, BLOCK, CLARIFY, INVALID, deny, require review |
 | Open Protocol Repo Topology v0.1 | `docs/architecture/open-protocol-repo-topology-v0.1.md` | draft-preserved | keep draft | Repo-family planning guide | Must not create repos or imply repo readiness by naming alone |
 | Embodied Co-Regulation Layer v0.1 | `docs/architecture/embodied-co-regulation-layer-v0.1.md` | draft-preserved / future-layer | future hold | Future physical-world protocol pack | Robotics, exosuits, safety, consent, liability, privacy, and local governance are not implemented or validated |
@@ -99,7 +100,7 @@ No artifact may promote itself.
 
 Recommended demanding-session order:
 
-1. Connector Action Authorization Packet v0.2
+1. Connector Action Authorization Packet v0.2 schema/conformance outline
 2. Failure Modes Catalog v0.1
 3. Human-Led Operating Grammar v0.1
 4. Human Control Packet v0.1
