@@ -110,6 +110,23 @@ RIO exposes its functionality through five syscall namespaces:
 
 ---
 
+## Draft Promotion Packets
+
+The following documents are review surfaces only. They do not modify the canonical protocol baseline and should not be read as implementation, deployment, external-validation, or conformance claims.
+
+| Draft packet | Location | Purpose |
+|-------------|----------|---------|
+| Naming Promotion Index v0.1 | `docs/architecture/naming-promotion-index-v0.1.md` | Index of draft names and promotion status |
+| Precision by Friction v0.1 | `docs/architecture/precision-by-friction-v0.1.md` | Explains generator-governor-gate-receipt-learning as bounded precision |
+| Governed Self-Observation Layer v0.1 | `docs/architecture/governed-self-observation-layer-v0.1.md` | Failure detection + coherence monitoring + receipt validation |
+| Adaptive Trust Envelope v0.1 | `docs/architecture/adaptive-trust-envelope-v0.1.md` | Relationship-aware friction without authority expansion |
+| Embodied Co-Regulation Layer v0.1 | `docs/architecture/embodied-co-regulation-layer-v0.1.md` | Robots, exosuits, prosthetics, homes, and communities under governance |
+| Human Control Packet v0.1 | `spec/human-control-packet-v0.1.md` | Minimal human-authored boundary packet |
+| Failure Modes Catalog v0.1 | `docs/failure-modes/one-rio-muss-failure-modes-v0.1.md` | How the system breaks and what inputs reduce breakage |
+| Gemini Context Packet v0.1 | `docs/handoff/gemini-context-packet-v0.1.md` | Bounded packet for external model review |
+
+---
+
 ## What RIO Is Not
 
 - RIO is not an AI model.
