@@ -144,6 +144,16 @@ The following documents help sort draft material. They do not modify the canonic
 
 ---
 
+## Stress-Test Reviews
+
+The following documents preserve demanding review passes over draft artifacts. They do not amend the reviewed artifact unless a later PR explicitly does so.
+
+| Stress-test review | Location | Purpose |
+|--------------------|----------|---------|
+| Connector Action Authorization Packet Stress Test v0.1 | `docs/reviews/connector-action-authorization-packet-stress-test-v0.1.md` | Reviews connector packet v0.1 against RIO invariants, failure modes, verdict mapping, receipt expectations, and connector consequence boundaries |
+
+---
+
 ## What RIO Is Not
 
 - RIO is not an AI model.
