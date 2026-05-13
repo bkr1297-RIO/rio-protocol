@@ -124,6 +124,7 @@ The following documents are review surfaces only. They do not modify the canonic
 | Human-Led Operating Grammar v0.1 | `docs/spec/human-led-operating-grammar-v0.1.md` | Translation grammar from human expression to governed machine action |
 | Open Protocol Repo Topology v0.1 | `docs/architecture/open-protocol-repo-topology-v0.1.md` | Repo-family planning for ONE/RIO/MUSS open protocols |
 | Human Control Packet v0.1 | `spec/human-control-packet-v0.1.md` | Minimal human-authored boundary packet |
+| Connector Action Authorization Packet v0.1 | `spec/connector-action-authorization-packet-v0.1.md` | Converts connected tool capability into bounded task-specific authority |
 | Failure Modes Catalog v0.1 | `docs/failure-modes/one-rio-muss-failure-modes-v0.1.md` | How the system breaks and what inputs reduce breakage |
 | Gemini Context Packet v0.1 | `docs/handoff/gemini-context-packet-v0.1.md` | Bounded packet for external model review |
 
