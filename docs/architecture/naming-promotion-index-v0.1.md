@@ -39,6 +39,7 @@ A concept may be placed in this packet when it satisfies all four conditions:
 | Human-Led Operating Grammar | Promote for review | Translation grammar from human expression to governed machine action | Strong public bridge |
 | Open Protocol Repo Topology | Promote for review | Plans future repo family without creating new repositories prematurely | Strategy/reference layer |
 | Human Control Packet | Promote for review | Minimal input packet that helps the human define mode, scope, consequence, consent, claim status, and revocation | Spec-ready |
+| Connector Action Authorization Packet | Promote for review | Converts connected tool capability into bounded task-specific authority | Spec-ready connector governance primitive |
 | Embodied Co-Regulation Layer | Promote for review | Physical-world extension: robots, exosuits, prosthetics, homes, streets, care settings | Draft/future-layer language |
 | Embodied Assistance Clause | Promote for review | Boundary for physical MUS Units: assist/orient/de-escalate, never command/coerce/punish | Strong public-safe clause |
 | Exosuit Sovereignty Clause | Promote for review | Boundary for human-worn augmentation: amplify without replacing human will | Draft/future-layer language |
@@ -75,6 +76,10 @@ The operating grammar is:
 
 > Expression is not instruction. Translation is not authorization. Proposal is not approval. Capability is not permission. Execution is not authority. Proof is not wisdom. Receipt is not the person.
 
+Connector-specific extension:
+
+> Connected is not authorized. Authorized is not executed. Executed is not receipted.
+
 ### Constitutional boundary
 
 > Self-observation is not self-authorization.
@@ -92,6 +97,7 @@ The operating grammar is:
 | Open Protocol Repo Topology | `docs/architecture/open-protocol-repo-topology-v0.1.md` |
 | Embodied Co-Regulation Layer | `docs/architecture/embodied-co-regulation-layer-v0.1.md` |
 | Human Control Packet | `spec/human-control-packet-v0.1.md` |
+| Connector Action Authorization Packet | `spec/connector-action-authorization-packet-v0.1.md` |
 | Failure Modes | `docs/failure-modes/one-rio-muss-failure-modes-v0.1.md` |
 | Gemini handoff | `docs/handoff/gemini-context-packet-v0.1.md` |
 
@@ -111,7 +117,9 @@ They must not be presented as proof that:
 - receipt language inside chat equals a cryptographic receipt;
 - the system can authorize itself;
 - the human has been replaced by governance;
-- a new repository must exist simply because a concept has been named.
+- a new repository must exist simply because a concept has been named;
+- signed-in connector access authorizes a task;
+- a draft, branch update, or preview equals external send/publish/merge.
 
 ---
 
@@ -126,6 +134,8 @@ They must not be presented as proof that:
 - Help, don't rule. Calm, don't control. Route, don't replace.
 - The Human-Led Operating Grammar is the translation layer that keeps machine operation inside human authority.
 - Repositories should map to authority boundaries, not just feature names.
+- Connected is not authorized. Authorized is not executed. Executed is not receipted.
+- Connectors give the machine hands. RIO decides when the hands may move.
 
 ---
 
