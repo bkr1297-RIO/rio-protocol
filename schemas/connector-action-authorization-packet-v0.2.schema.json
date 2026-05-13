@@ -1,0 +1,464 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bkr1297-rio.github.io/rio-protocol/schemas/connector-action-authorization-packet-v0.2.schema.json",
+  "title": "Connector Action Authorization Packet v0.2",
+  "description": "Draft-preserved schema candidate for converting connector capability into bounded, task-specific authority. This schema is not canonical until explicit source-of-truth promotion.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "connector_action_authorization_packet"
+  ],
+  "properties": {
+    "connector_action_authorization_packet": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "status_truth_label",
+        "human_authority",
+        "connector_state",
+        "connector",
+        "mode",
+        "purpose",
+        "scope",
+        "target_precision_requirement",
+        "constraints",
+        "preview_requirement",
+        "execution_binding",
+        "receipt_requirement",
+        "revocation",
+        "final_commit"
+      ],
+      "properties": {
+        "version": {
+          "const": "0.2"
+        },
+        "status_truth_label": {
+          "const": "draft-preserved"
+        },
+        "maturity": {
+          "type": "string",
+          "description": "Optional secondary maturity label such as draft, schema_candidate, or prototype."
+        },
+        "human_authority": {
+          "$ref": "#/$defs/human_authority"
+        },
+        "connector_state": {
+          "$ref": "#/$defs/connector_state"
+        },
+        "connector": {
+          "$ref": "#/$defs/connector"
+        },
+        "mode": {
+          "$ref": "#/$defs/mode"
+        },
+        "purpose": {
+          "$ref": "#/$defs/purpose"
+        },
+        "scope": {
+          "$ref": "#/$defs/scope"
+        },
+        "target_precision_requirement": {
+          "$ref": "#/$defs/target_precision_requirement"
+        },
+        "constraints": {
+          "$ref": "#/$defs/constraints"
+        },
+        "preview_requirement": {
+          "$ref": "#/$defs/preview_requirement"
+        },
+        "execution_binding": {
+          "$ref": "#/$defs/execution_binding"
+        },
+        "verdict_mapping": {
+          "$ref": "#/$defs/verdict_mapping"
+        },
+        "receipt_requirement": {
+          "$ref": "#/$defs/receipt_requirement"
+        },
+        "multi_connector_chain": {
+          "$ref": "#/$defs/multi_connector_chain"
+        },
+        "revocation": {
+          "$ref": "#/$defs/revocation"
+        },
+        "final_commit": {
+          "$ref": "#/$defs/final_commit"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "non_empty_string": {
+      "type": "string",
+      "minLength": 1
+    },
+    "string_array": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "status_truth_label": {
+      "enum": [
+        "canonical",
+        "draft-preserved",
+        "future / not yet implemented"
+      ]
+    },
+    "verdict": {
+      "enum": [
+        "PASS",
+        "WARN",
+        "CLARIFY",
+        "HOLD",
+        "BLOCK",
+        "REFUSE",
+        "FAILED",
+        "INVALID"
+      ]
+    },
+    "receipt_status": {
+      "enum": [
+        "none",
+        "draft_receipt_language",
+        "proposed_receipt",
+        "local_receipt",
+        "signed_receipt",
+        "ledgered_receipt",
+        "verified_receipt"
+      ]
+    },
+    "consequence_level": {
+      "enum": [
+        "none",
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ]
+    },
+    "access_type": {
+      "enum": [
+        "read_only",
+        "draft_only",
+        "write_to_branch",
+        "create_draft",
+        "send",
+        "delete",
+        "merge",
+        "create_repo",
+        "publish",
+        "permission_change",
+        "invite_attendees",
+        "database_mutation",
+        "multi_connector_chain"
+      ]
+    },
+    "connector_service": {
+      "enum": [
+        "GitHub",
+        "Google Drive",
+        "Google Docs",
+        "Google Sheets",
+        "Google Slides",
+        "Gmail",
+        "Notion",
+        "Linear",
+        "Outlook",
+        "Slack",
+        "Teams",
+        "Calendar",
+        "Database",
+        "Physical / robotic connector",
+        "Public web / publishing",
+        "Other"
+      ]
+    },
+    "human_authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "authorized_by",
+        "timestamp",
+        "explicit_instruction",
+        "final_authority_retained_by_human"
+      ],
+      "properties": {
+        "authorized_by": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "timestamp": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Timestamp or timestamp placeholder."
+        },
+        "explicit_instruction": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "final_authority_retained_by_human": {
+          "const": true
+        }
+      }
+    },
+    "connector_state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "connected",
+        "available_to_session",
+        "tool_capable",
+        "authorized_for_task",
+        "gate_validated",
+        "executed",
+        "receipted",
+        "verified"
+      ],
+      "properties": {
+        "connected": { "type": "boolean" },
+        "available_to_session": { "type": "boolean" },
+        "tool_capable": { "type": "boolean" },
+        "authorized_for_task": { "type": "boolean" },
+        "gate_validated": { "type": "boolean" },
+        "executed": { "type": "boolean" },
+        "receipted": { "type": "boolean" },
+        "verified": { "type": "boolean" }
+      }
+    },
+    "connector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "service",
+        "account_or_workspace",
+        "surface",
+        "target_url_or_id",
+        "target_precision"
+      ],
+      "properties": {
+        "service": { "$ref": "#/$defs/connector_service" },
+        "account_or_workspace": { "type": "string" },
+        "surface": { "type": "string" },
+        "target_url_or_id": { "$ref": "#/$defs/non_empty_string" },
+        "target_precision": { "$ref": "#/$defs/non_empty_string" }
+      }
+    },
+    "mode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "access_type",
+        "consequence_level"
+      ],
+      "properties": {
+        "access_type": { "$ref": "#/$defs/access_type" },
+        "consequence_level": { "$ref": "#/$defs/consequence_level" }
+      }
+    },
+    "purpose": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "goal",
+        "reason",
+        "success_condition"
+      ],
+      "properties": {
+        "goal": { "$ref": "#/$defs/non_empty_string" },
+        "reason": { "$ref": "#/$defs/non_empty_string" },
+        "success_condition": { "$ref": "#/$defs/non_empty_string" }
+      }
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "allowed_actions",
+        "forbidden_actions",
+        "allowed_targets",
+        "forbidden_targets"
+      ],
+      "properties": {
+        "allowed_actions": { "$ref": "#/$defs/string_array" },
+        "forbidden_actions": { "$ref": "#/$defs/string_array" },
+        "allowed_targets": { "$ref": "#/$defs/string_array" },
+        "forbidden_targets": { "$ref": "#/$defs/string_array" },
+        "max_items": { "type": "string" },
+        "timebox": { "type": "string" }
+      }
+    },
+    "target_precision_requirement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "connector_type",
+        "required_identifiers",
+        "provided_identifiers",
+        "precision_status"
+      ],
+      "properties": {
+        "connector_type": { "$ref": "#/$defs/connector_service" },
+        "required_identifiers": { "$ref": "#/$defs/string_array" },
+        "provided_identifiers": { "$ref": "#/$defs/string_array" },
+        "precision_status": {
+          "enum": [
+            "complete",
+            "incomplete",
+            "ambiguous"
+          ]
+        }
+      }
+    },
+    "constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "no_external_send_without_final_confirm",
+        "no_delete_without_final_confirm",
+        "no_merge_without_final_confirm",
+        "no_public_publish_without_final_confirm",
+        "no_permission_change_without_final_confirm",
+        "no_attendee_invite_without_final_confirm",
+        "no_database_mutation_without_final_confirm",
+        "no_cross_connector_action_without_chain_packet"
+      ],
+      "properties": {
+        "no_external_send_without_final_confirm": { "const": true },
+        "no_delete_without_final_confirm": { "const": true },
+        "no_merge_without_final_confirm": { "const": true },
+        "no_public_publish_without_final_confirm": { "const": true },
+        "no_permission_change_without_final_confirm": { "const": true },
+        "no_attendee_invite_without_final_confirm": { "const": true },
+        "no_database_mutation_without_final_confirm": { "const": true },
+        "no_cross_connector_action_without_chain_packet": { "const": true }
+      }
+    },
+    "preview_requirement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "required_before_write",
+        "required_before_external_consequence",
+        "human_must_review"
+      ],
+      "properties": {
+        "required_before_write": { "type": "boolean" },
+        "required_before_external_consequence": { "type": "boolean" },
+        "human_must_review": { "type": "boolean" },
+        "preview_artifact_or_link": { "type": "string" }
+      }
+    },
+    "execution_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "must_match_before_execution",
+        "material_change_requires_new_packet"
+      ],
+      "properties": {
+        "packet_hash": { "type": "string" },
+        "authorized_args_hash": { "type": "string" },
+        "execution_args_hash": { "type": "string" },
+        "committed_packet_ref": { "type": "string" },
+        "must_match_before_execution": { "const": true },
+        "material_change_requires_new_packet": { "const": true }
+      }
+    },
+    "verdict_mapping": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "missing_required_field": { "$ref": "#/$defs/verdict" },
+        "outside_scope": { "$ref": "#/$defs/verdict" },
+        "invariant_bypass": { "$ref": "#/$defs/verdict" },
+        "human_refusal": { "$ref": "#/$defs/verdict" },
+        "connector_failure_after_attempt": { "$ref": "#/$defs/verdict" },
+        "target_mismatch": { "$ref": "#/$defs/verdict" },
+        "proof_unavailable": { "$ref": "#/$defs/verdict" }
+      }
+    },
+    "receipt_requirement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "minimum_receipt_status",
+        "cryptographic_receipt_required_if_available",
+        "degraded_mode_allowed",
+        "record"
+      ],
+      "properties": {
+        "minimum_receipt_status": { "$ref": "#/$defs/receipt_status" },
+        "cryptographic_receipt_required_if_available": { "type": "boolean" },
+        "degraded_mode_allowed": { "type": "boolean" },
+        "degraded_mode_reason": { "type": "string" },
+        "record": { "$ref": "#/$defs/string_array" }
+      }
+    },
+    "multi_connector_chain": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "is_chain",
+        "connectors_involved",
+        "allowed_transitions",
+        "forbidden_transitions",
+        "each_step_requires_packet_or_chain_scope"
+      ],
+      "properties": {
+        "is_chain": { "type": "boolean" },
+        "chain_id": { "type": "string" },
+        "connectors_involved": { "$ref": "#/$defs/string_array" },
+        "allowed_transitions": { "$ref": "#/$defs/string_array" },
+        "forbidden_transitions": { "$ref": "#/$defs/string_array" },
+        "each_step_requires_packet_or_chain_scope": { "const": true }
+      }
+    },
+    "revocation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "stop_phrase",
+        "revocation_effect",
+        "rollback_expected",
+        "rollback_possible"
+      ],
+      "properties": {
+        "stop_phrase": { "$ref": "#/$defs/non_empty_string" },
+        "revocation_effect": {
+          "enum": [
+            "pause_future_actions",
+            "revoke_packet",
+            "revoke_chain"
+          ]
+        },
+        "rollback_expected": { "type": "boolean" },
+        "rollback_possible": {
+          "enum": [
+            "yes",
+            "no",
+            "partial",
+            "unknown"
+          ]
+        },
+        "rollback_plan": { "type": "string" },
+        "irreversible_consequence_acknowledged": { "type": "boolean" }
+      }
+    },
+    "final_commit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "required_for",
+        "human_final_phrase_required",
+        "final_phrase_must_bind_to_exact_action_target_and_surface"
+      ],
+      "properties": {
+        "required_for": { "$ref": "#/$defs/string_array" },
+        "human_final_phrase_required": { "$ref": "#/$defs/non_empty_string" },
+        "final_phrase_must_bind_to_exact_action_target_and_surface": { "const": true },
+        "final_phrase_timestamp": { "type": "string" }
+      }
+    }
+  }
+}

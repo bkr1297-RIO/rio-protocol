@@ -152,6 +152,18 @@ The following documents preserve demanding review passes over draft artifacts. T
 | Stress-test review | Location | Purpose |
 |--------------------|----------|---------|
 | Connector Action Authorization Packet Stress Test v0.1 | `docs/reviews/connector-action-authorization-packet-stress-test-v0.1.md` | Reviews connector packet v0.1 against RIO invariants, failure modes, verdict mapping, receipt expectations, and connector consequence boundaries |
+| Connector Action Authorization Packet v0.2 Stress Test v0.1 | `docs/reviews/connector-action-authorization-packet-v0.2-stress-test-v0.1.md` | Reviews connector packet v0.2 against concrete connector workflows, degraded proof, rollback, chain behavior, and schema/conformance readiness |
+
+---
+
+## Schema and Conformance Candidates
+
+The following documents are schema/conformance candidates for draft artifacts. They are not canonical conformance requirements until explicitly promoted.
+
+| Candidate | Location | Purpose |
+|-----------|----------|---------|
+| Connector Action Authorization Packet v0.2 JSON Schema | `schemas/connector-action-authorization-packet-v0.2.schema.json` | Machine-checkable draft schema for connector packet v0.2 fields and enum constraints |
+| Connector Action Authorization Packet Tests v0.1 | `tests/connector-action-authorization-packet-tests-v0.1.md` | Draft conformance-style test outline for connector packet v0.2 behavior |
 
 ---
 
