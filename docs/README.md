@@ -130,6 +130,20 @@ The following documents are review surfaces only. They do not modify the canonic
 
 ---
 
+## Governance Review Aids
+
+The following documents help sort draft material. They do not modify the canonical protocol baseline.
+
+| Review aid | Location | Purpose |
+|------------|----------|---------|
+| Status Truth Labels v0.1 | `docs/governance/status-truth-labels-v0.1.md` | Labels artifacts as canonical, draft-preserved, or future/not yet implemented |
+| Promotion Queue v0.1 | `docs/governance/promotion-queue-v0.1.md` | Sorts draft artifacts by next action: stress test, split, amend, promote candidate, future hold, or archive |
+| Five-Engine Open Protocol Map v0.1 | `docs/architecture/five-engine-open-protocol-map-v0.1.md` | Maps Generating, Governing, Proof, Witness, and Oddity engines to current and possible future protocol surfaces |
+| PR #17 Merge Receipt v0.1 | `docs/handoff/pr17-merge-receipt-v0.1.md` | Records that PR #17 preserved draft artifacts for review without promoting them to source-of-truth |
+| PR #20 Draft Status Note v0.1 | `docs/handoff/pr20-draft-status-note-v0.1.md` | Records the intended limits of the promotion queue and five-engine map PR |
+
+---
+
 ## What RIO Is Not
 
 - RIO is not an AI model.
