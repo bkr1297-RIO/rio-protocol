@@ -125,6 +125,7 @@ The following documents are review surfaces only. They do not modify the canonic
 | Open Protocol Repo Topology v0.1 | `docs/architecture/open-protocol-repo-topology-v0.1.md` | Repo-family planning for ONE/RIO/MUSS open protocols |
 | Human Control Packet v0.1 | `spec/human-control-packet-v0.1.md` | Minimal human-authored boundary packet |
 | Connector Action Authorization Packet v0.1 | `spec/connector-action-authorization-packet-v0.1.md` | Converts connected tool capability into bounded task-specific authority |
+| Connector Action Authorization Packet v0.2 | `spec/connector-action-authorization-packet-v0.2.md` | Draft amendment after stress test: target precision, execution binding, verdict mapping, receipt minimums, chaining, rollback |
 | Failure Modes Catalog v0.1 | `docs/failure-modes/one-rio-muss-failure-modes-v0.1.md` | How the system breaks and what inputs reduce breakage |
 | Gemini Context Packet v0.1 | `docs/handoff/gemini-context-packet-v0.1.md` | Bounded packet for external model review |
 
