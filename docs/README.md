@@ -152,6 +152,7 @@ The following documents preserve demanding review passes over draft artifacts. T
 | Stress-test review | Location | Purpose |
 |--------------------|----------|---------|
 | Connector Action Authorization Packet Stress Test v0.1 | `docs/reviews/connector-action-authorization-packet-stress-test-v0.1.md` | Reviews connector packet v0.1 against RIO invariants, failure modes, verdict mapping, receipt expectations, and connector consequence boundaries |
+| Connector Action Authorization Packet v0.2 Stress Test v0.1 | `docs/reviews/connector-action-authorization-packet-v0.2-stress-test-v0.1.md` | Reviews connector packet v0.2 against concrete connector workflows, degraded proof, rollback, chain behavior, and schema/conformance readiness |
 
 ---
 
