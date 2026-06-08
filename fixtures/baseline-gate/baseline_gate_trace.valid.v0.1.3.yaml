@@ -1,0 +1,40 @@
+trace_id: "trace_baseline_gate_handoff_001"
+description: "End-to-end happy path trace for Baseline Gate Handoff Packet v0.1.3"
+
+steps:
+  - step: 1
+    actor: "Human"
+    action: "Initiates signal to draft Baseline Gate Protocol"
+    state: "Signal captured"
+
+  - step: 2
+    actor: "Baseline Gate"
+    action: "Mirror, Lane Separation, Baseline Check, Simulation, Authorization"
+    output: "Human Baseline Authorization (HBA-7K9P2Q4R) granted for draft only"
+
+  - step: 3
+    actor: "AAP Formation"
+    action: "Creates Authorized Action Packet referencing HBA"
+    output: "AAP-8M3X7Y2K formed and submitted for evaluation"
+
+  - step: 4
+    actor: "SBAM Runtime Harness"
+    action: "Triadic Closure Check + Phase-State Selection"
+    output: "Triad closed. Phase: Fluid. Routing: allow_internal"
+
+  - step: 5
+    actor: "RIO / Sentinel"
+    action: "Admissibility evaluation and enforcement"
+    output: "Action permitted within envelope. No escalation required."
+
+  - step: 6
+    actor: "MUS"
+    action: "Receipt generation"
+    output: "Baseline Receipt mus_7f3a9b2c8d1e4f5a created"
+
+  - step: 7
+    actor: "MUSS"
+    action: "Sovereignty and consent preservation"
+    output: "Human authority preserved. Receipt linked to HBA."
+
+final_state: "Human retains final review authority. Draft generated internally. No external consequence occurred."
