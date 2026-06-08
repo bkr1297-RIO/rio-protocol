@@ -1,0 +1,59 @@
+schema_version: "v0.1.3"
+object_type: "HumanBaselineAuthorization"
+
+authorization_id: "HBA-7K9P2Q4R"
+issued_by: "human_operator"
+issued_at: "2026-06-08T14:22:00Z"
+
+status: "granted"
+authorization_type: "single_action"
+
+scope:
+  action_type: "draft"
+  permitted_operations:
+    - mirror
+    - structure
+    - simulate
+    - draft
+  prohibited_operations:
+    - publish
+    - execute
+    - delegate
+
+register_separation:
+  private_meaning: "preserved"
+  personal_protocol: "acknowledged"
+  public_proof: "bounded"
+  runtime_evidence: "required"
+
+declared_human_state:
+  baseline_check: "passed"
+  charge_level: "moderate"
+  urgency_level: "contained"
+  reversibility: "high"
+  state_basis: "self_reported"
+
+authority_statement: |
+  Human authorizes machine assistance for drafting a protocol specification only.
+  Human retains final review and approval authority. No external publication or execution is permitted.
+
+validity:
+  expires_at: "2026-06-08T18:00:00Z"
+  renewal_required: false
+  revocation_path: "human_explicit_revoke"
+  reentry_required_on_expiry: true
+
+sbam_requirements:
+  triadic_closure_required: true
+  phase_state_evaluation_required: true
+
+machine_permissions:
+  mirror: true
+  structure: true
+  simulate: true
+  draft: true
+  publish: false
+  execute: false
+  delegate: false
+
+receipt_required: true
