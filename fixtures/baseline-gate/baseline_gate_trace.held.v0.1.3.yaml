@@ -1,0 +1,34 @@
+trace_id: "trace_baseline_gate_handoff_held_002"
+description: "Trace showing held path when clarity is insufficient"
+
+steps:
+  - step: 1
+    actor: "Human"
+    action: "Requests high-consequence external action without clear scope"
+    state: "High charge, ambiguous clarity"
+
+  - step: 2
+    actor: "Baseline Gate"
+    action: "Lane Separation reveals category collapse risk (private meaning -> public claim)"
+    output: "Human Baseline Authorization conditional and held for review"
+
+  - step: 3
+    actor: "AAP"
+    action: "Packet formed but marked for review"
+
+  - step: 4
+    actor: "SBAM"
+    action: "Triadic Closure fails on Clarity"
+    output: "Closure failed. Phase: Hold. Routing: return_for_human_reentry"
+
+  - step: 5
+    actor: "Sentinel"
+    action: "Enforces hold"
+    output: "Action refused pending human clarification"
+
+  - step: 6
+    actor: "MUS"
+    action: "Receipt generated for failed crossing"
+    output: "Receipt created with closure_failure_reasons"
+
+final_state: "Human re-entry required. No execution occurred. Authority remained with human."
