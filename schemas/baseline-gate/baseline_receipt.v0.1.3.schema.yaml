@@ -1,0 +1,131 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "urn:one-rio-muss:schema:baseline_receipt:v0.1.3"
+title: Baseline Receipt v0.1.3
+description: >
+  An immutable system-generated record of a passage through Baseline Gate and runtime evaluation.
+  The system (MUS) issues the receipt. Authority source remains the referenced HBA, human authorization, or governing envelope.
+  Proof is not authority. The receipt records the crossing; it does not authorize it.
+type: object
+additionalProperties: false
+
+x_status: staged_schema_candidate
+x_lock_status: repo_candidate_after_human_review
+x_next_action: generate_interface_doc
+
+properties:
+  schema_version:
+    type: string
+    const: "v0.1.3"
+  object_type:
+    type: string
+    const: "BaselineReceipt"
+
+  receipt_id:
+    type: string
+    pattern: "^mus_[0-9a-f]{16}$"
+
+  crossing_id:
+    type: string
+
+  timestamp:
+    type: string
+    format: date-time
+
+  source_hba_id:
+    type: string
+    pattern: "^HBA-[0-9A-Z]{8,}$"
+
+  source_packet_id:
+    type: string
+    pattern: "^AAP-[0-9A-Z]{8,}$"
+
+  triad_closed: { type: boolean }
+
+  closure_vector:
+    type: object
+    additionalProperties: false
+    required: [authority, clarity, containment]
+    properties:
+      authority: { type: boolean }
+      clarity: { type: boolean }
+      containment: { type: boolean }
+
+  closure_failure_reasons:
+    type: array
+    items: { type: string }
+
+  permeability_evaluated: { type: boolean }
+
+  permeability_score:
+    type: number
+    minimum: 0
+    maximum: 1
+
+  permeability_basis: { type: string }
+
+  score_interpretation:
+    type: string
+    enum: [advisory_only, internal_routing_only]
+
+  phase_state:
+    type: string
+    description: "SBAM-selected phase state. Must correspond to the runtime phase-state registry."
+
+  final_routing_action:
+    type: string
+    enum: [allow_internal, hold_for_review, return_for_human_reentry, refuse,
+           execute, record_only, quarantine, narrow_scope]
+
+  human_reentry_required: { type: boolean }
+
+  receipt_event_type:
+    type: string
+    enum: [CLOSURE_FAILED, CLOSURE_PASSED_PERMEABILITY_EVALUATED, PHASE_STATE_SELECTED,
+           HUMAN_REENTRY_REQUIRED, ACTION_EXECUTED, ACTION_HELD, ACTION_REFUSED,
+           BASELINE_GATE_PASSED, BASELINE_GATE_HELD]
+
+  receipt_required:
+    type: boolean
+    const: true
+
+  authority_trace:
+    type: object
+    additionalProperties: false
+    required: [authority_source_type, authority_reference]
+    properties:
+      authority_source_type:
+        type: string
+        enum: [hba, conditional_authority_envelope, standing_rule, governing_envelope, human_reentry]
+      authority_reference: { type: string }
+      authority_was_current: { type: boolean }
+
+  proof:
+    type: object
+    additionalProperties: false
+    properties:
+      previous_receipt_hash: { type: string }
+      receipt_hash: { type: string }
+      signature: { type: string }
+      ledger_ref: { type: string }
+      policy_version: { type: string }
+      evaluator_version: { type: string }
+
+  notes:
+    type: string
+
+required:
+  - schema_version
+  - object_type
+  - receipt_id
+  - crossing_id
+  - timestamp
+  - triad_closed
+  - final_routing_action
+  - receipt_event_type
+  - receipt_required
+  - authority_trace
+
+dependentRequired:
+  permeability_score:
+    - permeability_basis
+    - score_interpretation
