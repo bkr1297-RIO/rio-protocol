@@ -1,0 +1,36 @@
+schema_version: "v0.1.3"
+object_type: "AuthorizedActionPacket"
+
+packet_id: "AAP-8M3X7Y2K"
+source_hba_id: "HBA-7K9P2Q4R"
+requested_action: "Generate the Baseline Gate Protocol specification document based on the approved schemas and interface."
+
+action_class: "creation"
+crossing_class: "human_intent_to_delegation"
+execution_level: "internal_only"
+
+packet_status: "formed"
+runtime_status: "not_evaluated"
+
+machine_permissions:
+  mirror: true
+  structure: true
+  simulate: true
+  draft: true
+  publish: false
+  execute: false
+
+sbam_required: true
+triadic_closure_required: true
+review_required: true
+
+containment:
+  boundary: "Draft only. No publication or external action permitted."
+  rollback_available: true
+  external_side_effects_allowed: false
+  human_reentry_on_failure: true
+  max_consequence_level: "low"
+
+output_target:
+  format: "markdown"
+  destination: "docs/protocols/baseline_gate_protocol.md"
