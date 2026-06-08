@@ -1,0 +1,128 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "urn:one-rio-muss:schema:human_baseline_authorization:v0.1.3"
+title: Human Baseline Authorization (HBA) v0.1.3
+description: >
+  A structured, human-issued authorization object that carries bounded authority from Baseline Gate into the governed runtime.
+  HBA is the formal handoff object. It defines scope, constraints, register separation, and conditions under which machine assistance is permitted.
+  HBA does not transfer root authority. The human remains the source.
+type: object
+additionalProperties: false
+
+x_status: staged_schema_candidate
+x_lock_status: repo_candidate_after_human_review
+x_next_action: generate_interface_doc
+
+properties:
+  schema_version:
+    type: string
+    const: "v0.1.3"
+  object_type:
+    type: string
+    const: "HumanBaselineAuthorization"
+
+  authorization_id:
+    type: string
+    pattern: "^HBA-[0-9A-Z]{8,}$"
+
+  issued_by:
+    type: string
+    enum: [human_operator]
+
+  issued_at:
+    type: string
+    format: date-time
+
+  status:
+    type: string
+    enum: [granted, conditional, denied, revoked]
+
+  authorization_type:
+    type: string
+    enum: [single_action, session_limited, conditional_envelope, standing_rule_reference]
+
+  scope:
+    type: object
+    additionalProperties: false
+    required: [action_type, permitted_operations, prohibited_operations]
+    properties:
+      action_type: { type: string }
+      permitted_operations: { type: array, items: { type: string } }
+      prohibited_operations: { type: array, items: { type: string } }
+
+  register_separation:
+    type: object
+    additionalProperties: false
+    required: [private_meaning, personal_protocol, public_proof, runtime_evidence]
+    properties:
+      private_meaning: { type: string, enum: [preserved, bounded, externalized] }
+      personal_protocol: { type: string, enum: [acknowledged, not_applicable] }
+      public_proof: { type: string, enum: [bounded, none] }
+      runtime_evidence: { type: string, enum: [required, optional, none] }
+
+  declared_human_state:
+    type: object
+    additionalProperties: false
+    required: [baseline_check, charge_level, urgency_level, reversibility, state_basis]
+    properties:
+      baseline_check: { type: string, enum: [passed, conditional] }
+      charge_level: { type: string, enum: [low, moderate, high] }
+      urgency_level: { type: string, enum: [contained, elevated] }
+      reversibility: { type: string, enum: [high, medium, low] }
+      state_basis: { type: string, enum: [self_reported, user_declared, observable_language_markers, not_collected] }
+
+  authority_statement:
+    type: string
+
+  validity:
+    type: object
+    additionalProperties: false
+    required: [expires_at, renewal_required, revocation_path, reentry_required_on_expiry]
+    properties:
+      expires_at: { type: string, format: date-time }
+      expires_on_event: { type: string }
+      renewal_required: { type: boolean }
+      revocation_path: { type: string }
+      reentry_required_on_expiry: { type: boolean }
+
+  sbam_requirements:
+    type: object
+    additionalProperties: false
+    properties:
+      triadic_closure_required: { type: boolean }
+      phase_state_evaluation_required: { type: boolean }
+
+  machine_permissions:
+    type: object
+    additionalProperties: false
+    properties:
+      mirror: { type: boolean }
+      structure: { type: boolean }
+      simulate: { type: boolean }
+      research: { type: boolean }
+      draft: { type: boolean }
+      modify: { type: boolean }
+      recommend: { type: boolean }
+      delegate: { type: boolean }
+      publish: { type: boolean }
+      execute: { type: boolean }
+      extension_permissions:
+        type: object
+        additionalProperties: { type: boolean }
+
+  receipt_required:
+    type: boolean
+    const: true
+
+required:
+  - schema_version
+  - object_type
+  - authorization_id
+  - issued_by
+  - issued_at
+  - status
+  - authorization_type
+  - scope
+  - register_separation
+  - authority_statement
+  - validity
+  - receipt_required
