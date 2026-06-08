@@ -1,0 +1,130 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "urn:one-rio-muss:schema:authorized_action_packet:v0.1.3"
+title: Authorized Action Packet (AAP) v0.1.3
+description: >
+  A structured packet that carries a human-authorized request into the SBAM Runtime Harness.
+  The AAP does not itself authorize execution. Execution still requires SBAM / RIO / Sentinel passage unless explicitly classified as internal-only and non-consequential.
+type: object
+additionalProperties: false
+
+x_status: staged_schema_candidate
+x_lock_status: repo_candidate_after_human_review
+x_next_action: generate_interface_doc
+
+properties:
+  schema_version:
+    type: string
+    const: "v0.1.3"
+  object_type:
+    type: string
+    const: "AuthorizedActionPacket"
+
+  packet_id:
+    type: string
+    pattern: "^AAP-[0-9A-Z]{8,}$"
+
+  source_hba_id:
+    type: string
+    pattern: "^HBA-[0-9A-Z]{8,}$"
+
+  requested_action:
+    type: string
+
+  action_class:
+    type: string
+    enum: [creation, modification, delegation, publication, decision, simulation, research]
+
+  crossing_class:
+    type: string
+    enum: [language_to_state, state_to_action, feed_to_attention, source_to_memory,
+           pattern_to_reuse, human_intent_to_delegation, authority_to_standing,
+           identity_to_representation, public_claim, external_action]
+
+  execution_level:
+    type: string
+    enum: [internal_only, non_external, external_facing, high_consequence]
+
+  packet_status:
+    type: string
+    enum: [formed, submitted_for_evaluation]
+
+  runtime_status:
+    type: string
+    enum: [not_evaluated, held, approved_for_execution, refused, executed]
+
+  machine_permissions:
+    type: object
+    additionalProperties: false
+    properties:
+      mirror: { type: boolean }
+      structure: { type: boolean }
+      simulate: { type: boolean }
+      research: { type: boolean }
+      draft: { type: boolean }
+      modify: { type: boolean }
+      recommend: { type: boolean }
+      delegate: { type: boolean }
+      publish: { type: boolean }
+      execute: { type: boolean }
+      extension_permissions:
+        type: object
+        additionalProperties: { type: boolean }
+
+  sbam_required: { type: boolean }
+  triadic_closure_required: { type: boolean }
+  review_required: { type: boolean }
+
+  containment:
+    type: object
+    additionalProperties: false
+    required: [boundary, rollback_available, external_side_effects_allowed, human_reentry_on_failure]
+    properties:
+      boundary: { type: string }
+      rollback_available: { type: boolean }
+      external_side_effects_allowed: { type: boolean }
+      human_reentry_on_failure: { type: boolean }
+      max_consequence_level: { type: string, enum: [none, low, moderate, high] }
+
+  output_target:
+    type: object
+    additionalProperties: false
+    properties:
+      format: { type: string }
+      destination: { type: string }
+
+required:
+  - schema_version
+  - object_type
+  - packet_id
+  - source_hba_id
+  - requested_action
+  - action_class
+  - crossing_class
+  - execution_level
+  - packet_status
+  - runtime_status
+  - machine_permissions
+  - sbam_required
+  - review_required
+  - containment
+
+allOf:
+  - if:
+      properties:
+        execution_level:
+          const: high_consequence
+      required: [execution_level]
+    then:
+      properties:
+        sbam_required: { const: true }
+        review_required: { const: true }
+        triadic_closure_required: { const: true }
+  - if:
+      properties:
+        execution_level:
+          const: external_facing
+      required: [execution_level]
+    then:
+      properties:
+        sbam_required: { const: true }
+        review_required: { const: true }
