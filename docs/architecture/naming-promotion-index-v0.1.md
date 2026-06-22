@@ -45,6 +45,7 @@ A concept may be placed in this packet when it satisfies all four conditions:
 | Exosuit Sovereignty Clause | Promote for review | Boundary for human-worn augmentation: amplify without replacing human will | Draft/future-layer language |
 | Machine presence without machine authority | Promote for review | Core robotics/embodiment principle | Strong public-safe phrase |
 | Helpful-within-bounds | Promote for review | Optimization target replacing helpful-at-any-cost | Strong product phrase |
+| Sovereign ONE | Promotion Review Candidate | Umbrella/doctrinal/public translation layer: the human is the sovereign one; ONE is the governed environment | Public-safe if kept lane-separated from ONE/RIO/MUSS technical names |
 
 ---
 
@@ -84,6 +85,10 @@ Connector-specific extension:
 
 > Self-observation is not self-authorization.
 
+Sovereign ONE naming boundary:
+
+> ONE is the governed environment. The human is the sovereign one. The ecosystem can be named Sovereign ONE only if that naming preserves, rather than collapses, the distinction.
+
 ---
 
 ## Placement map
@@ -100,6 +105,7 @@ Connector-specific extension:
 | Connector Action Authorization Packet | `spec/connector-action-authorization-packet-v0.1.md` |
 | Failure Modes | `docs/failure-modes/one-rio-muss-failure-modes-v0.1.md` |
 | Gemini handoff | `docs/handoff/gemini-context-packet-v0.1.md` |
+| Sovereign ONE Naming Proposal | `docs/architecture/sovereign-one-naming-proposal-v0.1.md` |
 
 ---
 
@@ -119,7 +125,9 @@ They must not be presented as proof that:
 - the human has been replaced by governance;
 - a new repository must exist simply because a concept has been named;
 - signed-in connector access authorizes a task;
-- a draft, branch update, or preview equals external send/publish/merge.
+- a draft, branch update, or preview equals external send/publish/merge;
+- Sovereign ONE replaces ONE/RIO/MUSS as the technical architecture name;
+- Sovereign ONE turns the machine, institution, model, receipt, pattern, or ecosystem into the sovereign.
 
 ---
 
@@ -136,6 +144,8 @@ They must not be presented as proof that:
 - Repositories should map to authority boundaries, not just feature names.
 - Connected is not authorized. Authorized is not executed. Executed is not receipted.
 - Connectors give the machine hands. RIO decides when the hands may move.
+- The human is the sovereign one. The system serves sovereignty; it does not possess it.
+- Sovereignty is reciprocal: no sovereign one may take sovereignty from another.
 
 ---
 
