@@ -1,0 +1,56 @@
+{
+  "prime_version": "0.1",
+  "packet_id": "ef2cb911-3c2e-48a2-990a-11bc90f23df1",
+  "parent_packet_hash": "sha256:parent-inbound",
+  "sourcepoint": "human:brian",
+  "transition": {
+    "type": "EPHEMERAL_READ",
+    "from_state": "observing_tool_output",
+    "to_state": "reasoning_state"
+  },
+  "operator": {
+    "modal": "MUST",
+    "subject": "sanitizer.remove_script_tags",
+    "condition": { "type": "EXTERNAL_EFFECT_FALSE" }
+  },
+  "authority": {
+    "envelope_id": "env-202-read",
+    "grant_class": "read_and_sanitize",
+    "sourcepoint_signature": "sig:ed25519:BrianRoot:0xffee88991100",
+    "expires": 4102444800
+  },
+  "scope": {
+    "allowed_inputs": ["raw_response_bytes"],
+    "allowed_tools": ["sanitizer.remove_script_tags"],
+    "disallowed_effects": ["filesystem.write", "network.outbound"],
+    "payload_hash": "sha256:sanitized_inbound",
+    "external_effect": false
+  },
+  "gates": {
+    "hermeneutic": "required",
+    "sophie": "required",
+    "rio": "not_applicable",
+    "sentinel": "not_applicable"
+  },
+  "effect": {
+    "action": "sanitizer.remove_script_tags",
+    "target": "memory_buffer:inbound"
+  },
+  "receipt": {
+    "required": true,
+    "class": "StandardOutcome",
+    "return_to": "MANTIS"
+  },
+  "return_path": {
+    "return_to": "MANTIS",
+    "human_review_required": false
+  },
+  "failure": {
+    "default_policy": "QUARANTINE",
+    "allowed_recovery": ["human_review"]
+  },
+  "learning": {
+    "may_update": false,
+    "requires_ratification": true
+  }
+}
