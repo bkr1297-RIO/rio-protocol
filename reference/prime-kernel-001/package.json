@@ -1,13 +1,13 @@
 {
-  "name": "prime-kernel-001-repo-safe-v0.1",
-  "version": "0.1.0",
+  "name": "prime-kernel-001-real-crypto-mus-v0.2",
+  "version": "0.2.0",
   "private": true,
-  "description": "Repo-safe candidate implementation of PRIME-KERNEL-001 for ONE/RIO/MUSS.",
+  "description": "Real Ed25519 SourcePoint verification and MUS-style signed receipts for PRIME-KERNEL-001.",
   "main": "dist/src/prime-kernel/index.js",
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "test": "tsc && node dist/test/prime-kernel.test.js"
+    "test": "tsc && node dist/test/prime-kernel-crypto-mus.test.js"
   },
   "devDependencies": {
     "typescript": "^5.8.3"
