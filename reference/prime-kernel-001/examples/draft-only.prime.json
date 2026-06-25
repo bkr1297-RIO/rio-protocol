@@ -1,0 +1,55 @@
+{
+  "prime_version": "0.1",
+  "packet_id": "draft001-0000-0000-0000-000000000001",
+  "parent_packet_hash": "sha256:parent-draft",
+  "sourcepoint": "human:brian",
+  "transition": {
+    "type": "STATE_MUTATION",
+    "from_state": "raw_language",
+    "to_state": "draft_unapproved"
+  },
+  "operator": {
+    "modal": "MAY",
+    "subject": "llm.draft"
+  },
+  "authority": {
+    "envelope_id": "env-draft-001",
+    "grant_class": "draft_only",
+    "sourcepoint_signature": "sig:ed25519:BrianRoot:0xdraft",
+    "expires": 4102444800
+  },
+  "scope": {
+    "allowed_inputs": ["current_user_instruction"],
+    "allowed_tools": ["llm.draft"],
+    "disallowed_effects": ["smtp.send_draft", "filesystem.write"],
+    "payload_hash": "sha256:draft_buffer",
+    "external_effect": false
+  },
+  "gates": {
+    "hermeneutic": "required",
+    "sophie": "required",
+    "rio": "not_applicable",
+    "sentinel": "not_applicable"
+  },
+  "effect": {
+    "action": "llm.draft",
+    "target": "draft_buffer"
+  },
+  "receipt": {
+    "required": true,
+    "class": "StandardOutcome",
+    "return_to": "SourcePoint"
+  },
+  "return_path": {
+    "return_to": "SourcePoint",
+    "human_review_required": true
+  },
+  "failure": {
+    "default_policy": "BLOCK_AND_RETURN",
+    "allowed_recovery": ["human_review"]
+  },
+  "learning": {
+    "may_update": false,
+    "requires_ratification": true
+  }
+}

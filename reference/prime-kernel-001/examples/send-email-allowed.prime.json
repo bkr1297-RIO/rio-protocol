@@ -1,0 +1,56 @@
+{
+  "prime_version": "0.1",
+  "packet_id": "990abcde-1234-4567-89ab-cdef01234567",
+  "parent_packet_hash": "sha256:parent-valid",
+  "sourcepoint": "human:brian",
+  "transition": {
+    "type": "STATE_MUTATION",
+    "from_state": "draft_approved",
+    "to_state": "email_sent"
+  },
+  "operator": {
+    "modal": "MAY_ONLY_IF",
+    "subject": "smtp.send_draft",
+    "condition": { "type": "SENTINEL_PAYLOAD_HASH_MATCH" }
+  },
+  "authority": {
+    "envelope_id": "env-990-xyz",
+    "grant_class": "send_email_once",
+    "sourcepoint_signature": "sig:ed25519:BrianRoot:0x892afbc01289",
+    "expires": 4102444800
+  },
+  "scope": {
+    "allowed_inputs": ["id:1029", "recipient:client@example.com"],
+    "allowed_tools": ["smtp.send_draft"],
+    "disallowed_effects": ["filesystem.write", "api.call_untrusted"],
+    "payload_hash": "sha256:4a8b92ef",
+    "external_effect": true
+  },
+  "gates": {
+    "hermeneutic": "required",
+    "sophie": "required",
+    "rio": "required",
+    "sentinel": "exact_payload_match"
+  },
+  "effect": {
+    "action": "smtp.send_draft",
+    "target": "client@example.com"
+  },
+  "receipt": {
+    "required": true,
+    "class": "StandardOutcome",
+    "return_to": "SourcePoint"
+  },
+  "return_path": {
+    "return_to": "SourcePoint",
+    "human_review_required": false
+  },
+  "failure": {
+    "default_policy": "BLOCK_AND_RETURN",
+    "allowed_recovery": ["quarantine_and_review"]
+  },
+  "learning": {
+    "may_update": false,
+    "requires_ratification": true
+  }
+}
