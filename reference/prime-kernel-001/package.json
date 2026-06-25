@@ -1,0 +1,15 @@
+{
+  "name": "prime-kernel-001-repo-safe-v0.1",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Repo-safe candidate implementation of PRIME-KERNEL-001 for ONE/RIO/MUSS.",
+  "main": "dist/src/prime-kernel/index.js",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "test": "tsc && node dist/test/prime-kernel.test.js"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  }
+}
