@@ -1,0 +1,55 @@
+{
+  "prime_version": "0.1",
+  "packet_id": "bad11111-2222-3333-4444-555555555555",
+  "parent_packet_hash": "sha256:parent-blocked",
+  "sourcepoint": "human:brian",
+  "transition": {
+    "type": "STATE_MUTATION",
+    "from_state": "raw_language",
+    "to_state": "email_sent"
+  },
+  "operator": {
+    "modal": "MAY",
+    "subject": "smtp.send_draft"
+  },
+  "authority": {
+    "envelope_id": "env-101-abc",
+    "grant_class": "draft_only",
+    "sourcepoint_signature": "sig:ed25519:BrianRoot:0x112233aabbcc",
+    "expires": 4102444800
+  },
+  "scope": {
+    "allowed_inputs": ["prompt:compose an email"],
+    "allowed_tools": ["llm.draft"],
+    "disallowed_effects": ["smtp.send_draft"],
+    "payload_hash": "sha256:4a8b92ef",
+    "external_effect": true
+  },
+  "gates": {
+    "hermeneutic": "required",
+    "sophie": "required",
+    "rio": "required",
+    "sentinel": "exact_payload_match"
+  },
+  "effect": {
+    "action": "smtp.send_draft",
+    "target": "blocked-recipient@example.test"
+  },
+  "receipt": {
+    "required": true,
+    "class": "ViolationAlert",
+    "return_to": "SourcePoint"
+  },
+  "return_path": {
+    "return_to": "SourcePoint",
+    "human_review_required": true
+  },
+  "failure": {
+    "default_policy": "BLOCK_AND_RETURN",
+    "allowed_recovery": ["human_review"]
+  },
+  "learning": {
+    "may_update": false,
+    "requires_ratification": true
+  }
+}
