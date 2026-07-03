@@ -3,14 +3,12 @@ name: Packet Grammar
 on:
   push:
     paths:
-      - 'spec/scribe_compiler_capsule.schema.json'
-      - 'spec/four_bit_crossing_code.md'
+      - 'spec/**'
       - 'tests/packet_grammar/**'
       - '.github/workflows/packet-grammar.yml'
   pull_request:
     paths:
-      - 'spec/scribe_compiler_capsule.schema.json'
-      - 'spec/four_bit_crossing_code.md'
+      - 'spec/**'
       - 'tests/packet_grammar/**'
       - '.github/workflows/packet-grammar.yml'
 
@@ -22,3 +20,5 @@ jobs:
       - run: python3 tests/packet_grammar/validate_scribe_compiler_capsule.py
       - run: python3 tests/packet_grammar/validate_four_bit_crossing_code.py
       - run: python3 tests/packet_grammar/validate_four_bit_crossing_harness_negatives.py
+      - run: python3 tests/packet_grammar/validate_gate_evidence.py
+      - run: python3 tests/packet_grammar/validate_receipt_binding.py
