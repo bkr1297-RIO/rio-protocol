@@ -26,13 +26,19 @@ Candidate packet-grammar tests for the ONE / RIO / MUSS orientation layer.
 
 ## Run
 
-From the repository root:
+Canonical verification command from the repository root:
+
+```bash
+bash scripts/rio_verify.sh
+```
+
+The older Replit wrapper remains available and delegates to the canonical runner:
 
 ```bash
 bash scripts/replit_run_packet_grammar_checks.sh
 ```
 
-Expected output:
+Expected output includes:
 
 ```text
 Scribe-Compiler Capsule fixture validation passed: 2 fixtures
@@ -40,6 +46,8 @@ Four-Bit Crossing Code validation passed: 16 truth-table rows
 Four-Bit Crossing Code harness-negative validation passed: 5 malformed datasets rejected
 Gate Evidence validation passed: 4 fixtures
 Receipt Binding validation passed: 5 fixtures
+RIO verification complete
+Exit code: 0
 ```
 
 ---
