@@ -8,6 +8,12 @@ The first packet grammar is the Scribe-Compiler Capsule:
 - Fixtures: `tests/packet_grammar/scribe_compiler_capsule_fixtures_v0.1.json`
 - Validator: `tests/packet_grammar/validate_scribe_compiler_capsule.py`
 
+The first gate dataset is the Four-Bit Crossing Code truth table:
+
+- Spec: `spec/four_bit_crossing_code.md`
+- Dataset: `tests/packet_grammar/four_bit_crossing_code_truth_table_v0.1.csv`
+- Validator: `tests/packet_grammar/validate_four_bit_crossing_code.py`
+
 ---
 
 ## Status
@@ -24,19 +30,21 @@ From the repository root:
 
 ```bash
 python3 tests/packet_grammar/validate_scribe_compiler_capsule.py
+python3 tests/packet_grammar/validate_four_bit_crossing_code.py
 ```
 
 Expected output:
 
 ```text
 Scribe-Compiler Capsule fixture validation passed: 5 fixtures
+Four-Bit Crossing Code validation passed: 16 truth-table rows
 ```
 
 ---
 
 ## What This Tests
 
-The validator checks:
+The capsule validator checks:
 
 1. required capsule fields,
 2. UUID shape,
@@ -47,13 +55,22 @@ The validator checks:
 7. basic tense/status overclaim protection,
 8. register-boundary protection.
 
+The Four-Bit Crossing Code validator checks:
+
+1. all 16 boolean combinations are present exactly once,
+2. Authority failure denies crossing,
+3. Return failure denies crossing,
+4. Scope failure requires review,
+5. Consequence failure clarifies the packet,
+6. only all-four-true produces `allow` and `may_cross=true`.
+
 ---
 
 ## Boundary
 
-This validator is intentionally dependency-free. It is not a full JSON Schema implementation.
+These validators are intentionally dependency-free. They are not full JSON Schema implementations.
 
-Its purpose is to make the first portable constitutional grammar artifact runnable immediately after clone.
+Their purpose is to make the first portable constitutional grammar artifacts runnable immediately after clone.
 
 Keeper:
 
