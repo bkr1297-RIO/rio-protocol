@@ -1,0 +1,65 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://example.invalid/schemas/portable_constitutional_engine/capsule_schema_v0.1.json",
+    "title": "Candidate Capsule Schema v0.1 (developer preview / non-production)",
+    "type": "object",
+    "description": "Minimal candidate schema for a RIO intent capsule used by the Portable Constitutional Engine Gate Simulator reference implementation. This is a candidate developer-preview schema, not a certified or production data contract.",
+    "required": [
+      "capsule_id",
+      "sourcepoint_id",
+      "intent",
+      "scope",
+      "consequence_class",
+      "return_path",
+      "authority_envelope_ref",
+      "timestamp"
+    ],
+    "properties": {
+      "capsule_id": {
+        "type": "string",
+        "description": "Unique candidate identifier for this capsule instance."
+      },
+      "sourcepoint_id": {
+        "type": "string",
+        "description": "Identifier of the sourcepoint (human or system) that originated the intent."
+      },
+      "intent": {
+        "type": "string",
+        "description": "Plain-language statement of the requested action."
+      },
+      "scope": {
+        "type": "string",
+        "description": "Candidate scope label for the requested action (e.g. draft, read, send, delete)."
+      },
+      "consequence_class": {
+        "type": "string",
+        "enum": ["none", "low", "medium", "high", "critical"],
+        "description": "Candidate consequence classification used by the Gate Simulator."
+      },
+      "return_path": {
+        "type": "string",
+        "description": "Candidate receipt destination, expected to use a receipt:// scheme in this reference implementation."
+      },
+      "authority_envelope_ref": {
+        "type": "string",
+        "description": "Reference to the authority envelope backing this capsule. Presence only; this schema does not verify cryptographic authority."
+      },
+      "timestamp": {
+        "type": "string",
+        "format": "date-time",
+        "description": "UTC timestamp of capsule creation."
+      },
+      "metadata": {
+        "type": "object",
+        "description": "Free-form candidate metadata (e.g. register, model_office, coherence_warning).",
+        "properties": {
+          "register": { "type": "string" },
+          "model_office": { "type": "string" },
+          "coherence_warning": { "type": "string" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "additionalProperties": true
+  }
+  
