@@ -10,6 +10,7 @@ python3 tests/packet_grammar/validate_scribe_compiler_capsule.py
 python3 tests/packet_grammar/validate_four_bit_crossing_code.py
 python3 tests/packet_grammar/validate_four_bit_crossing_harness_negatives.py
 python3 tests/packet_grammar/validate_gate_evidence.py
+python3 tests/packet_grammar/validate_receipt_binding.py
 
 echo ""
 echo "RIO packet grammar check complete"
