@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://rio-protocol.org/spec/scribe_compiler_capsule.schema.json",
   "title": "Scribe-Compiler Capsule",
-  "description": "Packet schema for carrying intent, scope, authority envelope, crossing predicates, and return requirements without transferring authority.",
+  "description": "Packet schema for carrying intent, scope, authority envelope, crossing predicates, bit evidence, consentability, and return requirements without transferring authority.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -14,6 +14,8 @@
     "scope",
     "authority_envelope",
     "crossing_code",
+    "bit_evidence",
+    "consentability",
     "return_requirements",
     "register_boundary",
     "tense_label",
@@ -36,11 +38,19 @@
     "sourcepoint": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["authority_type", "authority_id", "authority_state"],
+      "required": [
+        "authority_type",
+        "authority_id",
+        "authority_state"
+      ],
       "properties": {
         "authority_type": {
           "type": "string",
-          "enum": ["individual", "organization", "delegated_role"]
+          "enum": [
+            "individual",
+            "organization",
+            "delegated_role"
+          ]
         },
         "authority_id": {
           "type": "string",
@@ -48,17 +58,28 @@
         },
         "authority_state": {
           "type": "string",
-          "enum": ["present", "absent", "delegated", "unknown"]
+          "enum": [
+            "present",
+            "absent",
+            "delegated",
+            "unknown"
+          ]
         },
         "signature_ref": {
-          "type": ["string", "null"]
+          "type": [
+            "string",
+            "null"
+          ]
         }
       }
     },
     "intent": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["summary", "original_signal_hash"],
+      "required": [
+        "summary",
+        "original_signal_hash"
+      ],
       "properties": {
         "summary": {
           "type": "string",
@@ -70,26 +91,39 @@
         },
         "formation_notes": {
           "type": "array",
-          "items": { "type": "string" }
+          "items": {
+            "type": "string"
+          }
         }
       }
     },
     "scope": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["allowed_domains", "prohibited_domains", "tools_requested", "external_side_effects"],
+      "required": [
+        "allowed_domains",
+        "prohibited_domains",
+        "tools_requested",
+        "external_side_effects"
+      ],
       "properties": {
         "allowed_domains": {
           "type": "array",
-          "items": { "type": "string" }
+          "items": {
+            "type": "string"
+          }
         },
         "prohibited_domains": {
           "type": "array",
-          "items": { "type": "string" }
+          "items": {
+            "type": "string"
+          }
         },
         "tools_requested": {
           "type": "array",
-          "items": { "type": "string" }
+          "items": {
+            "type": "string"
+          }
         },
         "external_side_effects": {
           "type": "boolean"
@@ -99,84 +133,329 @@
     "authority_envelope": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["authorization_state", "constraints"],
+      "required": [
+        "authorization_state",
+        "constraints"
+      ],
       "properties": {
         "authorization_state": {
           "type": "string",
-          "enum": ["not_authorized", "authorized", "requires_review", "revoked"]
+          "enum": [
+            "not_authorized",
+            "authorized",
+            "requires_review",
+            "revoked"
+          ]
         },
         "authorization_id": {
-          "type": ["string", "null"]
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "authorized_by": {
-          "type": ["string", "null"]
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "authorized_at": {
-          "type": ["string", "null"],
+          "type": [
+            "string",
+            "null"
+          ],
           "format": "date-time"
         },
         "expires_at": {
-          "type": ["string", "null"],
+          "type": [
+            "string",
+            "null"
+          ],
           "format": "date-time"
         },
         "constraints": {
           "type": "array",
-          "items": { "type": "string" }
+          "items": {
+            "type": "string"
+          }
         }
       }
     },
     "crossing_code": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["authority", "scope", "consequence", "return", "verdict"],
+      "required": [
+        "authority",
+        "scope",
+        "consequence",
+        "return",
+        "verdict"
+      ],
       "properties": {
-        "authority": { "type": "boolean" },
-        "scope": { "type": "boolean" },
-        "consequence": { "type": "boolean" },
-        "return": { "type": "boolean" },
+        "authority": {
+          "type": "boolean"
+        },
+        "scope": {
+          "type": "boolean"
+        },
+        "consequence": {
+          "type": "boolean"
+        },
+        "return": {
+          "type": "boolean"
+        },
         "verdict": {
           "type": "string",
-          "enum": ["allow", "deny", "require_review", "clarify"]
+          "enum": [
+            "allow",
+            "deny",
+            "require_review",
+            "clarify"
+          ]
         },
         "reason_codes": {
           "type": "array",
-          "items": { "type": "string" }
+          "items": {
+            "type": "string"
+          }
         }
       }
+    },
+    "bit_evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "authority",
+        "scope",
+        "consequence",
+        "return"
+      ],
+      "properties": {
+        "authority": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/evidence_ref"
+          }
+        },
+        "scope": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/evidence_ref"
+          }
+        },
+        "consequence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/evidence_ref"
+          }
+        },
+        "return": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/evidence_ref"
+          }
+        }
+      },
+      "description": "Evidence references supporting each crossing bit. True bits must not be self-asserted without evidence."
+    },
+    "consentability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "explicit_consent_required",
+        "consent_state",
+        "stakes",
+        "risks",
+        "benefits",
+        "time_bound",
+        "revocable",
+        "comprehension_basis"
+      ],
+      "properties": {
+        "explicit_consent_required": {
+          "type": "boolean"
+        },
+        "consent_state": {
+          "type": "string",
+          "enum": [
+            "not_required",
+            "required_missing",
+            "present",
+            "revoked",
+            "expired"
+          ]
+        },
+        "stakes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "risks": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "benefits": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "time_bound": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "starts_at",
+            "expires_at"
+          ],
+          "properties": {
+            "starts_at": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "date-time"
+            },
+            "expires_at": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "date-time"
+            }
+          }
+        },
+        "revocable": {
+          "type": "boolean"
+        },
+        "comprehension_basis": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "description": "Consentability fields make the authorization understandable, bounded, time-limited, and revocable."
     },
     "return_requirements": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["receipt_required", "return_channel", "settlement_required", "evidence_required"],
+      "required": [
+        "receipt_required",
+        "return_channel",
+        "settlement_required",
+        "evidence_required"
+      ],
       "properties": {
-        "receipt_required": { "type": "boolean" },
-        "return_channel": { "type": "string" },
-        "settlement_required": { "type": "boolean" },
-        "evidence_required": { "type": "array", "items": { "type": "string" } }
+        "receipt_required": {
+          "type": "boolean"
+        },
+        "return_channel": {
+          "type": "string"
+        },
+        "settlement_required": {
+          "type": "boolean"
+        },
+        "evidence_required": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
       }
     },
     "register_boundary": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["private_material_included", "public_claim_allowed", "proof_required"],
+      "required": [
+        "private_material_included",
+        "public_claim_allowed",
+        "proof_required"
+      ],
       "properties": {
-        "private_material_included": { "type": "boolean" },
-        "public_claim_allowed": { "type": "boolean" },
-        "proof_required": { "type": "boolean" },
-        "boundary_notes": { "type": "array", "items": { "type": "string" } }
+        "private_material_included": {
+          "type": "boolean"
+        },
+        "public_claim_allowed": {
+          "type": "boolean"
+        },
+        "proof_required": {
+          "type": "boolean"
+        },
+        "boundary_notes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
       }
     },
     "tense_label": {
       "type": "string",
-      "enum": ["designed", "built", "verified", "deployed", "certified"]
+      "enum": [
+        "designed",
+        "built",
+        "verified",
+        "deployed",
+        "certified"
+      ]
     },
     "status_label": {
       "type": "string",
-      "enum": ["candidate", "draft", "ratified", "deprecated"]
+      "enum": [
+        "candidate",
+        "draft",
+        "ratified",
+        "deprecated"
+      ]
     },
     "references": {
       "type": "array",
-      "items": { "type": "string" }
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "$defs": {
+    "evidence_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evidence_type",
+        "evidence_id",
+        "description"
+      ],
+      "properties": {
+        "evidence_type": {
+          "type": "string",
+          "enum": [
+            "authorization_artifact",
+            "scope_constraint",
+            "consequence_assessment",
+            "return_requirement",
+            "receipt_plan",
+            "review_note",
+            "hash_reference",
+            "human_statement",
+            "policy_reference"
+          ]
+        },
+        "evidence_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence_hash": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
     }
   }
 }
