@@ -1,0 +1,141 @@
+{
+  "bundle_name": "Receipt Binding Fixture Set",
+  "version": "0.1.0",
+  "status": {
+    "proof_status_label": "receipt_binding_candidate",
+    "runtime_status": "not_enforced",
+    "live_conformance_status": "not_claimed",
+    "receipt_verified": "not_claimed"
+  },
+  "fixtures": [
+    {
+      "id": "receipt-binding-valid-001",
+      "expected_valid": true,
+      "receipt": {
+        "receipt_id": "RUN-RECEIPT-002",
+        "receipt_path": "tests/packet_grammar/RUN-RECEIPT-002.md",
+        "verified_commit": "2bec47f80554415aeccf51a1d70f80ac5bf0498b",
+        "short_sha": "2bec47f",
+        "runtime_surface": "Replit fresh clone in scratch directory",
+        "command": "bash scripts/replit_run_packet_grammar_checks.sh",
+        "exit_code": 0,
+        "artifacts_verified": [
+          "tests/packet_grammar/validate_scribe_compiler_capsule.py",
+          "tests/packet_grammar/validate_four_bit_crossing_code.py",
+          "tests/packet_grammar/validate_four_bit_crossing_harness_negatives.py",
+          "tests/packet_grammar/validate_gate_evidence.py"
+        ],
+        "observed_outputs": [
+          "Scribe-Compiler Capsule fixture validation passed: 2 fixtures",
+          "Four-Bit Crossing Code validation passed: 16 truth-table rows",
+          "Four-Bit Crossing Code harness-negative validation passed: 5 malformed datasets rejected",
+          "Gate Evidence validation passed: 4 fixtures"
+        ],
+        "boundary_claims": {
+          "live_conformance": false,
+          "production_enforcement": false,
+          "receipt_protocol_verification": false,
+          "deployment": false,
+          "production_readiness": false,
+          "certification": false
+        }
+      }
+    },
+    {
+      "id": "receipt-binding-negative-missing-commit-001",
+      "expected_valid": false,
+      "expected_failure_contains": "verified_commit is required",
+      "receipt": {
+        "receipt_id": "RUN-RECEIPT-X",
+        "receipt_path": "tests/packet_grammar/RUN-RECEIPT-X.md",
+        "verified_commit": "",
+        "short_sha": "",
+        "runtime_surface": "Replit",
+        "command": "bash scripts/replit_run_packet_grammar_checks.sh",
+        "exit_code": 0,
+        "artifacts_verified": ["tests/packet_grammar/validate_gate_evidence.py"],
+        "observed_outputs": ["Gate Evidence validation passed: 4 fixtures"],
+        "boundary_claims": {
+          "live_conformance": false,
+          "production_enforcement": false,
+          "receipt_protocol_verification": false,
+          "deployment": false,
+          "production_readiness": false,
+          "certification": false
+        }
+      }
+    },
+    {
+      "id": "receipt-binding-negative-missing-output-001",
+      "expected_valid": false,
+      "expected_failure_contains": "observed_outputs is required",
+      "receipt": {
+        "receipt_id": "RUN-RECEIPT-X",
+        "receipt_path": "tests/packet_grammar/RUN-RECEIPT-X.md",
+        "verified_commit": "2bec47f80554415aeccf51a1d70f80ac5bf0498b",
+        "short_sha": "2bec47f",
+        "runtime_surface": "Replit",
+        "command": "bash scripts/replit_run_packet_grammar_checks.sh",
+        "exit_code": 0,
+        "artifacts_verified": ["tests/packet_grammar/validate_gate_evidence.py"],
+        "observed_outputs": [],
+        "boundary_claims": {
+          "live_conformance": false,
+          "production_enforcement": false,
+          "receipt_protocol_verification": false,
+          "deployment": false,
+          "production_readiness": false,
+          "certification": false
+        }
+      }
+    },
+    {
+      "id": "receipt-binding-negative-missing-artifact-001",
+      "expected_valid": false,
+      "expected_failure_contains": "artifacts_verified is required",
+      "receipt": {
+        "receipt_id": "RUN-RECEIPT-X",
+        "receipt_path": "tests/packet_grammar/RUN-RECEIPT-X.md",
+        "verified_commit": "2bec47f80554415aeccf51a1d70f80ac5bf0498b",
+        "short_sha": "2bec47f",
+        "runtime_surface": "Replit",
+        "command": "bash scripts/replit_run_packet_grammar_checks.sh",
+        "exit_code": 0,
+        "artifacts_verified": [],
+        "observed_outputs": ["Gate Evidence validation passed: 4 fixtures"],
+        "boundary_claims": {
+          "live_conformance": false,
+          "production_enforcement": false,
+          "receipt_protocol_verification": false,
+          "deployment": false,
+          "production_readiness": false,
+          "certification": false
+        }
+      }
+    },
+    {
+      "id": "receipt-binding-negative-overclaim-certification-001",
+      "expected_valid": false,
+      "expected_failure_contains": "boundary claim certification must be false",
+      "receipt": {
+        "receipt_id": "RUN-RECEIPT-X",
+        "receipt_path": "tests/packet_grammar/RUN-RECEIPT-X.md",
+        "verified_commit": "2bec47f80554415aeccf51a1d70f80ac5bf0498b",
+        "short_sha": "2bec47f",
+        "runtime_surface": "Replit",
+        "command": "bash scripts/replit_run_packet_grammar_checks.sh",
+        "exit_code": 0,
+        "artifacts_verified": ["tests/packet_grammar/validate_gate_evidence.py"],
+        "observed_outputs": ["Gate Evidence validation passed: 4 fixtures"],
+        "boundary_claims": {
+          "live_conformance": false,
+          "production_enforcement": false,
+          "receipt_protocol_verification": false,
+          "deployment": false,
+          "production_readiness": false,
+          "certification": true
+        }
+      }
+    }
+  ]
+}
