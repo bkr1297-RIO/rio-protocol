@@ -1,0 +1,65 @@
+{
+  "bundle_name": "Four-Bit Crossing Code Harness Negative Fixtures",
+  "version": "0.1.0",
+  "status": {
+    "proof_status_label": "harness_negative_candidate",
+    "runtime_status": "not_enforced",
+    "live_conformance_status": "not_claimed"
+  },
+  "golden_dataset": "tests/packet_grammar/four_bit_crossing_code_truth_table_v0.1.csv",
+  "negative_cases": [
+    {
+      "id": "negative-duplicate-row-001",
+      "mutation": {
+        "type": "duplicate_case",
+        "case_id": "case-1111"
+      },
+      "expected_failure_contains": "duplicate bit combination"
+    },
+    {
+      "id": "negative-missing-row-001",
+      "mutation": {
+        "type": "delete_case",
+        "case_id": "case-1111"
+      },
+      "expected_failure_contains": "truth table must contain exactly 16 rows"
+    },
+    {
+      "id": "negative-invalid-bit-001",
+      "mutation": {
+        "type": "set_field",
+        "case_id": "case-1111",
+        "field": "authority",
+        "value": "2"
+      },
+      "expected_failure_contains": "invalid boolean value"
+    },
+    {
+      "id": "negative-wrong-verdict-001",
+      "mutation": {
+        "type": "set_field",
+        "case_id": "case-1111",
+        "field": "expected_verdict",
+        "value": "deny"
+      },
+      "expected_failure_contains": "verdict deny != expected allow"
+    },
+    {
+      "id": "negative-extra-row-001",
+      "mutation": {
+        "type": "add_row",
+        "row": {
+          "case_id": "case-extra",
+          "authority": "true",
+          "scope": "true",
+          "consequence": "true",
+          "return": "true",
+          "expected_verdict": "allow",
+          "may_cross": "true",
+          "reason_code": "all_crossing_bits_true"
+        }
+      },
+      "expected_failure_contains": "truth table must contain exactly 16 rows"
+    }
+  ]
+}
