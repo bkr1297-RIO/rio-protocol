@@ -41,10 +41,9 @@ def expected_for_bits(authority: bool, scope: bool, consequence: bool, return_bi
     return "clarify", False, "consequence_unacknowledged"
 
 
-def main() -> int:
-    rows = list(csv.DictReader(TRUTH_TABLE.read_text(encoding="utf-8").splitlines()))
+def validate_truth_table(path: Path) -> list[str]:
+    rows = list(csv.DictReader(path.read_text(encoding="utf-8").splitlines()))
     failures: list[str] = []
-
     seen: set[tuple[bool, bool, bool, bool]] = set()
 
     for row in rows:
@@ -81,6 +80,13 @@ def main() -> int:
         failures.append(f"missing bit combinations: {sorted(missing)}")
     if extra:
         failures.append(f"unexpected bit combinations: {sorted(extra)}")
+
+    return failures
+
+
+def main() -> int:
+    path = Path(sys.argv[1]) if len(sys.argv) > 1 else TRUTH_TABLE
+    failures = validate_truth_table(path)
 
     if failures:
         print("Four-Bit Crossing Code validation FAILED")
