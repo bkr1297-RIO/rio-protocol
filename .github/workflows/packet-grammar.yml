@@ -4,25 +4,20 @@ on:
   push:
     paths:
       - 'spec/scribe_compiler_capsule.schema.json'
+      - 'spec/four_bit_crossing_code.md'
       - 'tests/packet_grammar/**'
       - '.github/workflows/packet-grammar.yml'
   pull_request:
     paths:
       - 'spec/scribe_compiler_capsule.schema.json'
+      - 'spec/four_bit_crossing_code.md'
       - 'tests/packet_grammar/**'
       - '.github/workflows/packet-grammar.yml'
 
 jobs:
-  validate-scribe-compiler-capsule:
+  validate-packet-grammar:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.x'
-
-      - name: Validate Scribe-Compiler Capsule fixtures
-        run: python3 tests/packet_grammar/validate_scribe_compiler_capsule.py
+      - uses: actions/checkout@v4
+      - run: python3 tests/packet_grammar/validate_scribe_compiler_capsule.py
+      - run: python3 tests/packet_grammar/validate_four_bit_crossing_code.py
