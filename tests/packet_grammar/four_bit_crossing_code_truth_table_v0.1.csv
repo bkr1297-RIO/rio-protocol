@@ -1,0 +1,17 @@
+case_id,authority,scope,consequence,return,expected_verdict,may_cross,reason_code
+case-0000,false,false,false,false,deny,false,authority_absent
+case-0001,false,false,false,true,deny,false,authority_absent
+case-0010,false,false,true,false,deny,false,authority_absent
+case-0011,false,false,true,true,deny,false,authority_absent
+case-0100,false,true,false,false,deny,false,authority_absent
+case-0101,false,true,false,true,deny,false,authority_absent
+case-0110,false,true,true,false,deny,false,authority_absent
+case-0111,false,true,true,true,deny,false,authority_absent
+case-1000,true,false,false,false,deny,false,return_missing
+case-1001,true,false,false,true,require_review,false,scope_and_consequence_unresolved
+case-1010,true,false,true,false,deny,false,return_missing
+case-1011,true,false,true,true,require_review,false,scope_drift
+case-1100,true,true,false,false,deny,false,return_missing
+case-1101,true,true,false,true,clarify,false,consequence_unacknowledged
+case-1110,true,true,true,false,deny,false,return_missing
+case-1111,true,true,true,true,allow,true,all_crossing_bits_true
