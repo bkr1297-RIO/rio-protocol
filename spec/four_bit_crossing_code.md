@@ -54,6 +54,20 @@ These candidate rules are intentionally conservative. A future normative gate ma
 
 ---
 
+## Ratification Note
+
+The differentiated handling of failed Scope and failed Consequence is a candidate design choice in this packet-grammar layer.
+
+It is not yet a production governance guarantee.
+
+- Failed Scope currently maps to `require_review` because the packet may be narrowable.
+- Failed Consequence currently maps to `clarify` because the packet may be under-described rather than unauthorized.
+- Failed Authority or failed Return maps to `deny` because capability cannot substitute for authority, and no-return movement violates the receipt requirement.
+
+This ratification note exists so the design choice remains visible instead of hiding inside test code.
+
+---
+
 ## Truth Table Requirement
 
 The test dataset for this rule should contain all 16 possible boolean combinations of:
