@@ -19,6 +19,12 @@ The first harness-negative set tests whether the truth-table validator rejects m
 - Negative fixtures: `tests/packet_grammar/four_bit_crossing_code_harness_negatives_v0.1.json`
 - Negative validator: `tests/packet_grammar/validate_four_bit_crossing_harness_negatives.py`
 
+Gate Evidence v0.1 tests whether true gate bits carry evidence and whether allowed packets have present consent when consent is required:
+
+- Spec: `spec/gate_evidence_v0.1.md`
+- Fixtures: `tests/packet_grammar/gate_evidence_fixtures_v0.1.json`
+- Validator: `tests/packet_grammar/validate_gate_evidence.py`
+
 ---
 
 ## Status
@@ -37,6 +43,13 @@ From the repository root:
 python3 tests/packet_grammar/validate_scribe_compiler_capsule.py
 python3 tests/packet_grammar/validate_four_bit_crossing_code.py
 python3 tests/packet_grammar/validate_four_bit_crossing_harness_negatives.py
+python3 tests/packet_grammar/validate_gate_evidence.py
+```
+
+Or run the Replit wrapper:
+
+```bash
+bash scripts/replit_run_packet_grammar_checks.sh
 ```
 
 Expected output:
@@ -45,41 +58,25 @@ Expected output:
 Scribe-Compiler Capsule fixture validation passed: 2 fixtures
 Four-Bit Crossing Code validation passed: 16 truth-table rows
 Four-Bit Crossing Code harness-negative validation passed: 5 malformed datasets rejected
+Gate Evidence validation passed: 4 fixtures
 ```
 
 ---
 
 ## What This Tests
 
-The capsule validator checks:
+The capsule validator checks required capsule structure, bit evidence presence, consentability posture, tense/status boundaries, and register-boundary protection.
 
-1. required capsule fields,
-2. UUID shape,
-3. timestamp shape,
-4. SHA-256 hash shape,
-5. enum constraints,
-6. Four-Bit Crossing Code coherence,
-7. bit evidence presence for true bits,
-8. consentability posture for allowed crossings,
-9. basic tense/status overclaim protection,
-10. register-boundary protection.
+The Four-Bit Crossing Code validator checks all 16 boolean combinations and verifies that only all-four-true produces `allow` and `may_cross=true`.
 
-The Four-Bit Crossing Code validator checks:
+The harness-negative validator checks that malformed datasets fail when they contain a duplicate row, missing row, invalid bit value, incorrect verdict, or extra row.
 
-1. all 16 boolean combinations are present exactly once,
-2. Authority failure denies crossing,
-3. Return failure denies crossing,
-4. Scope failure requires review,
-5. Consequence failure clarifies the packet,
-6. only all-four-true produces `allow` and `may_cross=true`.
+The Gate Evidence validator checks:
 
-The harness-negative validator checks that malformed datasets fail when they contain:
-
-1. a duplicate row,
-2. a missing row,
-3. an invalid bit value,
-4. an incorrect verdict,
-5. an extra row.
+1. no true bit is allowed without evidence,
+2. an `allow` verdict requires all four bits true,
+3. an `allow` verdict requires present consent when explicit consent is required,
+4. consentability carries stakes, risks, benefits, time bound, revocability, and comprehension basis.
 
 ---
 
