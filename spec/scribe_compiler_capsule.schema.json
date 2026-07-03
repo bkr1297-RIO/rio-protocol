@@ -1,0 +1,182 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rio-protocol.org/spec/scribe_compiler_capsule.schema.json",
+  "title": "Scribe-Compiler Capsule",
+  "description": "Packet schema for carrying intent, scope, authority envelope, crossing predicates, and return requirements without transferring authority.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "capsule_version",
+    "capsule_id",
+    "created_at",
+    "sourcepoint",
+    "intent",
+    "scope",
+    "authority_envelope",
+    "crossing_code",
+    "return_requirements",
+    "register_boundary",
+    "tense_label",
+    "status_label"
+  ],
+  "properties": {
+    "capsule_version": {
+      "type": "string",
+      "pattern": "^0\\.[0-9]+\\.[0-9]+$",
+      "description": "Version of this capsule schema. v0.x is candidate and non-normative."
+    },
+    "capsule_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "sourcepoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["authority_type", "authority_id", "authority_state"],
+      "properties": {
+        "authority_type": {
+          "type": "string",
+          "enum": ["individual", "organization", "delegated_role"]
+        },
+        "authority_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "authority_state": {
+          "type": "string",
+          "enum": ["present", "absent", "delegated", "unknown"]
+        },
+        "signature_ref": {
+          "type": ["string", "null"]
+        }
+      }
+    },
+    "intent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["summary", "original_signal_hash"],
+      "properties": {
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "original_signal_hash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "formation_notes": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["allowed_domains", "prohibited_domains", "tools_requested", "external_side_effects"],
+      "properties": {
+        "allowed_domains": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "prohibited_domains": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "tools_requested": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "external_side_effects": {
+          "type": "boolean"
+        }
+      }
+    },
+    "authority_envelope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["authorization_state", "constraints"],
+      "properties": {
+        "authorization_state": {
+          "type": "string",
+          "enum": ["not_authorized", "authorized", "requires_review", "revoked"]
+        },
+        "authorization_id": {
+          "type": ["string", "null"]
+        },
+        "authorized_by": {
+          "type": ["string", "null"]
+        },
+        "authorized_at": {
+          "type": ["string", "null"],
+          "format": "date-time"
+        },
+        "expires_at": {
+          "type": ["string", "null"],
+          "format": "date-time"
+        },
+        "constraints": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "crossing_code": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["authority", "scope", "consequence", "return", "verdict"],
+      "properties": {
+        "authority": { "type": "boolean" },
+        "scope": { "type": "boolean" },
+        "consequence": { "type": "boolean" },
+        "return": { "type": "boolean" },
+        "verdict": {
+          "type": "string",
+          "enum": ["allow", "deny", "require_review", "clarify"]
+        },
+        "reason_codes": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "return_requirements": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["receipt_required", "return_channel", "settlement_required", "evidence_required"],
+      "properties": {
+        "receipt_required": { "type": "boolean" },
+        "return_channel": { "type": "string" },
+        "settlement_required": { "type": "boolean" },
+        "evidence_required": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "register_boundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["private_material_included", "public_claim_allowed", "proof_required"],
+      "properties": {
+        "private_material_included": { "type": "boolean" },
+        "public_claim_allowed": { "type": "boolean" },
+        "proof_required": { "type": "boolean" },
+        "boundary_notes": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "tense_label": {
+      "type": "string",
+      "enum": ["designed", "built", "verified", "deployed", "certified"]
+    },
+    "status_label": {
+      "type": "string",
+      "enum": ["candidate", "draft", "ratified", "deprecated"]
+    },
+    "references": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}
