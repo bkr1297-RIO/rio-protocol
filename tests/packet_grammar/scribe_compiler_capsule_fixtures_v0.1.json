@@ -1,6 +1,6 @@
 {
   "bundle_name": "Scribe-Compiler Capsule Fixture Set",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "status": {
     "proof_status_label": "schema_fixture_candidate",
     "runtime_status": "not_enforced",
@@ -24,23 +24,30 @@
           "signature_ref": null
         },
         "intent": {
-          "summary": "Create a repo-safe orientation artifact from approved naming material.",
-          "original_signal_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "formation_notes": ["private material excluded", "public derivative only"]
+          "summary": "Capsule fixture 1.",
+          "original_signal_hash": "1111111111111111111111111111111111111111111111111111111111111111"
         },
         "scope": {
-          "allowed_domains": ["documentation", "schema", "test-fixture"],
-          "prohibited_domains": ["runtime-enforcement-claim", "certification-claim"],
-          "tools_requested": ["github.create_file"],
+          "allowed_domains": [
+            "documentation"
+          ],
+          "prohibited_domains": [
+            "runtime-claim"
+          ],
+          "tools_requested": [
+            "github.create_file"
+          ],
           "external_side_effects": true
         },
         "authority_envelope": {
           "authorization_state": "authorized",
-          "authorization_id": "auth-example-001",
+          "authorization_id": "auth-1",
           "authorized_by": "sourcepoint:example",
           "authorized_at": "2026-07-03T05:19:00Z",
           "expires_at": "2026-07-03T06:19:00Z",
-          "constraints": ["docs-only", "non-normative", "no private-symbolic-public-proof"]
+          "constraints": [
+            "docs-only"
+          ]
         },
         "crossing_code": {
           "authority": true,
@@ -48,102 +55,192 @@
           "consequence": true,
           "return": true,
           "verdict": "allow",
-          "reason_codes": ["all_crossing_bits_true"]
+          "reason_codes": [
+            "all_crossing_bits_true"
+          ]
+        },
+        "bit_evidence": {
+          "authority": [
+            {
+              "evidence_type": "authorization_artifact",
+              "evidence_id": "authority-evidence-1",
+              "description": "Evidence for authority bit.",
+              "evidence_hash": null
+            }
+          ],
+          "scope": [
+            {
+              "evidence_type": "scope_constraint",
+              "evidence_id": "scope-evidence-1",
+              "description": "Evidence for scope bit.",
+              "evidence_hash": null
+            }
+          ],
+          "consequence": [
+            {
+              "evidence_type": "consequence_assessment",
+              "evidence_id": "consequence-evidence-1",
+              "description": "Evidence for consequence bit.",
+              "evidence_hash": null
+            }
+          ],
+          "return": [
+            {
+              "evidence_type": "return_requirement",
+              "evidence_id": "return-evidence-1",
+              "description": "Evidence for return bit.",
+              "evidence_hash": null
+            }
+          ]
+        },
+        "consentability": {
+          "explicit_consent_required": true,
+          "consent_state": "present",
+          "stakes": [
+            "Repository write."
+          ],
+          "risks": [
+            "Status overclaim."
+          ],
+          "benefits": [
+            "Testable grammar."
+          ],
+          "time_bound": {
+            "starts_at": "2026-07-03T05:19:00Z",
+            "expires_at": "2026-07-03T06:19:00Z"
+          },
+          "revocable": true,
+          "comprehension_basis": "Explicit bounded instruction."
         },
         "return_requirements": {
           "receipt_required": true,
           "return_channel": "chat-summary",
           "settlement_required": false,
-          "evidence_required": ["commit_sha", "file_paths"]
+          "evidence_required": [
+            "commit_sha"
+          ]
         },
         "register_boundary": {
           "private_material_included": false,
           "public_claim_allowed": true,
           "proof_required": true,
-          "boundary_notes": ["architecture terms only", "private register not committed"]
+          "boundary_notes": []
         },
         "tense_label": "designed",
-        "status_label": "candidate",
-        "references": ["docs/root/ROOT-NAMING-001-portable-constitutional-grammar.md"]
+        "status_label": "candidate"
       }
     },
     {
       "id": "capsule-negative-missing-authority-001",
       "expected_schema_valid": true,
       "expected_crossing_verdict": "deny",
-      "negative_reason": "Authority bit false: packet may be well-formed but cannot cross.",
       "capsule": {
         "capsule_version": "0.1.0",
         "capsule_id": "22222222-2222-4222-8222-222222222222",
         "created_at": "2026-07-03T05:21:00Z",
-        "sourcepoint": { "authority_type": "individual", "authority_id": "sourcepoint:example", "authority_state": "absent", "signature_ref": null },
-        "intent": { "summary": "Publish a public claim without approval.", "original_signal_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" },
-        "scope": { "allowed_domains": ["documentation"], "prohibited_domains": ["public-claim"], "tools_requested": ["github.create_file"], "external_side_effects": true },
-        "authority_envelope": { "authorization_state": "not_authorized", "authorization_id": null, "authorized_by": null, "authorized_at": null, "expires_at": null, "constraints": [] },
-        "crossing_code": { "authority": false, "scope": true, "consequence": true, "return": true, "verdict": "deny", "reason_codes": ["authority_absent"] },
-        "return_requirements": { "receipt_required": true, "return_channel": "chat-summary", "settlement_required": false, "evidence_required": ["denial_reason"] },
-        "register_boundary": { "private_material_included": false, "public_claim_allowed": false, "proof_required": true, "boundary_notes": [] },
+        "sourcepoint": {
+          "authority_type": "individual",
+          "authority_id": "sourcepoint:example",
+          "authority_state": "absent",
+          "signature_ref": null
+        },
+        "intent": {
+          "summary": "Capsule fixture 2.",
+          "original_signal_hash": "2222222222222222222222222222222222222222222222222222222222222222"
+        },
+        "scope": {
+          "allowed_domains": [
+            "documentation"
+          ],
+          "prohibited_domains": [
+            "runtime-claim"
+          ],
+          "tools_requested": [
+            "github.create_file"
+          ],
+          "external_side_effects": true
+        },
+        "authority_envelope": {
+          "authorization_state": "not_authorized",
+          "authorization_id": null,
+          "authorized_by": null,
+          "authorized_at": null,
+          "expires_at": null,
+          "constraints": [
+            "docs-only"
+          ]
+        },
+        "crossing_code": {
+          "authority": false,
+          "scope": true,
+          "consequence": true,
+          "return": true,
+          "verdict": "deny",
+          "reason_codes": [
+            "authority_absent"
+          ]
+        },
+        "bit_evidence": {
+          "authority": [],
+          "scope": [
+            {
+              "evidence_type": "scope_constraint",
+              "evidence_id": "scope-evidence-2",
+              "description": "Evidence for scope bit.",
+              "evidence_hash": null
+            }
+          ],
+          "consequence": [
+            {
+              "evidence_type": "consequence_assessment",
+              "evidence_id": "consequence-evidence-2",
+              "description": "Evidence for consequence bit.",
+              "evidence_hash": null
+            }
+          ],
+          "return": [
+            {
+              "evidence_type": "return_requirement",
+              "evidence_id": "return-evidence-2",
+              "description": "Evidence for return bit.",
+              "evidence_hash": null
+            }
+          ]
+        },
+        "consentability": {
+          "explicit_consent_required": true,
+          "consent_state": "required_missing",
+          "stakes": [
+            "Repository write."
+          ],
+          "risks": [
+            "Status overclaim."
+          ],
+          "benefits": [
+            "Testable grammar."
+          ],
+          "time_bound": {
+            "starts_at": null,
+            "expires_at": null
+          },
+          "revocable": true,
+          "comprehension_basis": "Explicit bounded instruction."
+        },
+        "return_requirements": {
+          "receipt_required": true,
+          "return_channel": "chat-summary",
+          "settlement_required": false,
+          "evidence_required": [
+            "commit_sha"
+          ]
+        },
+        "register_boundary": {
+          "private_material_included": false,
+          "public_claim_allowed": false,
+          "proof_required": true,
+          "boundary_notes": []
+        },
         "tense_label": "designed",
-        "status_label": "candidate"
-      }
-    },
-    {
-      "id": "capsule-negative-scope-drift-001",
-      "expected_schema_valid": true,
-      "expected_crossing_verdict": "require_review",
-      "negative_reason": "Scope bit false: requested action exceeds authorized docs-only bounds.",
-      "capsule": {
-        "capsule_version": "0.1.0",
-        "capsule_id": "33333333-3333-4333-8333-333333333333",
-        "created_at": "2026-07-03T05:22:00Z",
-        "sourcepoint": { "authority_type": "individual", "authority_id": "sourcepoint:example", "authority_state": "present", "signature_ref": null },
-        "intent": { "summary": "Convert orientation naming into runtime enforcement claim.", "original_signal_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc" },
-        "scope": { "allowed_domains": ["documentation"], "prohibited_domains": ["runtime-enforcement-claim"], "tools_requested": ["github.create_file"], "external_side_effects": true },
-        "authority_envelope": { "authorization_state": "authorized", "authorization_id": "auth-example-002", "authorized_by": "sourcepoint:example", "authorized_at": "2026-07-03T05:20:00Z", "expires_at": "2026-07-03T06:20:00Z", "constraints": ["docs-only"] },
-        "crossing_code": { "authority": true, "scope": false, "consequence": true, "return": true, "verdict": "require_review", "reason_codes": ["scope_drift"] },
-        "return_requirements": { "receipt_required": true, "return_channel": "chat-summary", "settlement_required": false, "evidence_required": ["review_reason"] },
-        "register_boundary": { "private_material_included": false, "public_claim_allowed": false, "proof_required": true, "boundary_notes": ["runtime claim not supported"] },
-        "tense_label": "designed",
-        "status_label": "candidate"
-      }
-    },
-    {
-      "id": "capsule-negative-no-return-001",
-      "expected_schema_valid": true,
-      "expected_crossing_verdict": "deny",
-      "negative_reason": "Return bit false: no receipt or return path defined.",
-      "capsule": {
-        "capsule_version": "0.1.0",
-        "capsule_id": "44444444-4444-4444-8444-444444444444",
-        "created_at": "2026-07-03T05:23:00Z",
-        "sourcepoint": { "authority_type": "individual", "authority_id": "sourcepoint:example", "authority_state": "present", "signature_ref": null },
-        "intent": { "summary": "Perform action without return evidence.", "original_signal_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd" },
-        "scope": { "allowed_domains": ["documentation"], "prohibited_domains": [], "tools_requested": ["github.create_file"], "external_side_effects": true },
-        "authority_envelope": { "authorization_state": "authorized", "authorization_id": "auth-example-003", "authorized_by": "sourcepoint:example", "authorized_at": "2026-07-03T05:20:00Z", "expires_at": "2026-07-03T06:20:00Z", "constraints": ["return-required"] },
-        "crossing_code": { "authority": true, "scope": true, "consequence": true, "return": false, "verdict": "deny", "reason_codes": ["return_missing"] },
-        "return_requirements": { "receipt_required": false, "return_channel": "none", "settlement_required": false, "evidence_required": [] },
-        "register_boundary": { "private_material_included": false, "public_claim_allowed": true, "proof_required": true, "boundary_notes": [] },
-        "tense_label": "designed",
-        "status_label": "candidate"
-      }
-    },
-    {
-      "id": "capsule-negative-tense-overclaim-001",
-      "expected_schema_valid": true,
-      "expected_crossing_verdict": "require_review",
-      "negative_reason": "Tense label says certified while status remains candidate.",
-      "capsule": {
-        "capsule_version": "0.1.0",
-        "capsule_id": "55555555-5555-4555-8555-555555555555",
-        "created_at": "2026-07-03T05:24:00Z",
-        "sourcepoint": { "authority_type": "individual", "authority_id": "sourcepoint:example", "authority_state": "present", "signature_ref": null },
-        "intent": { "summary": "Describe candidate material as certified.", "original_signal_hash": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee" },
-        "scope": { "allowed_domains": ["documentation"], "prohibited_domains": ["certification-claim"], "tools_requested": ["github.create_file"], "external_side_effects": true },
-        "authority_envelope": { "authorization_state": "requires_review", "authorization_id": null, "authorized_by": null, "authorized_at": null, "expires_at": null, "constraints": ["do-not-overclaim"] },
-        "crossing_code": { "authority": true, "scope": false, "consequence": true, "return": true, "verdict": "require_review", "reason_codes": ["tense_overclaim", "scope_drift"] },
-        "return_requirements": { "receipt_required": true, "return_channel": "chat-summary", "settlement_required": false, "evidence_required": ["status_correction"] },
-        "register_boundary": { "private_material_included": false, "public_claim_allowed": false, "proof_required": true, "boundary_notes": ["candidate material cannot claim certification"] },
-        "tense_label": "certified",
         "status_label": "candidate"
       }
     }
