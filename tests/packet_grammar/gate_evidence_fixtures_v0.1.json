@@ -1,0 +1,132 @@
+{
+  "bundle_name": "Gate Evidence Fixture Set",
+  "version": "0.1.0",
+  "status": {
+    "proof_status_label": "gate_evidence_candidate",
+    "runtime_status": "not_enforced",
+    "live_conformance_status": "not_claimed",
+    "receipt_verified": "not_claimed"
+  },
+  "fixtures": [
+    {
+      "id": "gate-evidence-valid-allow-001",
+      "expected_valid": true,
+      "expected_verdict": "allow",
+      "packet": {
+        "crossing_code": {
+          "authority": true,
+          "scope": true,
+          "consequence": true,
+          "return": true,
+          "verdict": "allow"
+        },
+        "bit_evidence": {
+          "authority": ["auth:sourcepoint-approval-001"],
+          "scope": ["scope:docs-only"],
+          "consequence": ["consequence:repo-write-acknowledged"],
+          "return": ["return:commit-sha-and-summary"]
+        },
+        "consentability": {
+          "explicit_consent_required": true,
+          "consent_state": "present",
+          "stakes": ["repository files may be modified"],
+          "risks": ["candidate material could be mistaken for normative if unlabeled"],
+          "benefits": ["testable grammar artifact"],
+          "time_bound": "bounded to this run",
+          "revocable": true,
+          "comprehension_basis": "plain-language approval and return requirement"
+        }
+      }
+    },
+    {
+      "id": "gate-evidence-negative-authority-true-no-evidence-001",
+      "expected_valid": false,
+      "expected_failure_contains": "authority true requires evidence",
+      "packet": {
+        "crossing_code": {
+          "authority": true,
+          "scope": true,
+          "consequence": true,
+          "return": true,
+          "verdict": "allow"
+        },
+        "bit_evidence": {
+          "authority": [],
+          "scope": ["scope:docs-only"],
+          "consequence": ["consequence:repo-write-acknowledged"],
+          "return": ["return:commit-sha-and-summary"]
+        },
+        "consentability": {
+          "explicit_consent_required": true,
+          "consent_state": "present",
+          "stakes": ["repository files may be modified"],
+          "risks": ["candidate material could be mistaken for normative if unlabeled"],
+          "benefits": ["testable grammar artifact"],
+          "time_bound": "bounded to this run",
+          "revocable": true,
+          "comprehension_basis": "plain-language approval and return requirement"
+        }
+      }
+    },
+    {
+      "id": "gate-evidence-negative-return-true-no-evidence-001",
+      "expected_valid": false,
+      "expected_failure_contains": "return true requires evidence",
+      "packet": {
+        "crossing_code": {
+          "authority": true,
+          "scope": true,
+          "consequence": true,
+          "return": true,
+          "verdict": "allow"
+        },
+        "bit_evidence": {
+          "authority": ["auth:sourcepoint-approval-001"],
+          "scope": ["scope:docs-only"],
+          "consequence": ["consequence:repo-write-acknowledged"],
+          "return": []
+        },
+        "consentability": {
+          "explicit_consent_required": true,
+          "consent_state": "present",
+          "stakes": ["repository files may be modified"],
+          "risks": ["candidate material could be mistaken for normative if unlabeled"],
+          "benefits": ["testable grammar artifact"],
+          "time_bound": "bounded to this run",
+          "revocable": true,
+          "comprehension_basis": "plain-language approval and return requirement"
+        }
+      }
+    },
+    {
+      "id": "gate-evidence-negative-consent-missing-001",
+      "expected_valid": false,
+      "expected_failure_contains": "allow requires present consent",
+      "packet": {
+        "crossing_code": {
+          "authority": true,
+          "scope": true,
+          "consequence": true,
+          "return": true,
+          "verdict": "allow"
+        },
+        "bit_evidence": {
+          "authority": ["auth:sourcepoint-approval-001"],
+          "scope": ["scope:docs-only"],
+          "consequence": ["consequence:repo-write-acknowledged"],
+          "return": ["return:commit-sha-and-summary"]
+        },
+        "consentability": {
+          "explicit_consent_required": true,
+          "consent_state": "required_missing",
+          "stakes": ["repository files may be modified"],
+          "risks": ["candidate material could be mistaken for normative if unlabeled"],
+          "benefits": ["testable grammar artifact"],
+          "time_bound": "bounded to this run",
+          "revocable": true,
+          "comprehension_basis": "missing consent example"
+        }
+      }
+    }
+  ]
+}
