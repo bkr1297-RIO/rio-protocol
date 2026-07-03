@@ -1,0 +1,16 @@
+{
+    "capsule_id": "caps-2026-07-03-001",
+    "sourcepoint_id": "sourcepoint-example",
+    "intent": "Draft a kind response to the client's email.",
+    "scope": "draft",
+    "consequence_class": "low",
+    "return_path": "receipt://mus/ledger/main",
+    "authority_envelope_ref": "env-2026-07-03",
+    "timestamp": "2026-07-03T10:00:00Z",
+    "metadata": {
+      "register": "developer_preview",
+      "model_office": "Scribe-Compiler",
+      "coherence_warning": ""
+    }
+  }
+  
