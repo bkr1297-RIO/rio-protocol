@@ -14,6 +14,11 @@ The first gate dataset is the Four-Bit Crossing Code truth table:
 - Dataset: `tests/packet_grammar/four_bit_crossing_code_truth_table_v0.1.csv`
 - Validator: `tests/packet_grammar/validate_four_bit_crossing_code.py`
 
+The first harness-negative set tests whether the truth-table validator rejects malformed datasets:
+
+- Negative fixtures: `tests/packet_grammar/four_bit_crossing_code_harness_negatives_v0.1.json`
+- Negative validator: `tests/packet_grammar/validate_four_bit_crossing_harness_negatives.py`
+
 ---
 
 ## Status
@@ -31,13 +36,15 @@ From the repository root:
 ```bash
 python3 tests/packet_grammar/validate_scribe_compiler_capsule.py
 python3 tests/packet_grammar/validate_four_bit_crossing_code.py
+python3 tests/packet_grammar/validate_four_bit_crossing_harness_negatives.py
 ```
 
 Expected output:
 
 ```text
-Scribe-Compiler Capsule fixture validation passed: 5 fixtures
+Scribe-Compiler Capsule fixture validation passed: 2 fixtures
 Four-Bit Crossing Code validation passed: 16 truth-table rows
+Four-Bit Crossing Code harness-negative validation passed: 5 malformed datasets rejected
 ```
 
 ---
@@ -52,8 +59,10 @@ The capsule validator checks:
 4. SHA-256 hash shape,
 5. enum constraints,
 6. Four-Bit Crossing Code coherence,
-7. basic tense/status overclaim protection,
-8. register-boundary protection.
+7. bit evidence presence for true bits,
+8. consentability posture for allowed crossings,
+9. basic tense/status overclaim protection,
+10. register-boundary protection.
 
 The Four-Bit Crossing Code validator checks:
 
@@ -63,6 +72,14 @@ The Four-Bit Crossing Code validator checks:
 4. Scope failure requires review,
 5. Consequence failure clarifies the packet,
 6. only all-four-true produces `allow` and `may_cross=true`.
+
+The harness-negative validator checks that malformed datasets fail when they contain:
+
+1. a duplicate row,
+2. a missing row,
+3. an invalid bit value,
+4. an incorrect verdict,
+5. an extra row.
 
 ---
 
