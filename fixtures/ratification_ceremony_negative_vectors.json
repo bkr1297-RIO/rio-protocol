@@ -1,5 +1,5 @@
 {
-  "schema_type": "ratification_ceremony_negative_vectors_v0_2",
+  "schema_type": "ratification_ceremony_negative_vectors_v0_3",
   "status": "candidate_fixture_set",
   "vectors": [
     {
@@ -76,6 +76,41 @@
         "revocation_entry_id": "REV-EXAMPLE"
       },
       "expected": "HALT"
+    },
+    {
+      "id": "RC-NF-008",
+      "name": "unauthorized_infrastructure_provider",
+      "description": "Ratification entry attempts to authorize a provider not listed in the infrastructure vector enum.",
+      "invalid_payload": {
+        "authorized_infrastructure_vectors": {
+          "native_os_hooks": [],
+          "infrastructure_providers": ["UNLISTED_PROVIDER"]
+        }
+      },
+      "expected": "FAIL_CLOSED"
+    },
+    {
+      "id": "RC-NF-009",
+      "name": "unauthorized_native_hook",
+      "description": "Ratification entry attempts to authorize a native hook not listed in the infrastructure vector enum.",
+      "invalid_payload": {
+        "authorized_infrastructure_vectors": {
+          "native_os_hooks": ["UNLISTED_NATIVE_HOOK"],
+          "infrastructure_providers": []
+        }
+      },
+      "expected": "FAIL_CLOSED"
+    },
+    {
+      "id": "RC-NF-010",
+      "name": "missing_held_state",
+      "description": "Ratification entry lacks the required HELD_IN_SUPERPOSITION ceremony state.",
+      "invalid_payload": {
+        "ceremony_state": {
+          "status": "SIGNED_WITHOUT_HOLD"
+        }
+      },
+      "expected": "FAIL_CLOSED"
     }
   ]
 }
