@@ -12,6 +12,8 @@
     "tier_granted",
     "ratified_scope",
     "non_claims",
+    "ceremony_state",
+    "authorized_infrastructure_vectors",
     "signature_block",
     "inference_basis"
   ],
@@ -63,6 +65,40 @@
       "additionalProperties": false
     },
     "non_claims": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+    "ceremony_state": {
+      "type": "object",
+      "required": ["status", "syntax_verified", "dual_hash_computed", "execution_frozen"],
+      "properties": {
+        "status": { "type": "string", "enum": ["HELD_IN_SUPERPOSITION"] },
+        "syntax_verified": { "type": "boolean", "const": true },
+        "dual_hash_computed": { "type": "boolean", "const": true },
+        "execution_frozen": { "type": "boolean", "const": true }
+      },
+      "additionalProperties": false
+    },
+    "authorized_infrastructure_vectors": {
+      "type": "object",
+      "required": ["native_os_hooks", "infrastructure_providers"],
+      "properties": {
+        "native_os_hooks": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["OS_REMINDERS", "LOCAL_CRON_SCHEDULER", "FILE_SYSTEM_WATCHER", "CLIPBOARD_AIR_GAP_BUFFER"]
+          },
+          "uniqueItems": true
+        },
+        "infrastructure_providers": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["GITHUB_REPOSITORIES", "NOTION_WORKSPACE", "TWILIO_SIGNALING", "AZURE_RESOURCES", "RENDER_CONTAINERS"]
+          },
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    },
     "signature_block": {
       "type": "object",
       "required": ["method", "value", "signed_at", "verification_status"],
