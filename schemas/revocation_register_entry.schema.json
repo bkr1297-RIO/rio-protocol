@@ -1,0 +1,64 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://rio-protocol.example/schemas/revocation_register_entry.schema.json",
+  "title": "Revocation Register Entry",
+  "type": "object",
+  "required": [
+    "entry_id",
+    "entry_type",
+    "created_at",
+    "source_point_authority",
+    "revoked_target",
+    "signature_block",
+    "inference_basis"
+  ],
+  "properties": {
+    "entry_id": { "type": "string", "minLength": 1 },
+    "entry_type": { "type": "string", "enum": ["REVOCATION"] },
+    "created_at": { "type": "string", "format": "date-time" },
+    "source_point_authority": {
+      "type": "object",
+      "required": ["authority_id", "display_name", "authority_role"],
+      "properties": {
+        "authority_id": { "type": "string", "minLength": 1 },
+        "display_name": { "type": "string", "minLength": 1 },
+        "authority_role": { "type": "string", "enum": ["FOUNDING_SOURCEPOINT", "SOURCEPOINT", "ORGANIZATIONAL_SOURCEPOINT"] }
+      },
+      "additionalProperties": false
+    },
+    "revoked_target": {
+      "type": "object",
+      "required": ["repository", "path", "commit_sha"],
+      "properties": {
+        "repository": { "type": "string", "minLength": 1 },
+        "path": { "type": "string", "minLength": 1 },
+        "commit_sha": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "ratification_entry_id": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "revocation_reason": { "type": "string" },
+    "signature_block": {
+      "type": "object",
+      "required": ["method", "value", "signed_at", "verification_status"],
+      "properties": {
+        "method": { "type": "string", "enum": ["FOUNDING_TEXT", "SIGNED_COMMIT", "PASSKEY", "FUTURE"] },
+        "value": { "type": "string" },
+        "signed_at": { "type": "string", "format": "date-time" },
+        "verification_status": { "type": "string", "enum": ["ASSERTED", "VERIFIED", "FUTURE_VERIFICATION"] }
+      },
+      "additionalProperties": false
+    },
+    "inference_basis": {
+      "type": "object",
+      "required": ["assertion_rationale", "rules_applied", "assumptions_exposed"],
+      "properties": {
+        "assertion_rationale": { "type": "string" },
+        "rules_applied": { "type": "array", "items": { "type": "string" } },
+        "assumptions_exposed": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
