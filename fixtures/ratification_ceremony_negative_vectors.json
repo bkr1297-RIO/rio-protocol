@@ -1,0 +1,81 @@
+{
+  "schema_type": "ratification_ceremony_negative_vectors_v0_2",
+  "status": "candidate_fixture_set",
+  "vectors": [
+    {
+      "id": "RC-NF-001",
+      "name": "circular_dependency_pending_merge",
+      "description": "Ratification entry targets a placeholder before a target commit exists.",
+      "invalid_payload": {
+        "entry_type": "RATIFICATION",
+        "target": {
+          "commit_sha": "PENDING_MERGE"
+        }
+      },
+      "expected": "FAIL_CLOSED"
+    },
+    {
+      "id": "RC-NF-002",
+      "name": "mutable_branch_pointer",
+      "description": "Ratification points to a mutable branch instead of a full commit hash.",
+      "invalid_payload": {
+        "entry_type": "RATIFICATION",
+        "target": {
+          "commit_sha": "main"
+        }
+      },
+      "expected": "FAIL_CLOSED"
+    },
+    {
+      "id": "RC-NF-003",
+      "name": "missing_content_hash",
+      "description": "Ratification lacks a SHA-256 content hash.",
+      "invalid_payload": {
+        "entry_type": "RATIFICATION",
+        "target": {
+          "commit_sha": "0123456789abcdef0123456789abcdef01234567"
+        }
+      },
+      "expected": "FAIL_CLOSED"
+    },
+    {
+      "id": "RC-NF-004",
+      "name": "plain_string_signature",
+      "description": "Signature block is a string instead of a structured object.",
+      "invalid_payload": {
+        "signature_block": "Brian approved"
+      },
+      "expected": "FAIL_CLOSED"
+    },
+    {
+      "id": "RC-NF-005",
+      "name": "missing_inference_basis",
+      "description": "Entry lacks auditable inference basis.",
+      "invalid_payload": {
+        "inference_basis": null
+      },
+      "expected": "FAIL_CLOSED"
+    },
+    {
+      "id": "RC-NF-006",
+      "name": "drive_only_target",
+      "description": "Ratification points only to a mutable Drive document.",
+      "invalid_payload": {
+        "target": {
+          "drive_doc_id": "example"
+        }
+      },
+      "expected": "FAIL_CLOSED"
+    },
+    {
+      "id": "RC-NF-007",
+      "name": "revoked_target_used",
+      "description": "A ratified target has an active revocation entry.",
+      "invalid_payload": {
+        "ratification_entry_id": "RAT-EXAMPLE",
+        "revocation_entry_id": "REV-EXAMPLE"
+      },
+      "expected": "HALT"
+    }
+  ]
+}
