@@ -1,381 +1,287 @@
 # RIO Protocol
 
-**The governed execution protocol for AI systems.**
+**Project protocol/specification for governed AI-mediated action**
 
-RIO sits between AI systems and real-world actions. It makes sure AI cannot execute important actions without authorization, policy checks, verification, and proof.
+> **Repository role:** project-level normative protocol and conformance materials  
+> **Actual license:** All Rights Reserved; see [`LICENSE`](LICENSE)  
+> **Not claimed:** adopted external standard, legal or regulatory compliance, official certification, production readiness, public reuse permission, or whole-system runtime proof
 
-> "RIO governs consequence. Receipts prove what happened."
+RIO describes how a proposed machine-mediated action may be evaluated against authority, scope, consequence, verification, receipt, and return requirements.
+
+> **RIO governs consequential crossing. Receipts record what the governed system reports happened.**
+
+A receipt may establish the integrity and relationships of the represented record. It does not independently prove that an external-world event occurred or that the underlying authority was lawful.
 
 ---
 
-## Governed Model Exchange
+## Relationship to other protocols
 
-RIO Protocol sits in the emerging gap between model/tool context protocols and agent-to-agent coordination.
+RIO is intended to complement model/tool and agent-coordination protocols:
 
-- **MCP** gives models tools.
-- **A2A** lets agents communicate.
-- **RIO** governs what an exchange may become under human or organizational authority.
+- MCP can expose tools to models.
+- A2A can coordinate agent communication.
+- RIO defines a project protocol for governing what a proposed exchange may become under human or organizational authority.
 
-RIO defines authority, permission, reliance, proof, receipts, and conformance boundaries for governed intelligence systems. It is complementary to MCP and A2A — not a replacement for either.
+This repository does not claim formal adoption by MCP, A2A, an external standards body, a regulator, or an industry consortium.
+
+---
+
+## Current status vocabulary
+
+Use these distinctions when reading the repository:
+
+```text
+project normative specification
+≠ adopted public standard
+
+conformance to a named profile
+≠ legal or regulatory compliance
+
+passing local vectors
+≠ production enforcement
+
+cryptographic verification
+≠ external-world truth
+
+certification materials
+≠ issued certification authority
+
+public repository visibility
+≠ public reuse license
+```
+
+---
+
+## What this repository contains
+
+- project protocol specifications;
+- JSON schemas;
+- error vocabularies;
+- conformance profiles and vectors;
+- reference verification code;
+- threat and trust-model documents;
+- governance and change-process materials;
+- examples and demonstrations.
+
+Within the RIO project, the versioned normative artifacts in this repository govern the protocol profile they explicitly define. That project-internal precedence does not make the repository an adopted external standard or the authority for the broader ONE/RIO/MUSS constitutional architecture.
+
+Current version labels found in the repository include:
+
+```text
+protocol family: v1.0.0
+error vocabulary: v1.0
+conformance profile: v2.3.0
+non-collapse bundle: v0.1.3
+```
+
+Each artifact’s own status and version control its scope. These labels should not be collapsed into one blanket release status.
 
 ---
 
 ## Non-Collapse Conformance
 
-This repository includes the Non-Collapse Conformance Bundle v0.1.3, a docs/tests-only synthetic baseline for testing whether governed intelligence systems preserve category boundaries.
+The Non-Collapse Conformance Bundle v0.1.3 is a synthetic docs/tests baseline for checking whether systems preserve category boundaries such as:
 
-It tests whether systems avoid collapsing:
+- memory ≠ consent;
+- access ≠ authority;
+- confidence ≠ truth;
+- learning ≠ permission;
+- capability ≠ action;
+- observation ≠ judgment;
+- proof ≠ meaning;
+- key possession ≠ current authority or conformance;
+- model agreement ≠ proof;
+- helpfulness ≠ permission.
 
-- memory into consent
-- access into authority
-- confidence into truth
-- learning into permission
-- capability into action
-- observation into judgment
-- proof into meaning
-- key possession into current conformance
-- model agreement into proof
-- helpfulness into permission
+Accepted evidence posture:
 
-**Accepted proof posture:**
-
-| Claim | Status |
-|-------|--------|
-| proof_status_label | negative_run_validated |
-| runtime_status | not_enforced |
-| live_conformance_status | not_claimed |
-| receipt_verified | not_claimed |
-
-This bundle does not claim live conformance, runtime enforcement, receipt verification, or production readiness.
-
----
-
-## What RIO Is
-
-RIO is a governed execution layer for AI systems. It sits between intelligent systems and real-world actions, ensuring that important actions cannot execute without authorization, policy checks, verification, and proof. Different repositories implement different parts of the system, including governance, receipts, observation, and interface layers.
-
-**How it works:**
-
-1. AI proposes an action.
-2. The system evaluates risk and checks policy.
-3. Humans approve when required.
-4. RIO gates execution — nothing runs without authorization.
-5. Receipts prove what happened.
-
----
-
-## What This Repository Contains
-
-This is the **canonical protocol specification** — the authoritative definition of what a RIO-compliant system must do. It contains specifications, JSON schemas, conformance test vectors, governance documents, and reference artifacts. Everything an external team needs to implement a RIO-compliant gateway is here.
-
-Where any implementation conflicts with the protocol specification in this repository, the protocol specification governs.
-
-**Version:** v1.0.0
-**Error Vocabulary Version:** v1.0 (locked April 21, 2026, 01:00)
-
----
-
-## How This Repo Fits Into the Larger System
-
-| Repository | Role |
-|------------|------|
-| **[rio-protocol](https://github.com/bkr1297-RIO/rio-protocol)** (this repo) | Canonical protocol specification |
-| [rio-receipt-protocol](https://github.com/bkr1297-RIO/rio-receipt-protocol) | Proof layer — local receipt engine |
-| [rio-system](https://github.com/bkr1297-RIO/rio-system) | Observation and monitoring layer |
-| [language-intake-mvp](https://github.com/bkr1297-RIO/language-intake-mvp) | Language governance — crossing detection |
-
----
-
-## Verify Immediately
-
-```bash
-git clone https://github.com/bkr1297-RIO/rio-protocol.git
-cd rio-protocol
-pip install pynacl
+```text
+proof_status_label: negative_run_validated
+runtime_status: not_enforced
+live_conformance_status: not_claimed
+receipt_verified: not_claimed
 ```
 
-Then follow the 5-step verification in [VERIFY_THIS_SYSTEM.md](VERIFY_THIS_SYSTEM.md). All test vectors, schemas, and verification instructions are in this repository. No external repos required.
+This bundle does not claim live conformance, runtime enforcement, receipt verification, certification, or production readiness.
 
 ---
 
-## Standard and Verification
+## Project protocol and conformance documents
 
-| Document | Location | Role |
-|----------|----------|------|
-| RIO Standard | [spec/RIO_STANDARD_v1.0.md](spec/RIO_STANDARD_v1.0.md) | Authoritative specification |
-| Conformance Spec | [spec/RIO_CONFORMANCE_v2.3.0.md](spec/RIO_CONFORMANCE_v2.3.0.md) | How compliance is verified (7 levels) |
-| Error Vocabulary | [spec/error_vocabulary.v1.json](spec/error_vocabulary.v1.json) | Canonical error codes (immutable) |
-| Error Vocabulary Spec | [spec/error_vocabulary.md](spec/error_vocabulary.md) | Versioning and immutability rules |
-| Verification Guide | [VERIFY_THIS_SYSTEM.md](VERIFY_THIS_SYSTEM.md) | Clone → run → break → verify in under 5 minutes |
+| Document | Role |
+|---|---|
+| `spec/RIO_STANDARD_v1.0.md` | Historical/project-named normative specification; not an adopted external standard by title alone |
+| `spec/RIO_Protocol_Specification_v1.0.md` | Project protocol specification |
+| `spec/RIO_CONFORMANCE_v2.3.0.md` | Named technical conformance profile |
+| `spec/error_vocabulary.v1.json` | Versioned project error vocabulary |
+| `spec/error_vocabulary.md` | Error-vocabulary versioning rules |
+| `VERIFY_THIS_SYSTEM.md` | Local verification guide |
 
-`RIO_STANDARD_v1.0.md` is the authoritative specification. `RIO_CONFORMANCE_v2.3.0.md` defines how compliance is verified (7 conformance levels).
+The word `STANDARD` in an existing filename is retained for compatibility and history. Public-facing claims should describe it as a **project normative specification** unless and until an external adoption process is established and named.
 
----
-
-## Normative Boundary
-
-This repository contains the protocol specification and reference verification implementation used to validate receipts and ledger integrity.
-
-### Normative artifacts
-
-The protocol contract is defined by:
-
-1. `spec/receipt_schema.json`
-2. `spec/receipt_protocol.md`
-3. `spec/RIO_CONFORMANCE_v2.3.0.md`
-
-These define protocol conformance.
-
-### Reference implementation
-
-Code in this repository is a reference implementation, not the protocol itself.
+Use **conformance** for technical agreement with a named profile. Do not describe a passing technical profile as legal, regulatory, security, or organizational compliance.
 
 ---
 
-## What RIO Guarantees
+## Verification boundaries
 
-These are not features. They are properties enforced by the protocol's cryptographic and architectural mechanisms. Each is independently testable.
+The repository includes methods for checking properties such as:
 
-| Guarantee | Mechanism | How to Verify |
-|-----------|-----------|---------------|
-| **No action executes without authorization** | Fail-closed execution gate; no valid token = no execution | Submit any request without a token → gate rejects |
-| **Past records cannot be altered without detection** | Hash-chained ledger: `Hn = SHA256(En.data + H(n-1))` | Recompute chain hashes; any mismatch = tampering |
-| **Approvals cannot be forged** | Ed25519/ECDSA signatures on receipts and tokens | Verify signature against public key; forgery fails |
-| **Tokens cannot be replayed** | Single-use nonce registry | Submit a used nonce → system rejects |
-| **Stale authorizations expire** | TTL-bound tokens (default 300s) | Submit expired token → gate rejects |
-| **Denied actions are auditable** | Denial receipts recorded in ledger | Query ledger for `decision=denied` entries |
-| **Intent is bound to outcome** | Three-hash binding: `intent_hash`, `action_hash`, `verification_hash` | Compare hashes; mismatch = drift or tampering |
+- required record fields;
+- receipt hashes;
+- digital signatures;
+- ledger linkage;
+- nonce reuse;
+- token expiry;
+- intent/action/verification hash relationships;
+- expected fail-closed results in represented tests.
 
-A RIO Receipt proves that a system produced a record and that it has not been altered. It does not independently prove that the action occurred in the external world.
+A successful verification result means only that the named verifier found the represented property valid under the named version, inputs, and environment.
 
----
+It does not independently establish:
 
-## How to Verify (No Access to RIO Required)
-
-An independent party can audit the system using only the public key and the ledger:
-
-1. **Recompute the hash chain:** `Hn = SHA256(En.data + H(n-1))` for every entry. Any mismatch proves tampering.
-2. **Verify receipt signatures:** Check Ed25519/ECDSA signatures against the public key. Invalid signature = forgery.
-3. **Check the three-hash binding:** Compare `intent_hash` (what was authorized), `action_hash` (what was executed), `verification_hash` (what was observed). Mismatch = drift.
-4. **Test replay protection:** Submit a used nonce. The system must reject it.
-5. **Test TTL enforcement:** Submit an expired token. The gate must reject it.
-6. **Test fail-closed behavior:** Attempt execution without a token. The gate must remain locked.
-
-Test vectors for all six checks are in [`tests/vectors/`](tests/vectors/).
+- lawful authority;
+- authentic human consent;
+- external-world execution;
+- production deployment;
+- resistance to every attack;
+- legal or regulatory compliance;
+- certification.
 
 ---
 
-## Three-Loop Architecture
+## Bounded protocol properties
 
-![Three-Loop Architecture](docs/three_loop_architecture.png)
+Earlier README language described several properties as universal “guarantees.” The current safe treatment is narrower:
 
-1. **Intake Loop** — Goal → Intent → Canonical Request
-2. **Governance Loop** — Risk → Policy → Approval → Execution → Receipt → Ledger → Verification
-3. **Learning Loop** — Corpus → Replay → Simulation → Policy Improvement
+| Required or demonstrated property | Named mechanism | Evidence boundary |
+|---|---|---|
+| Requests without a valid token are rejected in the represented gate path | fail-closed token check | Named implementation/test only |
+| Ledger alteration is detectable under the declared hash-chain algorithm | hash linkage | Integrity of represented records only |
+| Invalid signatures are rejected under the declared verifier | Ed25519/ECDSA verification | Key and implementation assumptions apply |
+| Used nonces are rejected under the declared registry | nonce tracking | Named runtime/profile only |
+| Expired tokens are rejected under the declared TTL rules | time-bound token validation | Clock and implementation assumptions apply |
+| Denial records can be retained and queried | denial receipts and ledger | Availability/retention depend on implementation |
+| Intent/action/result drift can be surfaced | hash/reference comparison | Does not independently prove external truth |
 
-The Learning Loop analyzes the audit trail and proposes policy updates. It cannot bypass governance or execute actions directly.
-
----
-
-## The 8-Stage Governed Execution Pipeline
-
-| Stage | Name | Description |
-|-------|------|-------------|
-| 1 | Intake | Goal reception and origin verification |
-| 2 | Canonical Intent | Structured intent construction with identity binding |
-| 3 | Risk Evaluation | Multi-dimensional risk scoring |
-| 4 | Policy Constraints | Policy rule evaluation and constraint enforcement |
-| 5 | Authorization | Human approval for high-risk actions, automatic approval for low-risk |
-| 6 | Execution | Controlled execution with kill switch capability |
-| 7 | Attestation | Cryptographic receipt generation with hash-chain ledger recording |
-| 8 | Verification | Post-execution verification and learning loop feedback |
+These are protocol requirements or locally demonstrated properties—not unconditional whole-system guarantees.
 
 ---
 
-## Getting Started
+## Governed execution lifecycle
 
-### For Implementers
+A representative project lifecycle is:
 
-Read the protocol specification and implement against the schemas:
+1. intake and origin recording;
+2. structured intent construction;
+3. risk and consequence evaluation;
+4. policy and scope checks;
+5. authorization or review;
+6. bounded execution or refusal;
+7. receipt and ledger recording;
+8. verification and governed return.
 
-1. Start with [RIO_Core_Runtime_Behavior.md](RIO_Core_Runtime_Behavior.md) for the implementation-independent behavior reference
-2. Read the [canonical specification](spec/RIO_Protocol_Specification_v1.0.md) for the complete 8-stage pipeline
-3. Validate your implementation against the [JSON schemas](schemas/) and [conformance test vectors](tests/vectors/)
-4. Check your conformance level using the [conformance definitions](docs/CONFORMANCE.md)
+Implementations may realize this lifecycle differently, but conformance claims must name the exact profile and version tested.
 
-### For Evaluators
-
-Review the protocol design and governance:
-
-1. [Architecture](docs/Architecture.md) — Pipeline, receipts, ledger, verification, threat model, trust model
-2. [Threat Model](docs/Threat_Model.md) — 10 threat categories and mitigations
-3. [Trust Model](docs/Trust_Model.md) — What you must trust and what you do not
-4. [EGI Technical Assessment](docs/EGI_Technical_Assessment.pdf) — Regulatory alignment analysis (EU AI Act, NIST AI RMF, ISO 42001)
-5. [Enterprise Use Cases](docs/ENTERPRISE_USE_CASES.md) — Real-world governance scenarios
-
-### For Contributors
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines and [docs/GOVERNANCE.md](docs/GOVERNANCE.md) for the protocol change process.
+Learning or policy-improvement loops may propose changes. They must not bypass governance, auto-expand authority, or execute directly.
 
 ---
 
-## Regulatory Alignment
+## Repository relationships
 
-RIO provides infrastructure for a specific, demonstrable regulatory requirement: a verifiable, cryptographic record that a specific action was authorized by a specific human, executed under a specific policy, verified against its stated intent, and recorded in a tamper-evident ledger that any independent party can audit.
+| Repository | Current bounded role |
+|---|---|
+| `rio-protocol` | Project protocol/specification and conformance materials |
+| `one-rio-muss-architecture` | Constitutional grammar, architecture, status/claim vocabulary, and release governance |
+| `rio-receipt-protocol` | Local receipt-engine and ledger evidence |
+| `rio-system` | Active gateway/runtime evidence for named surfaces |
+| `rio-tools` | SDKs, simulators, verifiers, and conformance tooling |
+| `rio-reference-impl` | Reference implementation and sandbox proof surfaces |
+| `language-intake-mvp` | Deterministic language-crossing prototype |
 
-| Regulation | Requirement | RIO Mechanism |
-|------------|-------------|---------------|
-| **EU AI Act, Art. 12** | Automatic logging of high-risk AI system events | Signed receipts + hash-chained ledger |
-| **EU AI Act, Art. 14** | Human oversight with ability to intervene | Fail-closed gate + human approval for high-risk |
-| **EU AI Act, Art. 9** | Risk management system | 4-component risk scoring + policy engine |
-| **NIST AI RMF** | Govern / Map / Measure / Manage | Policy engine / Intake loop / Risk scoring / Approval gate |
-| **ISO 42001, A.6.2.8** | Event logging for AI management | Automatic signed receipts per action |
-
-For the full analysis, see [docs/EGI_Technical_Assessment.pdf](docs/EGI_Technical_Assessment.pdf).
-
----
-
-## Conformance Levels
-
-The authoritative conformance specification defines 7 levels in [spec/RIO_CONFORMANCE_v2.3.0.md](spec/RIO_CONFORMANCE_v2.3.0.md):
-
-| Level | Name | Scope |
-|-------|------|-------|
-| 1 | Receipt Generation | All required fields present, correct types |
-| 2 | Receipt + Verification | Level 1 + independently verifiable hashes |
-| 3 | Receipt + Ledger | Level 2 + append-only hash-chained ledger |
-| 4 | Receipt + Ledger + Verification | Level 3 + chain integrity independently verifiable |
-| 5 | Full Proof Pipeline | Level 4 + 3-hash proof chain (result, previous_receipt, receipt) |
-| 6 | Governed Receipts | Level 5 + 5-hash chain (adds request_hash, intent_hash) |
-| 7 | Signed Receipts | Level 6 + Ed25519 signatures |
-
-See [spec/RIO_CONFORMANCE_v2.3.0.md](spec/RIO_CONFORMANCE_v2.3.0.md) for complete definitions and [tests/conformance/](tests/conformance/) for the test suite.
+No repository inherits whole-system authority or completeness merely because it is listed here.
 
 ---
 
-## Example Use Cases
+## Getting started for evaluation
 
-The `examples/` directory contains five end-to-end flows. Each shows all seven records in the decision traceability chain with cross-referenced IDs.
+Because the actual repository license is All Rights Reserved, cloning or access must not be interpreted as permission to reuse, modify, redistribute, or use commercially.
 
-| Example | Scenario | Risk Level |
-|---------|----------|------------|
-| Financial Transaction | AI procurement agent requests wire transfer requiring human approval | High |
-| Email Send | AI customer success agent sends executive apology email to client | High |
-| Data Deletion | AI compliance agent processes GDPR right-to-erasure request | Critical |
-| Code Deploy | AI DevOps agent deploys emergency security patch to production | High |
-| Access Grant | AI IT ops agent grants temporary elevated database access | Critical |
+For authorized evaluation:
+
+1. Read the project protocol specification.
+2. Review the named schemas and conformance profile.
+3. Run the local verification guide and vectors.
+4. Record the exact commit, environment, commands, and results.
+5. State the evidence ceiling with every claim.
+
+A local verification run is not certification or production approval.
 
 ---
 
-## Repository Structure
+## Regulatory mapping
 
-```
-spec/                                  Canonical protocol specifications
-├── RIO_Protocol_Specification_v1.0.md   Master specification
-├── RIO_Protocol_Specification_v1.0.json Structured JSON specification
-├── rio_gateway_protocol_v1.0.json       Gateway protocol specification
-├── Independent_Verifier_Spec.json       Verifier requirements
-├── 01–15_*.md                           Stage specifications
-└── *.md / *.json                        Design documents and schema defs
+Documents in this repository may map technical mechanisms to requirements or frameworks such as the EU AI Act, NIST AI RMF, or ISO/IEC 42001.
 
-schemas/                               JSON Schema 2020-12 definitions
-├── canonical_request.json               Canonical request structure
-├── receipt.json                         Cryptographic receipt
-├── authorization_record.json            Authorization record
-├── execution_record.json                Execution record
-├── risk_evaluation.json                 Risk evaluation record
-├── execution_token.json                 Execution token
-├── nonce_registry.json                  Nonce registry
-└── attestation_record.json              Attestation record
+A mapping can help with analysis. It does not establish:
 
-examples/                              Reference artifacts and use cases
-├── full_cycle/                          Complete end-to-end reference (live capture)
-├── gateway/                             Gateway example artifacts
-├── quickstart/                          Quickstart example artifacts
-├── *.md                                 Use case narratives (5 scenarios)
-├── *_example.json                       Schema example instances
-└── engine_manifest.json                 Live engine manifest
+- legal compliance;
+- regulatory approval;
+- conformity assessment;
+- certification;
+- applicability to a particular organization or deployment.
 
-tests/                                 Conformance test materials
-├── vectors/                             Deterministic test vectors
-├── conformance/                         Conformance suite (57 tests)
-└── TC-RIO-*.md                          Protocol test case definitions
+Those conclusions require qualified legal, regulatory, security, and organizational review of the actual deployed system.
 
-docs/                                  Protocol documentation
-├── Architecture.md                      Pipeline, receipts, ledger, verification
-├── Threat_Model.md                      10 threat categories and mitigations
-├── Trust_Model.md                       Trust assumptions and boundaries
-├── EGI_Technical_Assessment.pdf         Regulatory alignment analysis
-├── SYSTEM_OVERVIEW.md                   What RIO is and why it exists
-├── EXECUTION_FLOW.md                    Pipeline walkthrough
-├── LEDGER_AND_RECEIPTS.md               Cryptographic audit system
-├── POLICY_AND_RISK.md                   Policy/risk specification
-├── IDENTITY_AND_APPROVALS.md            Identity specification
-├── SIMULATION_AND_LEARNING.md           Learning specification
-├── THREAT_MODEL_SUMMARY.md              Threat model summary
-├── ENTERPRISE_USE_CASES.md              Enterprise use cases
-├── GLOSSARY.md                          Key terms and definitions
-├── GOVERNANCE.md                        Protocol governance structure
-├── CERTIFICATION.md                     Certification levels and process
-├── CONFORMANCE.md                       Conformance level definitions
-├── VERSIONING.md                        Protocol versioning policy
-└── three_loop_architecture.png          Architecture diagram
+---
 
-reference-architecture/                Architecture diagrams (Mermaid + PNG)
-whitepaper/                            Protocol white paper (v1 + v2)
-architecture/15_layer_model.md         15-layer architecture model
-diagrams/                              Diagram source files
-manifest/rio_system_manifest.json      System manifest
-safety/EKS-0_kill_switch.md            Kill switch specification
-security/README.md                     Security documentation
-ledger/README.md                       Ledger protocol documentation
+## Conformance levels
 
-RIO_Core_Runtime_Behavior.md           Implementation-independent behavior reference
-VERSION                                Protocol version (v1.0.0)
-README.md                              This file
-LICENSE                                All Rights Reserved (Apache 2.0 pending)
-CONTRIBUTING.md                        Contribution guidelines
-CHANGELOG.md                           Release history
-NOTICE                                 Attribution notice
+The project conformance document defines technical levels for represented receipt, verification, ledger, hash-chain, and signature capabilities.
+
+Any claim should use this form:
+
+```text
+<implementation>
+conformed to <profile and version>
+under <test suite and version>
+in <environment>
+with <result>
+subject to <exclusions>
 ```
 
----
-
-## Certification
-
-Organizations can certify their RIO implementations at three levels: Structural, Cryptographic, and Full Protocol. See [docs/CERTIFICATION.md](docs/CERTIFICATION.md) for the process and [docs/CERTIFICATION_CHECKLIST.md](docs/CERTIFICATION_CHECKLIST.md) for the submission checklist.
+Do not use `RIO-compliant`, `fully compliant`, or `certified` without a named profile, test evidence, and an authorized designation process.
 
 ---
 
-## Protocol Governance
+## Examples
 
-Changes to the protocol follow the Protocol Change Proposal (PCP) process defined in [docs/GOVERNANCE.md](docs/GOVERNANCE.md). The versioning policy follows SemVer 2.0.0 as defined in [docs/VERSIONING.md](docs/VERSIONING.md).
-
----
-
-See [SYSTEM-LAYERS.md](SYSTEM-LAYERS.md) for system structure.
+Example financial, email, deletion, deployment, and access-grant scenarios are illustrative artifacts. They do not authorize real transactions, prove live execution, or establish that a deployment is safe or lawful.
 
 ---
 
-## Status
+## Contribution status
 
-This repository defines the RIO protocol and provides a reference verification implementation.
+Existing contribution and governance documents describe project processes. Acceptance of a contribution does not by itself grant mark, certification, or official-designation rights.
 
-It is not a production system.
-
-## Implementation Notes
-
-Implementations intending to align with RIO v1.0 should at minimum:
-- enforce authorization before execution
-- bind actions to exact intent
-- produce verifiable receipts
-
-See the specification and verification materials for conformance requirements.
-
-See Bondi specifications for orchestration, authority boundaries, and runtime behavior.
+Before inviting broad external contributions, the project should reconcile contributor copyright, patent, license, CLA/DCO, AI-assisted contribution, and governance terms.
 
 ---
 
 ## License
 
-All Rights Reserved (Apache 2.0 license pending) — see [LICENSE](LICENSE).
+The actual repository license is **All Rights Reserved**. See [`LICENSE`](LICENSE).
+
+The LICENSE file describes Apache License 2.0 as a possible future public-release posture. That intention is not an operative Apache-2.0 grant today.
+
+Until the license is formally changed:
+
+- the repository must not be described as Apache-licensed or open source;
+- public visibility does not grant permission to copy, modify, redistribute, publish, or use commercially;
+- no trademark, certification, badge, compatibility-mark, or official-implementation right is granted.
+
+## Keeper
+
+> Strong protocol language requires a named scope, version, mechanism, test, and proof ceiling.
+
+> Project normativity is not external-standard adoption. Conformance is not compliance. Verification is not external truth. Visibility is not permission.
