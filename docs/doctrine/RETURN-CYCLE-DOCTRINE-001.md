@@ -76,7 +76,7 @@ The interpretive lane may inform review. It may not write directly into evidence
 
 - [RHYTHM-CONTEXT-INTERPRETIVE-LAYER-001](../architecture/rhythm-context-interpretive-layer-001.md) may carry an optional consented interpretive context. Its invariant remains `authority_effect: "none"`.
 - [CYCLE-CONTRAST-AND-FORECAST-ENGINE-001](../architecture/cycle-contrast-and-forecast-engine-001.md) may produce conditional pathways. It cannot admit a crossing.
-- [RETURN-GATE-SPEC-001](../governance/return-gate-spec-001.md) defines the control boundary.
+- [RETURN-GATE-SPEC-001](../governance/RETURN-GATE-SPEC-001.md) defines the control boundary.
 - RIO remains the only path for a later consequential crossing.
 
 ---
