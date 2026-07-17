@@ -1,0 +1,253 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rio-protocol.org/schemas/rhythm-context-observation-v0.1.schema.json",
+  "title": "Rhythm Context Observation",
+  "description": "A consented, non-authoritative record of time/calendar context and a human-selected interpretive lens. It cannot grant authority, permission, identity, diagnosis, or execution eligibility.",
+  "type": "object",
+  "required": [
+    "observation_id",
+    "schema_version",
+    "created_at",
+    "privacy",
+    "fact_context",
+    "lens",
+    "observation",
+    "human_disposition",
+    "authority_effect"
+  ],
+  "properties": {
+    "observation_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for this observation."
+    },
+    "schema_version": {
+      "type": "string",
+      "const": "0.1.0",
+      "description": "Schema version."
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Time this record was formed."
+    },
+    "privacy": {
+      "type": "object",
+      "required": [
+        "visibility",
+        "contains_direct_identifier"
+      ],
+      "properties": {
+        "visibility": {
+          "type": "string",
+          "enum": [
+            "private",
+            "user_controlled_shared",
+            "public_aggregate"
+          ],
+          "description": "The user's chosen visibility; public aggregates must not contain direct identifiers."
+        },
+        "contains_direct_identifier": {
+          "const": false,
+          "description": "This schema carries no names, contact data, birth data, relationship details, or raw personal numeric artifacts."
+        },
+        "private_source_ref": {
+          "type": "string",
+          "maxLength": 256,
+          "description": "Optional user-controlled reference to a private source. The source content is not included in this record."
+        }
+      },
+      "additionalProperties": false
+    },
+    "fact_context": {
+      "type": "object",
+      "required": [
+        "observed_at",
+        "timezone"
+      ],
+      "properties": {
+        "observed_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Observed time in ISO-8601 form."
+        },
+        "timezone": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "description": "Timezone used to interpret local calendar context."
+        },
+        "local_date": {
+          "type": "string",
+          "format": "date",
+          "description": "Optional local calendar date."
+        },
+        "season_label": {
+          "type": "string",
+          "enum": [
+            "spring",
+            "summer",
+            "autumn",
+            "winter",
+            "undetermined"
+          ],
+          "description": "A calendar label, not a causal statement about a person's state."
+        },
+        "season_basis": {
+          "type": "string",
+          "enum": [
+            "user_selected",
+            "meteorological",
+            "astronomical",
+            "not_recorded"
+          ],
+          "description": "How the season label was selected."
+        },
+        "solar_window": {
+          "type": "string",
+          "enum": [
+            "dawn",
+            "daylight",
+            "dusk",
+            "night",
+            "unknown"
+          ],
+          "description": "Optional temporal context."
+        },
+        "lunar_phase": {
+          "type": "string",
+          "enum": [
+            "new",
+            "waxing_crescent",
+            "first_quarter",
+            "waxing_gibbous",
+            "full",
+            "waning_gibbous",
+            "last_quarter",
+            "waning_crescent",
+            "unknown"
+          ],
+          "description": "Optional calendar-derived label. It makes no claim of causal effect on human experience or action."
+        }
+      },
+      "additionalProperties": false
+    },
+    "lens": {
+      "type": "object",
+      "required": [
+        "kind",
+        "selected_by_human",
+        "status"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "operational",
+            "seasonal_reflective",
+            "personal_symbolic",
+            "custom"
+          ],
+          "description": "A user-selected presentation or reflection lens."
+        },
+        "selected_by_human": {
+          "const": true,
+          "description": "No system may infer or apply a personal lens without explicit user selection."
+        },
+        "label": {
+          "type": "string",
+          "maxLength": 200,
+          "description": "Optional user-authored label."
+        },
+        "lineage_ref": {
+          "type": "string",
+          "maxLength": 256,
+          "description": "Optional reference to a user-controlled lens lineage. It contains no raw private content."
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "active",
+            "retired",
+            "superseded"
+          ],
+          "description": "A lens may be retired or superseded without retroactively turning it into proof."
+        }
+      },
+      "additionalProperties": false
+    },
+    "observation": {
+      "type": "object",
+      "required": [
+        "classification",
+        "evidence_status",
+        "recorded_before_outcome"
+      ],
+      "properties": {
+        "summary": {
+          "type": "string",
+          "maxLength": 1000,
+          "description": "Optional human-authored summary. It is not a factual claim or diagnostic conclusion."
+        },
+        "classification": {
+          "type": "string",
+          "enum": [
+            "unclassified",
+            "surgical_hit",
+            "structural_resonance",
+            "face_match",
+            "vague",
+            "miss"
+          ],
+          "description": "Calibration label. It is not a proof label; a claimed hit requires its evidence route to be recorded separately."
+        },
+        "evidence_status": {
+          "type": "string",
+          "enum": [
+            "personal_observation",
+            "candidate_correlation",
+            "externally_supported",
+            "not_assessed"
+          ],
+          "description": "Evidence posture for the observation, not a statement about ultimate meaning."
+        },
+        "recorded_before_outcome": {
+          "type": "boolean",
+          "description": "Whether the observation was recorded before the outcome being compared."
+        },
+        "counterexample_ref": {
+          "type": "string",
+          "maxLength": 256,
+          "description": "Optional reference to a disconfirming case or review record."
+        }
+      },
+      "additionalProperties": false
+    },
+    "human_disposition": {
+      "type": "string",
+      "enum": [
+        "hold",
+        "accepted_as_private_orientation",
+        "rejected",
+        "no_meaning_assigned",
+        "route_to_proposal_packet"
+      ],
+      "description": "The human's current treatment of the observation. Routing creates no authorization."
+    },
+    "proposal_packet_ref": {
+      "type": "string",
+      "maxLength": 256,
+      "description": "Optional reference to a separate Proposal Packet if the human asks to move from reflection toward a governed crossing."
+    },
+    "receipt_ref": {
+      "type": "string",
+      "maxLength": 256,
+      "description": "Optional reference to a receipt that records this observation event."
+    },
+    "authority_effect": {
+      "const": "none",
+      "description": "Invariant: rhythm context has no authority effect. It cannot authorize, widen scope, raise confidence, or cause execution."
+    }
+  },
+  "additionalProperties": false
+}
