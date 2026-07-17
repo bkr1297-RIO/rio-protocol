@@ -196,3 +196,9 @@ A July 2026 Sovereign Mirror intake contributed source provenance and vocabulary
 The raw source artifacts remain privately controlled. Their personal, sacred, numerological, Greek-letter, and cosmic material is not copied into this repository and does not become an automatic profile, causal assertion, public fact, or permission.
 
 See SOVEREIGN-MIRROR-INTAKE-AND-TRANSLATION-001 for the register map and follow-on specification questions.
+
+---
+
+## Return-Cycle Boundary
+
+A human may apply the candidate Return Cycle as a selected interpretive lens during review. The cycle label, a forecast, or contextual pattern cannot renew authority or create a new objective. [RETURN-GATE-SPEC-001](../governance/RETURN-GATE-SPEC-001.md) defines the candidate default path from closure to Ambient Mode and the separate human initiation required for a new cycle.
