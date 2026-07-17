@@ -107,3 +107,15 @@ The boundary remains:
 > The source remains intact.  
 > The meaning remains human-owned.  
 > The function can travel without taking the private code with it.
+
+---
+
+## Return-Cycle Follow-On
+
+The source intake’s Human Completion Boundary is now carried forward as a candidate doctrine-and-control pair:
+
+- [RETURN-CYCLE-DOCTRINE-001](../doctrine/RETURN-CYCLE-DOCTRINE-001.md)
+- [RETURN-GATE-SPEC-001](../governance/RETURN-GATE-SPEC-001.md)
+- [CYCLE-CONTRAST-AND-FORECAST-ENGINE-001](cycle-contrast-and-forecast-engine-001.md)
+
+These documents add no authority to the Sovereign Mirror intake. They formalize the same portable boundary: reflection and forecast may inform review; only a distinct human act may begin a new objective.
