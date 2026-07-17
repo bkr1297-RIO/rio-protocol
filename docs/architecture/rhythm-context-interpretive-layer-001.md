@@ -186,3 +186,13 @@ No promotion, implementation, or production-readiness claim is made by this docu
 > Private meaning discovers the pattern. Protocol preserves the function. Constitution governs the crossing. Receipt returns the truth.
 
 > Rhythm may orient attention. It never creates permission.
+
+---
+
+## Source Intake Lineage
+
+A July 2026 Sovereign Mirror intake contributed source provenance and vocabulary to this candidate. Its public-safe yield is the same bounded function defined here: factual temporal context, a human-selected lens, a candidate observation, human disposition, and no authority effect.
+
+The raw source artifacts remain privately controlled. Their personal, sacred, numerological, Greek-letter, and cosmic material is not copied into this repository and does not become an automatic profile, causal assertion, public fact, or permission.
+
+See SOVEREIGN-MIRROR-INTAKE-AND-TRANSLATION-001 for the register map and follow-on specification questions.
