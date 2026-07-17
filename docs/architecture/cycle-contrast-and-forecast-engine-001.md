@@ -107,7 +107,7 @@ Recognition is review and disposition. It is not authorization.
 
 The CCFE may illuminate a Return Packet or review. It cannot close a cycle, renew a grant, create a SourcePoint, satisfy a RIO gate bit, or move `RETURN_READY` to `NEW_SOURCE_AUTHORIZED`.
 
-See [RETURN-CYCLE-DOCTRINE-001](../doctrine/return-cycle-doctrine-001.md) and [RETURN-GATE-SPEC-001](../governance/return-gate-spec-001.md).
+See [RETURN-CYCLE-DOCTRINE-001](../doctrine/RETURN-CYCLE-DOCTRINE-001.md) and [RETURN-GATE-SPEC-001](../governance/RETURN-GATE-SPEC-001.md).
 
 ---
 
