@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rio-protocol.org/schemas/RETURN-CYCLE-STATE-SCHEMA-001.json",
+  "title": "Return Cycle State Candidate Record",
+  "description": "Candidate state record for an optional Return Cycle review. Phase labels are interpretive and carry no authority effect.",
+  "type": "object",
+  "required": ["schema_version", "cycle_id", "state", "phase", "updated_at", "authority_effect"],
+  "properties": {
+    "schema_version": {"const": "0.1.0"},
+    "cycle_id": {"type": "string", "pattern": "^[A-Za-z0-9._:-]{1,128}$"},
+    "state": {
+      "type": "string",
+      "enum": [
+        "active_cycle",
+        "return_review",
+        "return_incomplete",
+        "return_held",
+        "return_ready",
+        "terminated_with_residue",
+        "return_closed",
+        "ambient_mode",
+        "sourcepoint_drafted",
+        "human_review",
+        "new_source_authorized",
+        "new_cycle"
+      ]
+    },
+    "phase": {
+      "type": "string",
+      "enum": [
+        "source",
+        "duality",
+        "creation",
+        "foundation",
+        "catalyst",
+        "harmony",
+        "completion",
+        "infinity",
+        "revelation",
+        "not_assessed"
+      ],
+      "description": "A selected interpretive label only; it is not a clock, diagnosis, prediction, fact, or permission."
+    },
+    "updated_at": {"type": "string", "format": "date-time"},
+    "declared_objective_ref": {"type": "string", "maxLength": 256},
+    "return_packet_ref": {"type": "string", "maxLength": 256},
+    "prior_cycle_ref": {"type": "string", "maxLength": 256},
+    "authority_effect": {
+      "const": "none",
+      "description": "This state record cannot create, renew, widen, or satisfy authority."
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"state": {"const": "new_source_authorized"}}, "required": ["state"]},
+      "then": {
+        "required": ["declared_objective_ref"],
+        "description": "A separately attributed human initiation and RIO evaluation are required by RETURN-GATE-SPEC-001; this schema records only references."
+      }
+    }
+  ],
+  "additionalProperties": false
+}
