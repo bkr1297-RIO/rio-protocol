@@ -1,0 +1,16 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://one-rio-muss.org/schemas/htp-vl/0.1/pattern-update-proposal.schema.json",
+  "title":"PatternUpdateProposal","type":"object","additionalProperties":false,
+  "required":["object_type","protocol_version","update_id","receipt_id","receipt_hash","created_at","scope","observed_pattern","proposed_update","admission_status"],
+  "properties":{
+    "object_type":{"const":"PatternUpdateProposal"},"protocol_version":{"const":"HTP/VL-1.0"},
+    "update_id":{"$ref":"common.schema.json#/$defs/id"},"receipt_id":{"$ref":"common.schema.json#/$defs/id"},"receipt_hash":{"$ref":"common.schema.json#/$defs/hash"},"created_at":{"$ref":"common.schema.json#/$defs/timestamp"},
+    "scope":{"type":"object","additionalProperties":false,"required":["scope_type","subject_id","generalization_status"],"properties":{"scope_type":{"enum":["N_OF_1_HUMAN","TEAM","ORGANIZATION","PROJECT","SYSTEM_COMPONENT"]},"subject_id":{"$ref":"common.schema.json#/$defs/id"},"generalization_status":{"enum":["NOT_GENERALIZED","CANDIDATE_COHORT","VALIDATED_COHORT"]}}},
+    "observed_pattern":{"type":"object","additionalProperties":false,"required":["pattern_label","evidence_refs","occurrence_count"],"properties":{"pattern_label":{"type":"string","minLength":1,"maxLength":240},"description":{"type":"string","maxLength":4000},"evidence_refs":{"type":"array","minItems":1,"items":{"$ref":"common.schema.json#/$defs/uriOrId"}},"occurrence_count":{"type":"integer","minimum":1},"confidence_band":{"enum":["LOW","MEDIUM","HIGH"]}}},
+    "human_explanation":{"type":"object","additionalProperties":false,"properties":{"purpose":{"type":"string","maxLength":4000},"helpful_conditions":{"type":"array","items":{"type":"string","maxLength":500}},"unhelpful_conditions":{"type":"array","items":{"type":"string","maxLength":500}},"exceptions":{"type":"array","items":{"type":"string","maxLength":500}},"source":{"enum":["HUMAN_STATED","MACHINE_INFERRED","JOINTLY_CLARIFIED"]}}},
+    "proposed_update":{"type":"object","additionalProperties":false,"required":["target_record","operation","proposed_value","review_policy"],"properties":{"target_record":{"$ref":"common.schema.json#/$defs/id"},"operation":{"enum":["ADD","AMEND","DEPRECATE","NO_CHANGE"]},"proposed_value":{},"review_policy":{"type":"object","additionalProperties":false,"required":["requires_authorized_admission"],"properties":{"requires_authorized_admission":{"const":true},"review_after":{"$ref":"common.schema.json#/$defs/timestamp"},"expires_at":{"$ref":"common.schema.json#/$defs/timestamp"},"required_additional_occurrences":{"type":"integer","minimum":0}}}}},
+    "admission_status":{"const":"PROPOSED"},"signature":{"$ref":"common.schema.json#/$defs/signature"}
+  },
+  "not":{"anyOf":[{"required":["admitted"]},{"required":["active_policy"]},{"required":["authorization"]}]}
+}
