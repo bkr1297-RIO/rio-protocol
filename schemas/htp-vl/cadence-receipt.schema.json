@@ -1,0 +1,21 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://one-rio-muss.org/schemas/htp-vl/0.1/cadence-receipt.schema.json",
+  "title":"CadenceReceipt","type":"object","additionalProperties":false,
+  "required":["object_type","protocol_version","receipt_id","proposal_id","proposal_hash","verdict_id","verdict_hash","recorded_at","execution_status","actual_cadence","settlement_status","ledger"],
+  "properties":{
+    "object_type":{"const":"CadenceReceipt"},"protocol_version":{"const":"HTP/VL-1.0"},
+    "receipt_id":{"$ref":"common.schema.json#/$defs/id"},"proposal_id":{"$ref":"common.schema.json#/$defs/id"},"proposal_hash":{"$ref":"common.schema.json#/$defs/hash"},
+    "verdict_id":{"$ref":"common.schema.json#/$defs/id"},"verdict_hash":{"$ref":"common.schema.json#/$defs/hash"},"recorded_at":{"$ref":"common.schema.json#/$defs/timestamp"},
+    "execution_status":{"enum":["NOT_EXECUTED","SUCCEEDED","FAILED","INTERRUPTED","ROLLED_BACK"]},
+    "actual_cadence":{"enum":["AUTHENTIC","DECEPTIVE","RESTORATIVE","INTERRUPTED","REFUSED","UNSETTLED","INVALID"]},
+    "actual_state":{"$ref":"common.schema.json#/$defs/harmonicState"},
+    "actual_delta":{"type":"array","items":{"type":"number","minimum":-1,"maximum":1}},
+    "consequence":{"type":"object","additionalProperties":false,"properties":{"intent_equivalence":{"type":"boolean"},"declared_distance":{"type":"number","minimum":0},"experienced_distance":{"type":"number","minimum":0},"consequence_distance":{"type":"number","minimum":0},"evidence_refs":{"type":"array","items":{"$ref":"common.schema.json#/$defs/uriOrId"}}}},
+    "settlement_status":{"enum":["SETTLED","UNSETTLED","ROUTED_FOR_REPAIR","ROUTED_FOR_REVIEW"]},
+    "child_handles":{"type":"object","additionalProperties":false,"required":["open_count","closed_count"],"properties":{"open_count":{"type":"integer","minimum":0},"closed_count":{"type":"integer","minimum":0},"frozen_count":{"type":"integer","minimum":0},"refs":{"type":"array","items":{"$ref":"common.schema.json#/$defs/uriOrId"}}}},
+    "ledger":{"type":"object","additionalProperties":false,"required":["entry_hash","previous_entry_hash","sequence"],"properties":{"entry_hash":{"$ref":"common.schema.json#/$defs/hash"},"previous_entry_hash":{"$ref":"common.schema.json#/$defs/hash"},"sequence":{"type":"integer","minimum":0}}},
+    "errors":{"type":"array","items":{"$ref":"common.schema.json#/$defs/error"}},"signature":{"$ref":"common.schema.json#/$defs/signature"}
+  },
+  "not":{"anyOf":[{"required":["authorization"]},{"required":["learning_admission"]}]}
+}
