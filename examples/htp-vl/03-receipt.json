@@ -1,0 +1,18 @@
+{
+  "object_type":"CadenceReceipt",
+  "protocol_version":"HTP/VL-1.0",
+  "receipt_id":"htp_receipt_20260727_0001",
+  "proposal_id":"htp_prop_20260727_0001",
+  "proposal_hash":"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+  "verdict_id":"htp_verdict_20260727_0001",
+  "verdict_hash":"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+  "recorded_at":"2026-07-27T16:04:12Z",
+  "execution_status":"SUCCEEDED",
+  "actual_cadence":"AUTHENTIC",
+  "actual_state":{"registry_version":"root-functions-v0.1","vector":[0.2,0.3,0.1,0.9,0.2,0.9,0.3,0.7,0.4,0.1,0.2,0.2],"dominant_functions":["Structure_4","Care_6","Power_8"]},
+  "actual_delta":[-0.6,-0.1,-0.2,0.7,0.1,0,-0.55,0.6,0.2,0,-0.4,-0.1],
+  "consequence":{"intent_equivalence":true,"declared_distance":0.02,"experienced_distance":0.05,"consequence_distance":0.03,"evidence_refs":["artifact:repo-spec-commit-001"]},
+  "settlement_status":"SETTLED",
+  "child_handles":{"open_count":0,"closed_count":1,"frozen_count":0},
+  "ledger":{"entry_hash":"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff","previous_entry_hash":"1111111111111111111111111111111111111111111111111111111111111111","sequence":42}
+}

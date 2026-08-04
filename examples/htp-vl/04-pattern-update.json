@@ -1,0 +1,13 @@
+{
+  "object_type":"PatternUpdateProposal",
+  "protocol_version":"HTP/VL-1.0",
+  "update_id":"htp_update_20260727_0001",
+  "receipt_id":"htp_receipt_20260727_0001",
+  "receipt_hash":"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+  "created_at":"2026-07-27T16:05:00Z",
+  "scope":{"scope_type":"N_OF_1_HUMAN","subject_id":"B-Rass","generalization_status":"NOT_GENERALIZED"},
+  "observed_pattern":{"pattern_label":"exploration-to-build voice leading","description":"Broad exploratory synthesis transitioned successfully into repository construction when Care remained the continuity carrier.","evidence_refs":["htp_receipt_20260727_0001"],"occurrence_count":1,"confidence_band":"LOW"},
+  "human_explanation":{"purpose":"Let the pattern fully disclose itself before compressing it into implementation.","helpful_conditions":["early discovery","cross-domain synthesis"],"unhelpful_conditions":["urgent execution with an already-settled design"],"exceptions":["Human may explicitly request immediate compression."],"source":"JOINTLY_CLARIFIED"},
+  "proposed_update":{"target_record":"relational-pattern-record.discovery-to-build","operation":"ADD","proposed_value":{"discovery_phase":"reflect_and_extend","implementation_phase":"compress_and_sequence","continuity_carrier":"Care"},"review_policy":{"requires_authorized_admission":true,"required_additional_occurrences":2}},
+  "admission_status":"PROPOSED"
+}

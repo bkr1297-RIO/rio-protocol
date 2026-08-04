@@ -1,0 +1,19 @@
+{
+  "object_type":"HarmonicTransitionVerdict",
+  "protocol_version":"HTP/VL-1.0",
+  "verdict_id":"htp_verdict_20260727_0001",
+  "proposal_id":"htp_prop_20260727_0001",
+  "proposal_hash":"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+  "evaluated_at":"2026-07-27T16:01:10Z",
+  "status":"PASS",
+  "expected_cadence":"AUTHENTIC",
+  "invariant_results":[
+    {"invariant_id":"INV-HTP-01","status":"PASS","observed":0.9,"required_value":0.85},
+    {"invariant_id":"INV-HTP-02","status":"PASS","observed":1.24,"required_value":1.5},
+    {"invariant_id":"INV-HTP-03","status":"PASS"},
+    {"invariant_id":"INV-HTP-04","status":"PASS"}
+  ],
+  "authorization":{"nonce":"nonce_20260727_0001","expires_at":"2026-07-27T17:00:39Z","max_executions":1,"scope_hash":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","arguments_hash":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","authorized_displacement":1.24},
+  "authorized_next_beat":3,
+  "verdict_hash":"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+}

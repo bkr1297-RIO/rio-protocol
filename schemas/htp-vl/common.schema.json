@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://one-rio-muss.org/schemas/htp-vl/0.1/common.schema.json",
+  "title": "HTP/VL-1 Common Definitions",
+  "$defs": {
+    "id": {"type":"string","minLength":1,"maxLength":160,"pattern":"^[A-Za-z0-9._:-]+$"},
+    "timestamp": {"type":"string","format":"date-time"},
+    "hash": {"type":"string","pattern":"^[A-Fa-f0-9]{64}$"},
+    "uriOrId": {"type":"string","minLength":1,"maxLength":2048},
+    "functionValue": {"type":"number","minimum":0,"maximum":1},
+    "harmonicVector": {"type":"array","minItems":1,"maxItems":64,"items":{"$ref":"#/$defs/functionValue"}},
+    "harmonicState": {
+      "type":"object","additionalProperties":false,"required":["registry_version","vector"],
+      "properties": {
+        "registry_version":{"type":"string","minLength":1,"maxLength":64},
+        "vector":{"$ref":"#/$defs/harmonicVector"},
+        "dominant_functions":{"type":"array","uniqueItems":true,"items":{"$ref":"#/$defs/id"}},
+        "state_label":{"type":"string","maxLength":240}
+      }
+    },
+    "authorityBinding": {
+      "type":"object","additionalProperties":false,"required":["authority_id","binding_type"],
+      "properties": {
+        "authority_id":{"$ref":"#/$defs/id"},
+        "binding_type":{"enum":["HUMAN_COMMIT","DELEGATION_TOKEN","SYSTEM_ROLE"]},
+        "signature_ref":{"$ref":"#/$defs/uriOrId"},
+        "delegation_ref":{"$ref":"#/$defs/uriOrId"}
+      }
+    },
+    "continuityCarrier": {
+      "type":"object","additionalProperties":false,"required":["carrier_id","carrier_type","validation_mode"],
+      "properties": {
+        "carrier_id":{"$ref":"#/$defs/id"},
+        "carrier_type":{"enum":["HARMONIC_FUNCTION","HUMAN_AUTHORITY","INTENT_BINDING","PROVENANCE","IDENTITY","CONSENT","CUSTOM_EXACT"]},
+        "validation_mode":{"enum":["THRESHOLD","EXACT_MATCH"]},
+        "function_index":{"type":"integer","minimum":0,"maximum":63},
+        "function_name":{"type":"string","maxLength":120},
+        "absolute_threshold":{"$ref":"#/$defs/functionValue"},
+        "retention_ratio":{"$ref":"#/$defs/functionValue"},
+        "expected_binding_hash":{"$ref":"#/$defs/hash"},
+        "evidence_refs":{"type":"array","items":{"$ref":"#/$defs/uriOrId"}}
+      },
+      "allOf": [
+        {"if":{"properties":{"validation_mode":{"const":"THRESHOLD"}}},"then":{"required":["function_index","absolute_threshold","retention_ratio"]}},
+        {"if":{"properties":{"validation_mode":{"const":"EXACT_MATCH"}}},"then":{"required":["expected_binding_hash"]}}
+      ]
+    },
+    "voiceMovement": {
+      "type":"object","additionalProperties":false,"required":["movement_id","movement_type","justification"],
+      "properties": {
+        "movement_id":{"$ref":"#/$defs/id"},
+        "from_function":{"$ref":"#/$defs/id"},
+        "to_function":{"$ref":"#/$defs/id"},
+        "movement_type":{"enum":["SUSTAIN","ATTENUATE","AMPLIFY","HANDOFF","TRANSFORM","SPLIT","MERGE","REST"]},
+        "max_absolute_delta":{"type":"number","minimum":0,"maximum":1},
+        "justification":{"type":"string","minLength":1,"maxLength":2000}
+      }
+    },
+    "error": {
+      "type":"object","additionalProperties":false,"required":["code","message"],
+      "properties": {"code":{"$ref":"#/$defs/id"},"message":{"type":"string","minLength":1,"maxLength":2000},"evidence_refs":{"type":"array","items":{"$ref":"#/$defs/uriOrId"}}}
+    },
+    "signature": {
+      "type":"object","additionalProperties":false,"required":["algorithm","key_id","signature"],
+      "properties": {"algorithm":{"enum":["Ed25519","ECDSA-secp256k1"]},"key_id":{"$ref":"#/$defs/id"},"signature":{"type":"string","minLength":32,"maxLength":4096},"signed_hash":{"$ref":"#/$defs/hash"}}
+    }
+  }
+}

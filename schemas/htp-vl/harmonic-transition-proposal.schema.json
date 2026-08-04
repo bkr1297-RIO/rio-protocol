@@ -1,0 +1,24 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://one-rio-muss.org/schemas/htp-vl/0.1/harmonic-transition-proposal.schema.json",
+  "title":"HarmonicTransitionProposal",
+  "type":"object","additionalProperties":false,
+  "required":["object_type","protocol_version","proposal_id","created_at","authority","current_state","target_state","continuity_carriers","voice_movements","requested_execution","prior_cadence"],
+  "properties":{
+    "object_type":{"const":"HarmonicTransitionProposal"},
+    "protocol_version":{"const":"HTP/VL-1.0"},
+    "proposal_id":{"$ref":"common.schema.json#/$defs/id"},
+    "created_at":{"$ref":"common.schema.json#/$defs/timestamp"},
+    "authority":{"$ref":"common.schema.json#/$defs/authorityBinding"},
+    "current_state":{"$ref":"common.schema.json#/$defs/harmonicState"},
+    "target_state":{"$ref":"common.schema.json#/$defs/harmonicState"},
+    "continuity_carriers":{"type":"array","minItems":1,"items":{"$ref":"common.schema.json#/$defs/continuityCarrier"}},
+    "voice_movements":{"type":"array","minItems":1,"items":{"$ref":"common.schema.json#/$defs/voiceMovement"}},
+    "displacement_policy":{"type":"object","additionalProperties":false,"required":["metric","max_weighted_distance"],"properties":{"metric":{"enum":["WEIGHTED_L2","COSINE_PLUS_MASK"]},"max_weighted_distance":{"type":"number","minimum":0},"weights":{"type":"array","items":{"type":"number","minimum":0}},"protected_dimensions":{"type":"array","uniqueItems":true,"items":{"type":"integer","minimum":0,"maximum":63}}}},
+    "requested_execution":{"type":"object","additionalProperties":false,"required":["action_id","scope_hash","max_executions"],"properties":{"action_id":{"$ref":"common.schema.json#/$defs/id"},"tool_name":{"type":"string","maxLength":240},"arguments_hash":{"$ref":"common.schema.json#/$defs/hash"},"scope_hash":{"$ref":"common.schema.json#/$defs/hash"},"max_executions":{"type":"integer","minimum":1,"maximum":100},"requested_expiry":{"$ref":"common.schema.json#/$defs/timestamp"}}},
+    "prior_cadence":{"type":"object","additionalProperties":false,"required":["required","settled"],"properties":{"required":{"type":"boolean"},"receipt_id":{"$ref":"common.schema.json#/$defs/id"},"receipt_hash":{"$ref":"common.schema.json#/$defs/hash"},"settled":{"type":"boolean"}}},
+    "evidence_refs":{"type":"array","items":{"$ref":"common.schema.json#/$defs/uriOrId"}},
+    "signature":{"$ref":"common.schema.json#/$defs/signature"}
+  },
+  "not":{"anyOf":[{"required":["verdict"]},{"required":["authorization"]},{"required":["actual_cadence"]},{"required":["learning_admission"]}]}
+}

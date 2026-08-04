@@ -1,0 +1,19 @@
+{
+  "object_type":"HarmonicTransitionProposal",
+  "protocol_version":"HTP/VL-1.0",
+  "proposal_id":"htp_prop_20260727_0001",
+  "created_at":"2026-07-27T16:00:39Z",
+  "authority":{"authority_id":"B-Rass::Sovereign","binding_type":"HUMAN_COMMIT","signature_ref":"sig:human-commit-0001"},
+  "current_state":{"registry_version":"root-functions-v0.1","vector":[0.8,0.4,0.3,0.2,0.1,0.9,0.85,0.1,0.2,0.1,0.6,0.3],"dominant_functions":["Origin_1","Care_6","Depth_7"]},
+  "target_state":{"registry_version":"root-functions-v0.1","vector":[0.2,0.3,0.1,0.9,0.2,0.9,0.3,0.7,0.4,0.1,0.2,0.2],"dominant_functions":["Structure_4","Care_6","Power_8"]},
+  "continuity_carriers":[{"carrier_id":"care-continuity","carrier_type":"HARMONIC_FUNCTION","validation_mode":"THRESHOLD","function_index":5,"function_name":"Care","absolute_threshold":0.85,"retention_ratio":0.9,"evidence_refs":["evidence:purpose-card-001"]}],
+  "voice_movements":[
+    {"movement_id":"vm-1","from_function":"Origin_1","to_function":"Structure_4","movement_type":"TRANSFORM","max_absolute_delta":0.7,"justification":"Transition from conceptual discovery to repository build."},
+    {"movement_id":"vm-2","from_function":"Depth_7","to_function":"Power_8","movement_type":"HANDOFF","max_absolute_delta":0.6,"justification":"Transition from internal analysis to bounded execution."},
+    {"movement_id":"vm-3","from_function":"Care_6","to_function":"Care_6","movement_type":"SUSTAIN","justification":"Preserve stewardship through implementation."}
+  ],
+  "displacement_policy":{"metric":"WEIGHTED_L2","max_weighted_distance":1.5,"weights":[1,1,1,1,1,2,1,2,1,1,1,1],"protected_dimensions":[5]},
+  "requested_execution":{"action_id":"repo.write-spec","tool_name":"repository_writer","arguments_hash":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","scope_hash":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","max_executions":1,"requested_expiry":"2026-07-27T17:00:39Z"},
+  "prior_cadence":{"required":true,"receipt_id":"rcpt_20260727_9919a","receipt_hash":"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc","settled":true},
+  "evidence_refs":["evidence:thread-architecture-001"]
+}
