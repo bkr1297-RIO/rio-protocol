@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rio-protocol.org/schemas/RETURN-GATE-SCHEMA-001.json",
+  "title": "Return Gate Candidate Decision Schema",
+  "description": "Candidate gate decision record. New-cycle authorization must reference a distinct human initiation and cannot be implied by closure.",
+  "type": "object",
+  "required": ["schema_version", "decision_id", "cycle_id", "from_state", "to_state", "decided_at", "decision_basis", "receipt_required"],
+  "properties": {
+    "schema_version": {"const": "0.1.0"},
+    "decision_id": {"type": "string", "pattern": "^[A-Za-z0-9._:-]{1,128}$"},
+    "cycle_id": {"type": "string", "pattern": "^[A-Za-z0-9._:-]{1,128}$"},
+    "from_state": {"type": "string", "enum": ["active_cycle", "return_review", "return_incomplete", "return_held", "return_ready", "return_closed", "ambient_mode", "sourcepoint_drafted", "human_review"]},
+    "to_state": {"type": "string", "enum": ["active_cycle", "return_review", "return_incomplete", "return_held", "return_ready", "terminated_with_residue", "return_closed", "ambient_mode", "sourcepoint_drafted", "human_review", "new_source_authorized", "new_cycle"]},
+    "decided_at": {"type": "string", "format": "date-time"},
+    "decision_basis": {
+      "type": "object",
+      "required": ["return_packet_ref", "closure_record_ref"],
+      "properties": {
+        "return_packet_ref": {"type": "string", "maxLength": 256},
+        "closure_record_ref": {"type": "string", "maxLength": 256},
+        "human_confirmation_ref": {"type": "string", "maxLength": 256},
+        "new_sourcepoint_ref": {"type": "string", "maxLength": 256},
+        "active_grant_handling": {"type": "string", "enum": ["expired", "revoked", "not_applicable", "held_for_review"]},
+        "residue_handling": {"type": "string", "enum": ["none", "held", "archived", "retired", "separate_proposal_required"]}
+      },
+      "additionalProperties": false
+    },
+    "receipt_required": {"const": true},
+    "receipt_ref": {"type": "string", "maxLength": 256},
+    "result": {"type": "string", "enum": ["hold", "close", "ambient", "new_source_authorized", "hard_block"]}
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {"from_state": {"const": "return_ready"}, "to_state": {"const": "new_source_authorized"}},
+        "required": ["from_state", "to_state"]
+      },
+      "then": false
+    },
+    {
+      "if": {"properties": {"to_state": {"const": "new_source_authorized"}}, "required": ["to_state"]},
+      "then": {
+        "properties": {
+          "decision_basis": {
+            "required": ["human_confirmation_ref", "new_sourcepoint_ref", "active_grant_handling", "residue_handling"]
+          }
+        }
+      }
+    }
+  ],
+  "additionalProperties": false
+}

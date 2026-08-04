@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rio-protocol.org/schemas/CYCLE-CONTRAST-FORECAST-SCHEMA-001.json",
+  "title": "Cycle Contrast and Forecast Candidate Schema",
+  "description": "Candidate schema for a consented, branch-based forecast. Every output is contestable and has no authority effect.",
+  "type": "object",
+  "required": ["schema_version", "forecast_id", "created_at", "status", "evidence_refs", "alternatives", "scenarios", "authority_effect"],
+  "properties": {
+    "schema_version": {"const": "0.1.0"},
+    "forecast_id": {"type": "string", "pattern": "^[A-Za-z0-9._:-]{1,128}$"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "status": {"const": "interpretive_hypothesis"},
+    "framework": {
+      "type": "object",
+      "required": ["ref", "selected_by_human"],
+      "properties": {
+        "ref": {"type": "string", "maxLength": 256},
+        "selected_by_human": {"const": true}
+      },
+      "additionalProperties": false
+    },
+    "evidence_refs": {"type": "array", "items": {"type": "string", "maxLength": 256}, "minItems": 1, "maxItems": 100},
+    "human_report_refs": {"type": "array", "items": {"type": "string", "maxLength": 256}, "maxItems": 100},
+    "symbolic_context_ref": {"type": "string", "maxLength": 256, "description": "User-controlled private reference only; no raw private content is included."},
+    "recorded_before_outcome": {"type": "boolean"},
+    "alternatives": {"type": "array", "items": {"type": "string", "maxLength": 256}, "minItems": 1, "maxItems": 10},
+    "scenarios": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 10,
+      "items": {
+        "type": "object",
+        "required": ["label", "conditions", "time_window", "uncertainty_posture", "falsifiers"],
+        "properties": {
+          "label": {"type": "string", "maxLength": 100},
+          "conditions": {"type": "array", "items": {"type": "string", "maxLength": 500}, "minItems": 1, "maxItems": 20},
+          "time_window": {"type": "string", "maxLength": 100},
+          "uncertainty_posture": {"type": "string", "enum": ["low", "moderate", "high", "not_assessed"]},
+          "falsifiers": {"type": "array", "items": {"type": "string", "maxLength": 500}, "minItems": 1, "maxItems": 20}
+        },
+        "additionalProperties": false
+      }
+    },
+    "counterexample_refs": {"type": "array", "items": {"type": "string", "maxLength": 256}, "maxItems": 100},
+    "human_disposition": {"type": "string", "enum": ["hold", "accepted_as_private_orientation", "rejected", "no_meaning_assigned", "route_to_proposal_packet"]},
+    "authority_effect": {"const": "none"}
+  },
+  "additionalProperties": false
+}

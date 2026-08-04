@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rio-protocol.org/schemas/RETURN-PACKET-SCHEMA-001.json",
+  "title": "Return Packet Candidate Schema",
+  "description": "Candidate record for closure review. It separates evidence, interpretation, authority references, and residue; it cannot itself initiate a new cycle.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "packet_id",
+    "cycle_id",
+    "current_state",
+    "evidence_refs",
+    "active_grant_refs",
+    "closure_disposition",
+    "residue_disposition",
+    "authority_effect"
+  ],
+  "properties": {
+    "schema_version": {"const": "0.1.0"},
+    "packet_id": {"type": "string", "pattern": "^[A-Za-z0-9._:-]{1,128}$"},
+    "cycle_id": {"type": "string", "pattern": "^[A-Za-z0-9._:-]{1,128}$"},
+    "current_state": {"type": "string", "enum": ["return_review", "return_incomplete", "return_held", "return_ready", "return_closed"]},
+    "declared_objective_ref": {"type": "string", "maxLength": 256},
+    "evidence_refs": {
+      "type": "array",
+      "items": {"type": "string", "maxLength": 256},
+      "maxItems": 100,
+      "description": "References to named evidence or receipts. A reference does not prove external-world truth by itself."
+    },
+    "interpretive_context": {
+      "type": "object",
+      "required": ["selected_by_human", "authority_effect"],
+      "properties": {
+        "selected_by_human": {"const": true},
+        "framework_ref": {"type": "string", "maxLength": 256},
+        "hypothesis": {"type": "string", "maxLength": 1000},
+        "authority_effect": {"const": "none"}
+      },
+      "additionalProperties": false
+    },
+    "active_grant_refs": {
+      "type": "array",
+      "items": {"type": "string", "maxLength": 256},
+      "maxItems": 100,
+      "description": "Grants to expire, revoke, or separately retain under declared terms."
+    },
+    "closure_disposition": {"type": "string", "enum": ["hold", "incomplete", "close", "terminate"]},
+    "residue_disposition": {"type": "string", "enum": ["none", "held", "archived", "retired", "separate_proposal_required"]},
+    "human_actor_ref": {"type": "string", "maxLength": 256},
+    "human_confirmation_ref": {"type": "string", "maxLength": 256},
+    "receipt_ref": {"type": "string", "maxLength": 256},
+    "authority_effect": {
+      "const": "none",
+      "description": "A Return Packet records review; it cannot authorize a new objective or consequential crossing."
+    }
+  },
+  "additionalProperties": false
+}
