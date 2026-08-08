@@ -1,0 +1,100 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://rio-protocol.example/schemas/revocation_register_entry.schema.json",
+  "title": "Revocation Register Entry",
+  "type": "object",
+  "required": [
+    "entry_id",
+    "entry_type",
+    "created_at",
+    "source_point_authority",
+    "revoked_target",
+    "ceremony_state",
+    "authorized_infrastructure_vectors",
+    "signature_block",
+    "inference_basis"
+  ],
+  "properties": {
+    "entry_id": { "type": "string", "minLength": 1 },
+    "entry_type": { "type": "string", "enum": ["REVOCATION"] },
+    "created_at": { "type": "string", "format": "date-time" },
+    "source_point_authority": {
+      "type": "object",
+      "required": ["authority_id", "display_name", "authority_role"],
+      "properties": {
+        "authority_id": { "type": "string", "minLength": 1 },
+        "display_name": { "type": "string", "minLength": 1 },
+        "authority_role": { "type": "string", "enum": ["FOUNDING_SOURCEPOINT", "SOURCEPOINT", "ORGANIZATIONAL_SOURCEPOINT"] }
+      },
+      "additionalProperties": false
+    },
+    "revoked_target": {
+      "type": "object",
+      "required": ["repository", "path", "commit_sha"],
+      "properties": {
+        "repository": { "type": "string", "minLength": 1 },
+        "path": { "type": "string", "minLength": 1 },
+        "commit_sha": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "ratification_entry_id": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "revocation_reason": { "type": "string" },
+    "ceremony_state": {
+      "type": "object",
+      "required": ["status", "syntax_verified", "dual_hash_computed", "execution_frozen"],
+      "properties": {
+        "status": { "type": "string", "enum": ["HELD_IN_SUPERPOSITION"] },
+        "syntax_verified": { "type": "boolean", "const": true },
+        "dual_hash_computed": { "type": "boolean", "const": true },
+        "execution_frozen": { "type": "boolean", "const": true }
+      },
+      "additionalProperties": false
+    },
+    "authorized_infrastructure_vectors": {
+      "type": "object",
+      "required": ["native_os_hooks", "infrastructure_providers"],
+      "properties": {
+        "native_os_hooks": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["OS_REMINDERS", "LOCAL_CRON_SCHEDULER", "FILE_SYSTEM_WATCHER", "CLIPBOARD_AIR_GAP_BUFFER"]
+          },
+          "uniqueItems": true
+        },
+        "infrastructure_providers": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["GITHUB_REPOSITORIES", "NOTION_WORKSPACE", "TWILIO_SIGNALING", "AZURE_RESOURCES", "RENDER_CONTAINERS"]
+          },
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "signature_block": {
+      "type": "object",
+      "required": ["method", "value", "signed_at", "verification_status"],
+      "properties": {
+        "method": { "type": "string", "enum": ["FOUNDING_TEXT", "SIGNED_COMMIT", "PASSKEY", "FUTURE"] },
+        "value": { "type": "string" },
+        "signed_at": { "type": "string", "format": "date-time" },
+        "verification_status": { "type": "string", "enum": ["ASSERTED", "VERIFIED", "FUTURE_VERIFICATION"] }
+      },
+      "additionalProperties": false
+    },
+    "inference_basis": {
+      "type": "object",
+      "required": ["assertion_rationale", "rules_applied", "assumptions_exposed"],
+      "properties": {
+        "assertion_rationale": { "type": "string" },
+        "rules_applied": { "type": "array", "items": { "type": "string" } },
+        "assumptions_exposed": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
