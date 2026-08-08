@@ -1,97 +1,80 @@
-/**
- * PRIME-KERNEL-001 — Constitutional Crossing Language Kernel v0.1
- * Repo-safe candidate types.
- *
- * Boundary: this file defines structure. It does not authorize action.
- */
-
-export type PrimeVersion = "0.1";
+export type PrimeVersion = '0.2';
 
 export type StateType =
-  | "raw_language"
-  | "draft_unapproved"
-  | "draft_approved"
-  | "email_sent"
-  | "observing_tool_output"
-  | "reasoning_state"
-  | "quarantined"
-  | "receipt_logged";
+  | 'raw_language'
+  | 'draft_unapproved'
+  | 'draft_approved'
+  | 'email_sent'
+  | 'observing_tool_output'
+  | 'reasoning_state'
+  | 'quarantined'
+  | 'receipt_logged';
 
-export type TransitionType =
-  | "EPHEMERAL_READ"
-  | "STATE_MUTATION"
-  | "LEARN"
-  | "LOG";
+export type TransitionType = 'EPHEMERAL_READ' | 'STATE_MUTATION' | 'LEARN' | 'LOG';
 
 export type DeonticOperator =
-  | "MUST"
-  | "MUST_NOT"
-  | "SHALL"
-  | "SHALL_NOT"
-  | "MAY"
-  | "MAY_NOT"
-  | "MAY_ONLY_IF"
-  | "SHOULD"
-  | "SHOULD_NOT"
-  | "WILL"
-  | "WILL_NOT"
-  | "CAN"
-  | "CANNOT";
-
-export type OperatorForce =
-  | "obligation"
-  | "prohibition"
-  | "permission"
-  | "conditional_permission"
-  | "recommendation"
-  | "intention"
-  | "capability";
-
-export type PrimeCondition =
-  | { type: "ALWAYS_TRUE" }
-  | { type: "SENTINEL_PAYLOAD_HASH_MATCH" }
-  | { type: "AUTHORITY_GRANT_MATCHES_EFFECT" }
-  | { type: "EXTERNAL_EFFECT_FALSE" };
+  | 'MUST'
+  | 'MUST_NOT'
+  | 'SHALL'
+  | 'SHALL_NOT'
+  | 'MAY'
+  | 'MAY_NOT'
+  | 'MAY_ONLY_IF'
+  | 'SHOULD'
+  | 'SHOULD_NOT'
+  | 'WILL'
+  | 'WILL_NOT'
+  | 'CAN'
+  | 'CANNOT';
 
 export type GatePolicy =
-  | "required"
-  | "passed"
-  | "failed"
-  | "not_applicable"
-  | "pending"
-  | "exact_payload_match";
+  | 'required'
+  | 'passed'
+  | 'failed'
+  | 'not_applicable'
+  | 'pending'
+  | 'exact_payload_match';
 
 export type FailurePolicy =
-  | "BLOCK"
-  | "BLOCK_AND_RETURN"
-  | "HOLD"
-  | "QUARANTINE"
-  | "REQUIRE_REVIEW"
-  | "CLARIFY";
+  | 'BLOCK'
+  | 'BLOCK_AND_RETURN'
+  | 'HOLD'
+  | 'QUARANTINE'
+  | 'REQUIRE_REVIEW'
+  | 'CLARIFY';
 
 export type ReceiptClass =
-  | "StandardOutcome"
-  | "ViolationAlert"
-  | "DriftBreach"
-  | "PolicyViolation"
-  | "OperatorViolation"
-  | "MissingReturnPath"
-  | "LearningViolation";
+  | 'StandardOutcome'
+  | 'ViolationAlert'
+  | 'DriftBreach'
+  | 'PolicyViolation'
+  | 'OperatorViolation'
+  | 'SignatureViolation'
+  | 'MissingReturnPath'
+  | 'LearningViolation';
 
 export type PrimeDecision =
-  | "ALLOW"
-  | "BLOCK"
-  | "BLOCK_AND_RETURN"
-  | "HOLD"
-  | "QUARANTINE"
-  | "REQUIRE_REVIEW"
-  | "CLARIFY";
+  | 'ALLOW'
+  | 'BLOCK'
+  | 'BLOCK_AND_RETURN'
+  | 'HOLD'
+  | 'QUARANTINE'
+  | 'REQUIRE_REVIEW'
+  | 'CLARIFY';
+
+export type PrimeCondition =
+  | { type: 'ALWAYS_TRUE' }
+  | { type: 'SENTINEL_PAYLOAD_HASH_MATCH' }
+  | { type: 'AUTHORITY_GRANT_MATCHES_EFFECT' }
+  | { type: 'EXTERNAL_EFFECT_FALSE' };
 
 export interface AuthorityEnvelope {
   envelope_id: string;
   grant_class: string;
+  sourcepoint_public_key_pem: string;
   sourcepoint_signature: string;
   expires: number;
+  nonce: string;
 }
 
 export interface PrimePacket {
@@ -154,15 +137,27 @@ export interface PrimeValidationResult {
   receipt_class: ReceiptClass;
   return_required: boolean;
   allowed_recovery?: string[];
+  packet_hash?: string;
 }
 
-export interface PrimeReceipt {
+export interface MusReceiptPayload {
+  receipt_version: '0.2';
   receipt_id: string;
   packet_id: string;
+  packet_hash: string;
+  result_hash: string;
   decision: PrimeDecision;
   receipt_class: ReceiptClass;
   reasons: string[];
   failed_checks: string[];
   return_to: string;
+  previous_receipt_hash: string | null;
   timestamp: string;
+}
+
+export interface MusSignedReceipt {
+  payload: MusReceiptPayload;
+  receipt_hash: string;
+  mus_public_key_pem: string;
+  mus_signature: string;
 }
