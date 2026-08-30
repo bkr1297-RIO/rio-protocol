@@ -1,6 +1,6 @@
 # PRIME-KERNEL-001 — Constitutional Crossing Language Kernel v0.1
 
-Status: repo-safe candidate implementation support; SourcePoint review required before canon or merge.
+Status: merged candidate material on `main`; SourcePoint review remains required before any promotion or canon decision.
 
 ## Core invariant
 
