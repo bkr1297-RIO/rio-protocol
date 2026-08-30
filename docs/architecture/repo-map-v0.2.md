@@ -2,6 +2,7 @@
 
 > Last updated: 2026-05-10
 > Maintainer: Brian Rasmussen
+> Factual repair check: 2026-08-30 (license cells only; repository roles and standing remain the document's 2026-05-10 posture)
 
 This document maps the full repository estate for the RIO governed intelligence ecosystem. It defines what each repository is, what it does, its canonical status, and what it does not claim.
 
@@ -54,7 +55,7 @@ These are the canonical, maintained public repositories that define the RIO prot
 | Visibility | Public |
 | Role | Language governance — crossing detection prototype |
 | Type | Proof / Prototype |
-| License | No root LICENSE file (cleanup needed) |
+| License | MIT (`LICENSE`) |
 | Proves | Crossing-type detection (helpfulness→delegation, advice→instruction, etc.) |
 | Does not claim | Production readiness, runtime enforcement, full coverage |
 | Status | Active — canonical prototype (v0.1.2) |
@@ -96,7 +97,7 @@ These repositories predate the current canonical structure. They may contain ear
 | Visibility | Public |
 | Role | Earlier version of receipt protocol documentation |
 | Type | Legacy |
-| License | Unknown |
+| License | Dual-licensed MIT OR Apache-2.0 (`LICENSE-MIT`, `LICENSE-APACHE`) |
 | Proves | Historical record of protocol evolution |
 | Does not claim | Current canonical status |
 | Status | Legacy — superseded by `rio-receipt-protocol` |

@@ -111,7 +111,7 @@ This bundle does not claim live conformance, runtime enforcement, receipt verifi
 | Document | Role |
 |---|---|
 | `spec/RIO_STANDARD_v1.0.md` | Historical/project-named normative specification; not an adopted external standard by title alone |
-| `spec/RIO_Protocol_Specification_v1.0.md` | Project protocol specification |
+| `legacy/spec-v1-drafts/RIO_Protocol_Specification_v1.0.md` | Preserved historical protocol draft; its legacy location does not make it a current controlling specification |
 | `spec/RIO_CONFORMANCE_v2.3.0.md` | Named technical conformance profile |
 | `spec/error_vocabulary.v1.json` | Versioned project error vocabulary |
 | `spec/error_vocabulary.md` | Error-vocabulary versioning rules |

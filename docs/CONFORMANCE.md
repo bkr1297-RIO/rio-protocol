@@ -5,6 +5,8 @@
 
 > **Note:** The authoritative conformance specification is `spec/RIO_CONFORMANCE_v2.3.0.md`. This document provides a summary of the conformance levels and verification requirements. When conflicts exist, the spec-level document takes precedence.
 
+> **Reconciliation notice (2026-08-30):** This summary is preserved but is not a current runnable conformance entry point. It describes seven levels while enumerating only Levels 1–3, and the current tree contains no `verification/` Python module. The `python -m verification.cli ...` blocks below are therefore fenced as non-runnable historical examples. This notice does not choose between conflicting receipt/conformance artifacts, modify any requirement, or grant or revoke standing. Use [`VERIFY_THIS_SYSTEM.md`](../VERIFY_THIS_SYSTEM.md) and paths that exist at the tested commit for current local checks.
+
 ---
 
 ## What "RIO Compliant" Means
@@ -35,7 +37,8 @@ An implementation claiming Level 1 compliance must produce receipts that pass al
 
 **How to test:** Run the verifier against every receipt your system produces. All 7 checks must pass.
 
-```bash
+```text
+# Historical example only — verification.cli is absent from the current tree
 python -m verification.cli verify-receipt your_receipt.json --public-key your_key.pem
 ```
 
@@ -64,13 +67,15 @@ Every receipt produced by the system must have a corresponding ledger entry. The
 
 **How to test:** Run the verifier against your ledger file. All checks must pass.
 
-```bash
+```text
+# Historical example only — verification.cli is absent from the current tree
 python -m verification.cli verify-ledger your_ledger.json
 ```
 
 **Full verification (receipt + ledger together):**
 
-```bash
+```text
+# Historical example only — verification.cli is absent from the current tree
 python -m verification.cli verify-all your_receipt.json your_ledger.json --public-key your_key.pem
 ```
 
@@ -151,7 +156,7 @@ There is no self-certification. Compliance is binary: either the verifier report
 |----------|----------|---------|
 | Conformance Specification (v2.3.0) | `spec/RIO_CONFORMANCE_v2.3.0.md` | Authoritative conformance definition |
 | Receipt Schema | `spec/receipt_schema.json` | Canonical receipt structure (normative) |
-| Canonical Protocol Specification | `spec/RIO_Protocol_Specification_v1.0.json` | Defines the protocol standard |
+| Preserved Protocol Draft | `legacy/spec-v1-drafts/RIO_Protocol_Specification_v1.0.json` | Historical draft; its legacy location does not establish current control |
 | Conformance Test Suite | `tests/conformance/rio_conformance_suite_v1.json` | Machine-readable test definitions |
 | Test Vectors | `tests/vectors/` | Cryptographic test data |
 | Error Vocabulary | `spec/error_vocabulary.v1.json` | Canonical error codes |
