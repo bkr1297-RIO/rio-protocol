@@ -1,0 +1,1651 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:one:open-arrow:customer-zero:v0.1",
+  "title": "Bounded Open Arrow Customer Zero profile; schema validity does not confer standing",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/artifact"
+    },
+    {
+      "$ref": "#/$defs/oa_ir"
+    },
+    {
+      "$ref": "#/$defs/signed_expression"
+    },
+    {
+      "$ref": "#/$defs/signed_propose"
+    },
+    {
+      "$ref": "#/$defs/signed_commit"
+    },
+    {
+      "$ref": "#/$defs/signed_promote"
+    }
+  ],
+  "$defs": {
+    "standing": {
+      "type": "object",
+      "properties": {
+        "Epistemic": {
+          "type": "string",
+          "minLength": 1
+        },
+        "Authority": {
+          "enum": [
+            "NONE",
+            "HUMAN_BOUND"
+          ]
+        },
+        "Lifecycle": {
+          "enum": [
+            "ADMITTED",
+            "ATTEMPTED",
+            "CHECKED",
+            "COMMITTED",
+            "COMPILED",
+            "DENIED",
+            "FORMED",
+            "HELD",
+            "JUDGED",
+            "PROPOSED",
+            "QUALIFIED",
+            "RECEIVED",
+            "RECOGNIZED",
+            "RECORDED",
+            "RETURNED",
+            "SETTLED_BOUNDED",
+            "UNSETTLED"
+          ]
+        },
+        "Fidelity": {
+          "enum": [
+            "EXACT",
+            "PARTIAL"
+          ]
+        }
+      },
+      "required": [
+        "Epistemic",
+        "Authority",
+        "Lifecycle",
+        "Fidelity"
+      ],
+      "additionalProperties": false
+    },
+    "conservation": {
+      "type": "object",
+      "properties": {
+        "Subject": {},
+        "Scope": {},
+        "Authority": {},
+        "Standing": {},
+        "Dependencies": {},
+        "Uncertainty": {},
+        "Lineage": {},
+        "Effects": {}
+      },
+      "required": [
+        "Subject",
+        "Scope",
+        "Authority",
+        "Standing",
+        "Dependencies",
+        "Uncertainty",
+        "Lineage",
+        "Effects"
+      ],
+      "additionalProperties": false
+    },
+    "request": {
+      "type": "object",
+      "properties": {
+        "source_node": {
+          "type": "string",
+          "minLength": 1
+        },
+        "subject": {
+          "type": "string",
+          "minLength": 1
+        },
+        "target_node": {
+          "type": "string",
+          "minLength": 1
+        },
+        "action": {
+          "const": "create_document"
+        },
+        "target": {
+          "const": "Report-17.txt"
+        },
+        "payload": {
+          "type": "object",
+          "properties": {
+            "content": {
+              "type": "string",
+              "maxLength": 4096,
+              "description": "At runtime the UTF-8 encoded content must be at most 4096 bytes; JSON Schema maxLength alone counts code points."
+            }
+          },
+          "required": [
+            "content"
+          ],
+          "additionalProperties": false
+        },
+        "payload_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "scope": {
+          "type": "string",
+          "minLength": 1
+        },
+        "purpose": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dependencies": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "conditions": {
+          "type": "object",
+          "maxProperties": 0
+        },
+        "return_requirement": {
+          "type": "object",
+          "properties": {
+            "required": {
+              "const": true
+            },
+            "to": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "required",
+            "to"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "source_node",
+        "subject",
+        "target_node",
+        "action",
+        "target",
+        "payload",
+        "payload_hash",
+        "scope",
+        "purpose",
+        "dependencies",
+        "conditions",
+        "return_requirement"
+      ],
+      "additionalProperties": false
+    },
+    "artifact": {
+      "type": "object",
+      "properties": {
+        "profile": {
+          "const": "one.open-arrow.customer-zero.v0.1"
+        },
+        "kind": {
+          "enum": [
+            "HumanExpression",
+            "TypedAST",
+            "ONEIR",
+            "OAIR",
+            "Proposal",
+            "Hold",
+            "HumanCommit",
+            "Commitment",
+            "Dispatch",
+            "Decision",
+            "Fidelity",
+            "ExecutionAttempt",
+            "Occurrence",
+            "Observation",
+            "Receipt",
+            "FieldReturn",
+            "Promotion",
+            "Denied",
+            "Evidence",
+            "Judgment",
+            "Settlement",
+            "Successor"
+          ]
+        },
+        "arrow_id": {
+          "type": "string",
+          "minLength": 16
+        },
+        "artifact_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "body": {
+          "type": "object"
+        },
+        "parent_refs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "standing": {
+          "$ref": "#/$defs/standing"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "integrity": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "attestation": {
+          "type": "object",
+          "properties": {
+            "issuer": {
+              "type": "string",
+              "minLength": 1
+            },
+            "signature": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{128}$"
+            }
+          },
+          "required": [
+            "issuer",
+            "signature"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "profile",
+        "kind",
+        "arrow_id",
+        "artifact_id",
+        "body",
+        "parent_refs",
+        "standing",
+        "created_at",
+        "integrity",
+        "attestation"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "HumanExpression"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "standing": {
+                "properties": {
+                  "Epistemic": {
+                    "const": "ASSERTION"
+                  },
+                  "Authority": {
+                    "const": "NONE"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "TypedAST"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "standing": {
+                "properties": {
+                  "Epistemic": {
+                    "const": "ASSERTION"
+                  },
+                  "Authority": {
+                    "const": "NONE"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "ONEIR"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "standing": {
+                "properties": {
+                  "Epistemic": {
+                    "const": "ASSERTION"
+                  },
+                  "Authority": {
+                    "const": "NONE"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "OAIR"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "standing": {
+                "properties": {
+                  "Epistemic": {
+                    "const": "PROPOSAL"
+                  },
+                  "Authority": {
+                    "const": "NONE"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "Proposal"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "standing": {
+                "properties": {
+                  "Epistemic": {
+                    "const": "PROPOSAL"
+                  },
+                  "Authority": {
+                    "const": "NONE"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "Hold"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "standing": {
+                "properties": {
+                  "Epistemic": {
+                    "const": "NO_CLAIM"
+                  },
+                  "Authority": {
+                    "const": "NONE"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "HumanCommit"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "standing": {
+                "properties": {
+                  "Epistemic": {
+                    "const": "ATTESTATION"
+                  },
+                  "Authority": {
+                    "const": "HUMAN_BOUND"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "Commitment"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "standing": {
+                "properties": {
+                  "Epistemic": {
+                    "const": "PROPOSAL"
+                  },
+                  "Authority": {
+                    "const": "HUMAN_BOUND"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "Dispatch"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "standing": {
+                "properties": {
+                  "Epistemic": {
+                    "const": "NO_CLAIM"
+                  },
+                  "Authority": {
+                    "const": "HUMAN_BOUND"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "Decision"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "standing": {
+                "properties": {
+                  "Epistemic": {
+                    "const": "OBSERVATION"
+                  },
+                  "Authority": {
+                    "const": "NONE"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "Fidelity"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "standing": {
+                "properties": {
+                  "Epistemic": {
+                    "const": "OBSERVATION"
+                  },
+                  "Authority": {
+                    "const": "NONE"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "ExecutionAttempt"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "standing": {
+                "properties": {
+                  "Epistemic": {
+                    "const": "OBSERVATION"
+                  },
+                  "Authority": {
+                    "const": "NONE"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "Occurrence"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "standing": {
+                "properties": {
+                  "Epistemic": {
+                    "const": "OBSERVATION"
+                  },
+                  "Authority": {
+                    "const": "NONE"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "Observation"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "standing": {
+                "properties": {
+                  "Epistemic": {
+                    "const": "OBSERVATION"
+                  },
+                  "Authority": {
+                    "const": "NONE"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "Receipt"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "standing": {
+                "properties": {
+                  "Epistemic": {
+                    "const": "ATTESTATION"
+                  },
+                  "Authority": {
+                    "const": "NONE"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "FieldReturn"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "standing": {
+                "properties": {
+                  "Epistemic": {
+                    "const": "ATTESTATION"
+                  },
+                  "Authority": {
+                    "const": "NONE"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "Promotion"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "standing": {
+                "properties": {
+                  "Epistemic": {
+                    "const": "ATTESTATION"
+                  },
+                  "Authority": {
+                    "const": "NONE"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "Denied"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "standing": {
+                "properties": {
+                  "Epistemic": {
+                    "const": "NO_CLAIM"
+                  },
+                  "Authority": {
+                    "const": "NONE"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "Evidence"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "standing": {
+                "properties": {
+                  "Epistemic": {
+                    "const": "EVIDENCE"
+                  },
+                  "Authority": {
+                    "const": "NONE"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "Judgment"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "standing": {
+                "properties": {
+                  "Epistemic": {
+                    "const": "JUDGMENT"
+                  },
+                  "Authority": {
+                    "const": "NONE"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "Settlement"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "standing": {
+                "properties": {
+                  "Epistemic": {
+                    "const": "JUDGMENT"
+                  },
+                  "Authority": {
+                    "const": "NONE"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "Successor"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "standing": {
+                "properties": {
+                  "Epistemic": {
+                    "const": "JUDGMENT"
+                  },
+                  "Authority": {
+                    "const": "NONE"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "HumanExpression"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "standing": {
+                "properties": {
+                  "Lifecycle": {
+                    "enum": [
+                      "RECEIVED"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "TypedAST"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "standing": {
+                "properties": {
+                  "Lifecycle": {
+                    "enum": [
+                      "FORMED"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "ONEIR"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "standing": {
+                "properties": {
+                  "Lifecycle": {
+                    "enum": [
+                      "COMPILED"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "OAIR"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "standing": {
+                "properties": {
+                  "Lifecycle": {
+                    "enum": [
+                      "COMPILED"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "Proposal"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "standing": {
+                "properties": {
+                  "Lifecycle": {
+                    "enum": [
+                      "PROPOSED"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "Hold"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "standing": {
+                "properties": {
+                  "Lifecycle": {
+                    "enum": [
+                      "HELD"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "HumanCommit"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "standing": {
+                "properties": {
+                  "Lifecycle": {
+                    "enum": [
+                      "COMMITTED",
+                      "DENIED"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "Commitment"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "standing": {
+                "properties": {
+                  "Lifecycle": {
+                    "enum": [
+                      "COMMITTED"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "Dispatch"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "standing": {
+                "properties": {
+                  "Lifecycle": {
+                    "enum": [
+                      "ADMITTED"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "Decision"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "standing": {
+                "properties": {
+                  "Lifecycle": {
+                    "enum": [
+                      "ADMITTED"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "Fidelity"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "standing": {
+                "properties": {
+                  "Lifecycle": {
+                    "enum": [
+                      "CHECKED"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "ExecutionAttempt"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "standing": {
+                "properties": {
+                  "Lifecycle": {
+                    "enum": [
+                      "ATTEMPTED"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "Occurrence"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "standing": {
+                "properties": {
+                  "Lifecycle": {
+                    "enum": [
+                      "RECORDED"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "Observation"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "standing": {
+                "properties": {
+                  "Lifecycle": {
+                    "enum": [
+                      "RETURNED"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "Receipt"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "standing": {
+                "properties": {
+                  "Lifecycle": {
+                    "enum": [
+                      "RETURNED"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "FieldReturn"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "standing": {
+                "properties": {
+                  "Lifecycle": {
+                    "enum": [
+                      "RETURNED"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "Promotion"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "standing": {
+                "properties": {
+                  "Lifecycle": {
+                    "enum": [
+                      "RECORDED"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "Denied"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "standing": {
+                "properties": {
+                  "Lifecycle": {
+                    "enum": [
+                      "RETURNED"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "Evidence"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "standing": {
+                "properties": {
+                  "Lifecycle": {
+                    "enum": [
+                      "QUALIFIED"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "Judgment"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "standing": {
+                "properties": {
+                  "Lifecycle": {
+                    "enum": [
+                      "JUDGED"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "Settlement"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "standing": {
+                "properties": {
+                  "Lifecycle": {
+                    "enum": [
+                      "SETTLED_BOUNDED",
+                      "UNSETTLED"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "Successor"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "standing": {
+                "properties": {
+                  "Lifecycle": {
+                    "enum": [
+                      "RECOGNIZED"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "oa_ir": {
+      "type": "object",
+      "properties": {
+        "profile": {
+          "const": "one.open-arrow.customer-zero.v0.1"
+        },
+        "kind": {
+          "const": "OAIR"
+        },
+        "request": {
+          "$ref": "#/$defs/request"
+        },
+        "standing": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/standing"
+            },
+            {
+              "properties": {
+                "Authority": {
+                  "const": "NONE"
+                },
+                "Epistemic": {
+                  "const": "PROPOSAL"
+                },
+                "Lifecycle": {
+                  "const": "PROPOSED"
+                }
+              }
+            }
+          ]
+        },
+        "conservation": {
+          "$ref": "#/$defs/conservation"
+        },
+        "native_ir_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "authority_effect": {
+          "const": "NONE"
+        },
+        "time_basis": {
+          "const": "PLANNED_OBLIGATIONS_ONLY"
+        }
+      },
+      "required": [
+        "profile",
+        "kind",
+        "request",
+        "standing",
+        "conservation",
+        "native_ir_ref",
+        "authority_effect",
+        "time_basis"
+      ],
+      "additionalProperties": false
+    },
+    "signed_expression": {
+      "type": "object",
+      "properties": {
+        "body": {
+          "type": "object",
+          "properties": {
+            "field_id": {
+              "type": "string",
+              "minLength": 16
+            },
+            "record_id": {
+              "type": "string",
+              "minLength": 16
+            },
+            "issued_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "expires_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "type": {
+              "const": "human_expression"
+            },
+            "issuer": {
+              "type": "string",
+              "minLength": 1
+            },
+            "source_node": {
+              "type": "string",
+              "minLength": 1
+            },
+            "expression": {
+              "const": "Take Report 17 to the Commons."
+            }
+          },
+          "required": [
+            "field_id",
+            "record_id",
+            "issued_at",
+            "expires_at",
+            "type",
+            "issuer",
+            "source_node",
+            "expression"
+          ],
+          "additionalProperties": false
+        },
+        "signature": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{128}$"
+        }
+      },
+      "required": [
+        "body",
+        "signature"
+      ],
+      "additionalProperties": false
+    },
+    "signed_propose": {
+      "type": "object",
+      "properties": {
+        "body": {
+          "type": "object",
+          "properties": {
+            "field_id": {
+              "type": "string",
+              "minLength": 16
+            },
+            "record_id": {
+              "type": "string",
+              "minLength": 16
+            },
+            "issued_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "expires_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "type": {
+              "const": "arrow_propose"
+            },
+            "source_node": {
+              "type": "string",
+              "minLength": 1
+            },
+            "arrow_id": {
+              "type": "string",
+              "minLength": 16
+            },
+            "human_expression": {
+              "$ref": "#/$defs/signed_expression"
+            },
+            "request": {
+              "$ref": "#/$defs/request"
+            }
+          },
+          "required": [
+            "field_id",
+            "record_id",
+            "issued_at",
+            "expires_at",
+            "type",
+            "source_node",
+            "arrow_id",
+            "human_expression",
+            "request"
+          ],
+          "additionalProperties": false
+        },
+        "signature": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{128}$"
+        }
+      },
+      "required": [
+        "body",
+        "signature"
+      ],
+      "additionalProperties": false
+    },
+    "signed_commit": {
+      "type": "object",
+      "properties": {
+        "body": {
+          "type": "object",
+          "properties": {
+            "field_id": {
+              "type": "string",
+              "minLength": 16
+            },
+            "record_id": {
+              "type": "string",
+              "minLength": 16
+            },
+            "issued_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "expires_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "type": {
+              "const": "arrow_commit"
+            },
+            "issuer": {
+              "type": "string",
+              "minLength": 1
+            },
+            "arrow_id": {
+              "type": "string",
+              "minLength": 16
+            },
+            "proposal_hash": {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}$"
+            },
+            "decision": {
+              "enum": [
+                "APPROVE",
+                "DENY"
+              ]
+            },
+            "basis": {
+              "type": "string",
+              "minLength": 1
+            },
+            "adjudication": {
+              "type": "string",
+              "minLength": 1
+            },
+            "grant_id": {
+              "type": "string",
+              "minLength": 16
+            },
+            "passage_id": {
+              "type": "string",
+              "minLength": 16
+            }
+          },
+          "required": [
+            "field_id",
+            "record_id",
+            "issued_at",
+            "expires_at",
+            "type",
+            "issuer",
+            "arrow_id",
+            "proposal_hash",
+            "decision",
+            "basis",
+            "adjudication"
+          ],
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "decision": {
+                    "const": "APPROVE"
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "grant_id",
+                  "passage_id"
+                ]
+              }
+            }
+          ]
+        },
+        "signature": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{128}$"
+        }
+      },
+      "required": [
+        "body",
+        "signature"
+      ],
+      "additionalProperties": false
+    },
+    "signed_promote": {
+      "type": "object",
+      "properties": {
+        "body": {
+          "type": "object",
+          "properties": {
+            "field_id": {
+              "type": "string",
+              "minLength": 16
+            },
+            "record_id": {
+              "type": "string",
+              "minLength": 16
+            },
+            "issued_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "expires_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "type": {
+              "const": "arrow_promote"
+            },
+            "issuer": {
+              "type": "string",
+              "minLength": 1
+            },
+            "arrow_id": {
+              "type": "string",
+              "minLength": 16
+            },
+            "operation": {
+              "enum": [
+                "QUALIFY",
+                "JUDGE",
+                "SETTLE",
+                "RECOGNIZE"
+              ]
+            },
+            "source_ref": {
+              "type": "string",
+              "minLength": 1
+            },
+            "source_hash": {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}$"
+            },
+            "basis": {
+              "type": "string",
+              "minLength": 1
+            },
+            "adjudication": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "field_id",
+            "record_id",
+            "issued_at",
+            "expires_at",
+            "type",
+            "issuer",
+            "arrow_id",
+            "operation",
+            "source_ref",
+            "source_hash",
+            "basis",
+            "adjudication"
+          ],
+          "additionalProperties": false
+        },
+        "signature": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{128}$"
+        }
+      },
+      "required": [
+        "body",
+        "signature"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

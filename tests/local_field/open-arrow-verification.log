@@ -1,0 +1,14 @@
+$ python tests/packet_grammar/validate_four_bit_crossing_code.py
+Four-Bit Crossing Code validation passed: 16 truth-table rows
+$ python tests/packet_grammar/validate_four_bit_crossing_harness_negatives.py
+Four-Bit Crossing Code harness-negative validation passed: 5 malformed datasets rejected
+$ python tests/packet_grammar/validate_gate_evidence.py
+Gate Evidence validation passed: 4 fixtures
+$ python tests/packet_grammar/validate_receipt_binding.py
+Receipt Binding validation passed: 5 fixtures
+$ python tests/packet_grammar/validate_scribe_compiler_capsule.py
+Scribe-Compiler Capsule fixture validation passed: 2 fixtures
+$ python tests/local_field/validate_runtime_trace.py ../rio-system/docs/evidence/one-local-field-v0.1/acceptance-trace.json
+PASS: 7 actual signed records, attributed Return, and two malformed-record rejections
+$ python tests/local_field/validate_open_arrow.py ../rio-system/docs/evidence/one-open-arrow-v0.1/customer-zero-trace.json
+PASS: 69 actual Open Arrow objects, field/passage compatibility, and forbidden casts
