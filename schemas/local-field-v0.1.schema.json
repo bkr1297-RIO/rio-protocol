@@ -267,6 +267,22 @@
             "type": "string",
             "minLength": 1
           }
+        },
+        "open_arrow": {
+          "type": "object",
+          "properties": {
+            "profile": {
+              "const": "one.open-arrow.customer-zero.v0.1"
+            },
+            "rule": {
+              "const": "Nothing leaves this Lab without my explicit approval."
+            }
+          },
+          "required": [
+            "profile",
+            "rule"
+          ],
+          "additionalProperties": false
         }
       },
       "required": [
@@ -709,13 +725,29 @@
                 "string",
                 "null"
               ]
+            },
+            "arrow_id": {
+              "type": "string",
+              "minLength": 16
+            },
+            "commitment_id": {
+              "type": "string",
+              "minLength": 1
             }
           },
           "required": [
             "intent",
             "candidate_id"
           ],
-          "additionalProperties": false
+          "additionalProperties": false,
+          "dependentRequired": {
+            "arrow_id": [
+              "commitment_id"
+            ],
+            "commitment_id": [
+              "arrow_id"
+            ]
+          }
         }
       },
       "required": [
@@ -778,8 +810,13 @@
         "view": {
           "enum": [
             "status",
-            "ledger"
+            "ledger",
+            "arrow"
           ]
+        },
+        "arrow_id": {
+          "type": "string",
+          "minLength": 16
         }
       },
       "required": [
@@ -790,7 +827,26 @@
         "type",
         "issuer"
       ],
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "view"
+            ],
+            "properties": {
+              "view": {
+                "const": "arrow"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "arrow_id"
+            ]
+          }
+        }
+      ]
     }
   }
 }

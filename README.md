@@ -289,3 +289,7 @@ Until the license is formally changed:
 ## ONE Local Field v0.1 (draft build)
 
 The [bounded Local Field passage profile](spec/local-field-v0.1.md) adds shared signed enrollment, delegation, candidate, passage and Return bindings in the existing spec/schema ownership structure. Runtime enforcement remains in rio-system; receipt lineage verification remains in rio-receipt-protocol. Schema validation does not confer execution authority.
+
+## ONE Open Arrow Customer Zero v0.1 (draft build)
+
+The [Open Arrow profile](spec/open-arrow-v0.1.md) defines the portable four-axis artifact envelope, OA-IR request and exact signed promotion references. It extends the Local Field profile without changing its authority or receipt owners. The first bounded passage is Report 17 delivery after explicit human commitment; recognized report-state standing does not authorize successor installation.
