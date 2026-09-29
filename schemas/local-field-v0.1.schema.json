@@ -1,0 +1,796 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rio.ai/schemas/local-field-v0.1.schema.json",
+  "title": "ONE Local Field bounded passage profile v0.1",
+  "description": "Draft shared semantics. Shape validation confers no authority. Runtime verifies signatures, standing, current dependencies and point-of-use fidelity.",
+  "type": "object",
+  "properties": {
+    "body": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/field"
+        },
+        {
+          "$ref": "#/$defs/enrollment"
+        },
+        {
+          "$ref": "#/$defs/grant_record"
+        },
+        {
+          "$ref": "#/$defs/revocation"
+        },
+        {
+          "$ref": "#/$defs/supersession"
+        },
+        {
+          "$ref": "#/$defs/node_revocation"
+        },
+        {
+          "$ref": "#/$defs/dependency"
+        },
+        {
+          "$ref": "#/$defs/candidate"
+        },
+        {
+          "$ref": "#/$defs/passage"
+        },
+        {
+          "$ref": "#/$defs/query"
+        }
+      ]
+    },
+    "signature": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{128}$"
+    }
+  },
+  "required": [
+    "body",
+    "signature"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "node": {
+      "type": "object",
+      "properties": {
+        "node_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9._:-]{1,128}$"
+        },
+        "principal_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "node_type": {
+          "enum": [
+            "laptop",
+            "mobile",
+            "local_service",
+            "cloud_service",
+            "model_runtime",
+            "agent_runtime",
+            "storage_service",
+            "device"
+          ]
+        },
+        "actor_type": {
+          "enum": [
+            "human",
+            "ai_agent",
+            "service",
+            "executor",
+            "auditor",
+            "meta_governor"
+          ]
+        },
+        "primary_role": {
+          "enum": [
+            "proposer",
+            "executor",
+            "auditor",
+            "meta_governor"
+          ]
+        },
+        "secondary_roles": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "proposer",
+              "executor",
+              "auditor",
+              "meta_governor"
+            ]
+          },
+          "uniqueItems": true
+        },
+        "public_key_hex": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "capabilities": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "interfaces": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "custody_boundary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "const": "active"
+        }
+      },
+      "required": [
+        "node_id",
+        "principal_id",
+        "node_type",
+        "actor_type",
+        "primary_role",
+        "secondary_roles",
+        "public_key_hex",
+        "capabilities",
+        "interfaces",
+        "custody_boundary",
+        "status"
+      ],
+      "additionalProperties": false
+    },
+    "grant": {
+      "type": "object",
+      "properties": {
+        "grant_id": {
+          "type": "string",
+          "minLength": 16
+        },
+        "subject": {
+          "type": "string",
+          "minLength": 1
+        },
+        "action": {
+          "type": "string",
+          "minLength": 1
+        },
+        "target": {
+          "type": "string",
+          "minLength": 1
+        },
+        "target_node": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scope": {
+          "type": "string",
+          "minLength": 1
+        },
+        "purpose": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dependencies": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "conditions": {
+          "type": "object",
+          "maxProperties": 0
+        },
+        "parent": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "allow_delegation": {
+          "type": "boolean"
+        },
+        "max_uses": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "payload_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "grant_id",
+        "subject",
+        "action",
+        "target",
+        "target_node",
+        "scope",
+        "purpose",
+        "dependencies",
+        "conditions",
+        "parent",
+        "allow_delegation",
+        "max_uses"
+      ],
+      "additionalProperties": false
+    },
+    "field": {
+      "type": "object",
+      "properties": {
+        "field_id": {
+          "type": "string",
+          "minLength": 16
+        },
+        "record_id": {
+          "type": "string",
+          "minLength": 16
+        },
+        "issued_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "type": {
+          "const": "field"
+        },
+        "sourcepoint": {
+          "type": "string",
+          "minLength": 1
+        },
+        "receiver_node": {
+          "type": "string",
+          "minLength": 1
+        },
+        "policy": {
+          "type": "object"
+        },
+        "dependencies": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "required": [
+        "field_id",
+        "record_id",
+        "issued_at",
+        "expires_at",
+        "type",
+        "sourcepoint",
+        "receiver_node",
+        "policy",
+        "dependencies"
+      ],
+      "additionalProperties": false
+    },
+    "enrollment": {
+      "type": "object",
+      "properties": {
+        "field_id": {
+          "type": "string",
+          "minLength": 16
+        },
+        "record_id": {
+          "type": "string",
+          "minLength": 16
+        },
+        "issued_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "type": {
+          "const": "enrollment"
+        },
+        "issuer": {
+          "type": "string",
+          "minLength": 1
+        },
+        "node": {
+          "$ref": "#/$defs/node"
+        }
+      },
+      "required": [
+        "field_id",
+        "record_id",
+        "issued_at",
+        "expires_at",
+        "type",
+        "issuer",
+        "node"
+      ],
+      "additionalProperties": false
+    },
+    "grant_record": {
+      "type": "object",
+      "properties": {
+        "field_id": {
+          "type": "string",
+          "minLength": 16
+        },
+        "record_id": {
+          "type": "string",
+          "minLength": 16
+        },
+        "issued_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "type": {
+          "const": "grant"
+        },
+        "issuer": {
+          "type": "string",
+          "minLength": 1
+        },
+        "grant": {
+          "$ref": "#/$defs/grant"
+        }
+      },
+      "required": [
+        "field_id",
+        "record_id",
+        "issued_at",
+        "expires_at",
+        "type",
+        "issuer",
+        "grant"
+      ],
+      "additionalProperties": false
+    },
+    "revocation": {
+      "type": "object",
+      "properties": {
+        "field_id": {
+          "type": "string",
+          "minLength": 16
+        },
+        "record_id": {
+          "type": "string",
+          "minLength": 16
+        },
+        "issued_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "type": {
+          "const": "revocation"
+        },
+        "issuer": {
+          "type": "string",
+          "minLength": 1
+        },
+        "grant_id": {
+          "type": "string",
+          "minLength": 16
+        }
+      },
+      "required": [
+        "field_id",
+        "record_id",
+        "issued_at",
+        "expires_at",
+        "type",
+        "issuer",
+        "grant_id"
+      ],
+      "additionalProperties": false
+    },
+    "supersession": {
+      "type": "object",
+      "properties": {
+        "field_id": {
+          "type": "string",
+          "minLength": 16
+        },
+        "record_id": {
+          "type": "string",
+          "minLength": 16
+        },
+        "issued_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "type": {
+          "const": "supersession"
+        },
+        "issuer": {
+          "type": "string",
+          "minLength": 1
+        },
+        "grant_id": {
+          "type": "string",
+          "minLength": 16
+        }
+      },
+      "required": [
+        "field_id",
+        "record_id",
+        "issued_at",
+        "expires_at",
+        "type",
+        "issuer",
+        "grant_id"
+      ],
+      "additionalProperties": false
+    },
+    "node_revocation": {
+      "type": "object",
+      "properties": {
+        "field_id": {
+          "type": "string",
+          "minLength": 16
+        },
+        "record_id": {
+          "type": "string",
+          "minLength": 16
+        },
+        "issued_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "type": {
+          "const": "node_revocation"
+        },
+        "issuer": {
+          "type": "string",
+          "minLength": 1
+        },
+        "node_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "field_id",
+        "record_id",
+        "issued_at",
+        "expires_at",
+        "type",
+        "issuer",
+        "node_id"
+      ],
+      "additionalProperties": false
+    },
+    "dependency": {
+      "type": "object",
+      "properties": {
+        "field_id": {
+          "type": "string",
+          "minLength": 16
+        },
+        "record_id": {
+          "type": "string",
+          "minLength": 16
+        },
+        "issued_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "type": {
+          "const": "dependency"
+        },
+        "issuer": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "value": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "field_id",
+        "record_id",
+        "issued_at",
+        "expires_at",
+        "type",
+        "issuer",
+        "name",
+        "value"
+      ],
+      "additionalProperties": false
+    },
+    "candidate": {
+      "type": "object",
+      "properties": {
+        "field_id": {
+          "type": "string",
+          "minLength": 16
+        },
+        "record_id": {
+          "type": "string",
+          "minLength": 16
+        },
+        "issued_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "type": {
+          "const": "candidate"
+        },
+        "source_node": {
+          "type": "string",
+          "minLength": 1
+        },
+        "candidate_id": {
+          "type": "string",
+          "minLength": 16
+        },
+        "kind": {
+          "enum": [
+            "proposal",
+            "candidate",
+            "inference",
+            "draft",
+            "observation_claim",
+            "recommended_action"
+          ]
+        },
+        "content": {}
+      },
+      "required": [
+        "field_id",
+        "record_id",
+        "issued_at",
+        "expires_at",
+        "type",
+        "source_node",
+        "candidate_id",
+        "kind",
+        "content"
+      ],
+      "additionalProperties": false
+    },
+    "passage": {
+      "type": "object",
+      "properties": {
+        "field_id": {
+          "type": "string",
+          "minLength": 16
+        },
+        "record_id": {
+          "type": "string",
+          "minLength": 16
+        },
+        "issued_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "type": {
+          "const": "passage"
+        },
+        "passage_id": {
+          "type": "string",
+          "minLength": 16
+        },
+        "intent_id": {
+          "type": "string",
+          "minLength": 16
+        },
+        "source_node": {
+          "type": "string",
+          "minLength": 1
+        },
+        "subject": {
+          "type": "string",
+          "minLength": 1
+        },
+        "target_node": {
+          "type": "string",
+          "minLength": 1
+        },
+        "action": {
+          "type": "string",
+          "minLength": 1
+        },
+        "target": {
+          "type": "string",
+          "minLength": 1
+        },
+        "payload": {
+          "type": "object"
+        },
+        "payload_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "authority_basis": {
+          "type": "string",
+          "minLength": 16
+        },
+        "scope": {
+          "type": "string",
+          "minLength": 1
+        },
+        "purpose": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dependencies": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "conditions": {
+          "type": "object",
+          "maxProperties": 0
+        },
+        "nonce": {
+          "type": "string",
+          "minLength": 16
+        },
+        "correlation_id": {
+          "type": "string",
+          "minLength": 16
+        },
+        "return_requirement": {
+          "type": "object",
+          "properties": {
+            "required": {
+              "const": true
+            },
+            "to": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "required",
+            "to"
+          ],
+          "additionalProperties": false
+        },
+        "origin": {
+          "type": "object",
+          "properties": {
+            "intent": {
+              "type": "string",
+              "minLength": 1
+            },
+            "candidate_id": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "intent",
+            "candidate_id"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "field_id",
+        "record_id",
+        "issued_at",
+        "expires_at",
+        "type",
+        "passage_id",
+        "intent_id",
+        "source_node",
+        "subject",
+        "target_node",
+        "action",
+        "target",
+        "payload",
+        "payload_hash",
+        "authority_basis",
+        "scope",
+        "purpose",
+        "dependencies",
+        "conditions",
+        "nonce",
+        "correlation_id",
+        "return_requirement",
+        "origin"
+      ],
+      "additionalProperties": false
+    },
+    "query": {
+      "type": "object",
+      "properties": {
+        "field_id": {
+          "type": "string",
+          "minLength": 16
+        },
+        "record_id": {
+          "type": "string",
+          "minLength": 16
+        },
+        "issued_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "type": {
+          "const": "query"
+        },
+        "issuer": {
+          "type": "string",
+          "minLength": 1
+        },
+        "passage_id": {
+          "type": "string",
+          "minLength": 16
+        },
+        "view": {
+          "enum": [
+            "status",
+            "ledger"
+          ]
+        }
+      },
+      "required": [
+        "field_id",
+        "record_id",
+        "issued_at",
+        "expires_at",
+        "type",
+        "issuer"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

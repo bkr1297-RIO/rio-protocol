@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rio.ai/schemas/local-field-return-v0.1.schema.json",
+  "title": "Local Field correlated attributed Return v0.1",
+  "type": "object",
+  "required": [
+    "return_id",
+    "passage_id",
+    "intent_id",
+    "correlation_id",
+    "to",
+    "status",
+    "outcome",
+    "receipt_id",
+    "reason",
+    "returned_at",
+    "attestation"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "return_id": {
+      "type": "string",
+      "minLength": 16
+    },
+    "passage_id": {
+      "type": "string",
+      "minLength": 16
+    },
+    "intent_id": {
+      "type": "string",
+      "minLength": 16
+    },
+    "correlation_id": {
+      "type": "string",
+      "minLength": 16
+    },
+    "to": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "const": "RETURNED"
+    },
+    "outcome": {
+      "enum": [
+        "OBSERVED",
+        "FAILED",
+        "FIDELITY_HOLD",
+        "UNSETTLED_ATTEMPT",
+        "RESTART_HOLD"
+      ]
+    },
+    "receipt_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "reason": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "returned_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "attestation": {
+      "type": "object",
+      "required": [
+        "profile",
+        "field_id",
+        "signer_id",
+        "signature"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "profile": {
+          "const": "rio-gateway-local-field-return-v0.1"
+        },
+        "field_id": {
+          "type": "string",
+          "minLength": 16
+        },
+        "signer_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "signature": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{128}$"
+        }
+      }
+    }
+  }
+}

@@ -285,3 +285,7 @@ Until the license is formally changed:
 > Strong protocol language requires a named scope, version, mechanism, test, and proof ceiling.
 
 > Project normativity is not external-standard adoption. Conformance is not compliance. Verification is not external truth. Visibility is not permission.
+
+## ONE Local Field v0.1 (draft build)
+
+The [bounded Local Field passage profile](spec/local-field-v0.1.md) adds shared signed enrollment, delegation, candidate, passage and Return bindings in the existing spec/schema ownership structure. Runtime enforcement remains in rio-system; receipt lineage verification remains in rio-receipt-protocol. Schema validation does not confer execution authority.
