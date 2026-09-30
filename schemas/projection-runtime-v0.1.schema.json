@@ -1,0 +1,1851 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rio.ai/schemas/projection-runtime-v0.1.schema.json",
+  "title": "ONE bounded Projection Runtime v0.1 portable composition",
+  "description": "Draft composition over Local Field. Shape never supplies standing. Projection core, delegation, host admission/binding and Return account remain distinct. Runtime verifies signatures, lineage and current exact standing.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/projection"
+    },
+    {
+      "$ref": "#/$defs/command"
+    },
+    {
+      "$ref": "#/$defs/event"
+    },
+    {
+      "$ref": "#/$defs/binding"
+    },
+    {
+      "$ref": "#/$defs/view"
+    }
+  ],
+  "$defs": {
+    "projection": {
+      "type": "object",
+      "properties": {
+        "projection_id": {
+          "type": "string",
+          "minLength": 16
+        },
+        "sourcepoint_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "constitution_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "lineage_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "projection_class": {
+          "const": "Holo"
+        },
+        "purpose": {
+          "type": "string",
+          "minLength": 1
+        },
+        "carrier_node": {
+          "type": "string",
+          "minLength": 1
+        },
+        "conditions": {
+          "type": "object",
+          "maxProperties": 0
+        },
+        "dependencies": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "return_obligations": {
+          "type": "object",
+          "properties": {
+            "required": {
+              "const": true
+            },
+            "to": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "required",
+            "to"
+          ],
+          "additionalProperties": false
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "renewal_conditions": {
+          "type": "string",
+          "minLength": 1
+        },
+        "predecessor_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "exobody_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "projection_id",
+        "sourcepoint_id",
+        "constitution_ref",
+        "lineage_ref",
+        "projection_class",
+        "purpose",
+        "carrier_node",
+        "conditions",
+        "dependencies",
+        "return_obligations",
+        "created_at",
+        "expires_at",
+        "renewal_conditions",
+        "predecessor_ref",
+        "exobody_ref"
+      ],
+      "additionalProperties": false
+    },
+    "model_reference": {
+      "type": "object",
+      "properties": {
+        "model_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "runtime_node": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "model_id",
+        "runtime_node"
+      ],
+      "additionalProperties": false
+    },
+    "passage_projection": {
+      "type": "object",
+      "properties": {
+        "projection_id": {
+          "type": "string",
+          "minLength": 16
+        },
+        "delegation_ref": {
+          "type": "string",
+          "minLength": 16
+        },
+        "binding_ref": {
+          "type": "string",
+          "minLength": 16
+        },
+        "expression_ref": {
+          "type": "string",
+          "minLength": 16
+        },
+        "model_ref": {
+          "type": "object",
+          "properties": {
+            "model_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "runtime_node": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "model_id",
+            "runtime_node"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "projection_id",
+        "delegation_ref",
+        "binding_ref",
+        "expression_ref",
+        "model_ref"
+      ],
+      "additionalProperties": false
+    },
+    "binding": {
+      "type": "object",
+      "properties": {
+        "binding_id": {
+          "type": "string",
+          "minLength": 16
+        },
+        "projection_id": {
+          "type": "string",
+          "minLength": 16
+        },
+        "host_node": {
+          "type": "string",
+          "minLength": 1
+        },
+        "delegation_ref": {
+          "type": "string",
+          "minLength": 16
+        },
+        "host_admission_ref": {
+          "type": "string",
+          "minLength": 16
+        },
+        "grant_id": {
+          "type": "string",
+          "minLength": 16
+        },
+        "conditions": {
+          "type": "object",
+          "maxProperties": 0
+        },
+        "dependencies": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "required": [
+        "binding_id",
+        "projection_id",
+        "host_node",
+        "delegation_ref",
+        "host_admission_ref",
+        "grant_id",
+        "conditions",
+        "dependencies"
+      ],
+      "additionalProperties": false
+    },
+    "command": {
+      "type": "object",
+      "properties": {
+        "body": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "field_id": {
+                  "type": "string",
+                  "minLength": 16
+                },
+                "record_id": {
+                  "type": "string",
+                  "minLength": 16
+                },
+                "issued_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "expires_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "issuer": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "projection_id": {
+                  "type": "string",
+                  "minLength": 16
+                },
+                "type": {
+                  "const": "projection_constitute"
+                },
+                "projection": {
+                  "$ref": "#/$defs/projection"
+                }
+              },
+              "required": [
+                "field_id",
+                "record_id",
+                "issued_at",
+                "expires_at",
+                "issuer",
+                "projection_id",
+                "type",
+                "projection"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "field_id": {
+                  "type": "string",
+                  "minLength": 16
+                },
+                "record_id": {
+                  "type": "string",
+                  "minLength": 16
+                },
+                "issued_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "expires_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "issuer": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "projection_id": {
+                  "type": "string",
+                  "minLength": 16
+                },
+                "type": {
+                  "const": "projection_delegate"
+                },
+                "grant_id": {
+                  "type": "string",
+                  "minLength": 16
+                }
+              },
+              "required": [
+                "field_id",
+                "record_id",
+                "issued_at",
+                "expires_at",
+                "issuer",
+                "projection_id",
+                "type",
+                "grant_id"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "field_id": {
+                  "type": "string",
+                  "minLength": 16
+                },
+                "record_id": {
+                  "type": "string",
+                  "minLength": 16
+                },
+                "issued_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "expires_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "issuer": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "projection_id": {
+                  "type": "string",
+                  "minLength": 16
+                },
+                "type": {
+                  "const": "projection_bind"
+                },
+                "binding_id": {
+                  "type": "string",
+                  "minLength": 16
+                },
+                "host_node": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "delegation_ref": {
+                  "type": "string",
+                  "minLength": 16
+                },
+                "conditions": {
+                  "type": "object",
+                  "maxProperties": 0
+                },
+                "dependencies": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              "required": [
+                "field_id",
+                "record_id",
+                "issued_at",
+                "expires_at",
+                "issuer",
+                "projection_id",
+                "type",
+                "binding_id",
+                "host_node",
+                "delegation_ref",
+                "conditions",
+                "dependencies"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "field_id": {
+                  "type": "string",
+                  "minLength": 16
+                },
+                "record_id": {
+                  "type": "string",
+                  "minLength": 16
+                },
+                "issued_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "expires_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "issuer": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "projection_id": {
+                  "type": "string",
+                  "minLength": 16
+                },
+                "type": {
+                  "const": "projection_rebind"
+                },
+                "binding_id": {
+                  "type": "string",
+                  "minLength": 16
+                },
+                "host_node": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "delegation_ref": {
+                  "type": "string",
+                  "minLength": 16
+                },
+                "conditions": {
+                  "type": "object",
+                  "maxProperties": 0
+                },
+                "dependencies": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              "required": [
+                "field_id",
+                "record_id",
+                "issued_at",
+                "expires_at",
+                "issuer",
+                "projection_id",
+                "type",
+                "binding_id",
+                "host_node",
+                "delegation_ref",
+                "conditions",
+                "dependencies"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "field_id": {
+                  "type": "string",
+                  "minLength": 16
+                },
+                "record_id": {
+                  "type": "string",
+                  "minLength": 16
+                },
+                "issued_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "expires_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "issuer": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "projection_id": {
+                  "type": "string",
+                  "minLength": 16
+                },
+                "type": {
+                  "const": "projection_suspend"
+                },
+                "reason": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "field_id",
+                "record_id",
+                "issued_at",
+                "expires_at",
+                "issuer",
+                "projection_id",
+                "type",
+                "reason"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "field_id": {
+                  "type": "string",
+                  "minLength": 16
+                },
+                "record_id": {
+                  "type": "string",
+                  "minLength": 16
+                },
+                "issued_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "expires_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "issuer": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "projection_id": {
+                  "type": "string",
+                  "minLength": 16
+                },
+                "type": {
+                  "const": "projection_return"
+                },
+                "passage_id": {
+                  "type": "string",
+                  "minLength": 16
+                },
+                "return_id": {
+                  "type": "string",
+                  "minLength": 16
+                },
+                "receipt_id": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "minLength": 16
+                }
+              },
+              "required": [
+                "field_id",
+                "record_id",
+                "issued_at",
+                "expires_at",
+                "issuer",
+                "projection_id",
+                "type",
+                "passage_id",
+                "return_id",
+                "receipt_id"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "field_id": {
+                  "type": "string",
+                  "minLength": 16
+                },
+                "record_id": {
+                  "type": "string",
+                  "minLength": 16
+                },
+                "issued_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "expires_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "issuer": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "projection_id": {
+                  "type": "string",
+                  "minLength": 16
+                },
+                "type": {
+                  "const": "projection_expire"
+                },
+                "reason": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "field_id",
+                "record_id",
+                "issued_at",
+                "expires_at",
+                "issuer",
+                "projection_id",
+                "type",
+                "reason"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "field_id": {
+                  "type": "string",
+                  "minLength": 16
+                },
+                "record_id": {
+                  "type": "string",
+                  "minLength": 16
+                },
+                "issued_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "expires_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "issuer": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "projection_id": {
+                  "type": "string",
+                  "minLength": 16
+                },
+                "type": {
+                  "const": "projection_renew"
+                },
+                "successor": {
+                  "$ref": "#/$defs/projection"
+                }
+              },
+              "required": [
+                "field_id",
+                "record_id",
+                "issued_at",
+                "expires_at",
+                "issuer",
+                "projection_id",
+                "type",
+                "successor"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "field_id": {
+                  "type": "string",
+                  "minLength": 16
+                },
+                "record_id": {
+                  "type": "string",
+                  "minLength": 16
+                },
+                "issued_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "expires_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "issuer": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "projection_id": {
+                  "type": "string",
+                  "minLength": 16
+                },
+                "type": {
+                  "const": "projection_carry"
+                },
+                "carriage": {
+                  "$ref": "#/$defs/view"
+                }
+              },
+              "required": [
+                "field_id",
+                "record_id",
+                "issued_at",
+                "expires_at",
+                "issuer",
+                "projection_id",
+                "type",
+                "carriage"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "signature": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{128}$"
+        }
+      },
+      "required": [
+        "body",
+        "signature"
+      ],
+      "additionalProperties": false
+    },
+    "event": {
+      "type": "object",
+      "properties": {
+        "profile": {
+          "const": "one.projection-runtime.v0.1"
+        },
+        "event_id": {
+          "type": "string",
+          "minLength": 16
+        },
+        "projection_id": {
+          "type": "string",
+          "minLength": 16
+        },
+        "core_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "operation": {
+          "enum": [
+            "CONSTITUTED",
+            "CARRIED",
+            "DELEGATED",
+            "HOST_ADMISSION",
+            "BOUND",
+            "REBINDING",
+            "OPERATING",
+            "SUSPENDED",
+            "RETURN_ACCOUNT",
+            "RETURNED",
+            "EXPIRED",
+            "RENEWED",
+            "RETURN_ACKNOWLEDGED"
+          ]
+        },
+        "payload": {
+          "type": "object"
+        },
+        "command": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/command"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "previous_event_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "attestation": {
+          "type": "object",
+          "properties": {
+            "issuer": {
+              "type": "string",
+              "minLength": 1
+            },
+            "signature": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{128}$"
+            }
+          },
+          "required": [
+            "issuer",
+            "signature"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "profile",
+        "event_id",
+        "projection_id",
+        "core_hash",
+        "operation",
+        "payload",
+        "command",
+        "previous_event_ref",
+        "created_at",
+        "attestation"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "operation": {
+                "const": "CONSTITUTED"
+              }
+            },
+            "required": [
+              "operation"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "type": "object",
+                "properties": {
+                  "lifecycle": {
+                    "const": "CONSTITUTED"
+                  },
+                  "from_lifecycle": {
+                    "const": "UNCONSTITUTED"
+                  },
+                  "carriage_authority": {
+                    "const": "NONE"
+                  }
+                },
+                "required": [
+                  "lifecycle",
+                  "from_lifecycle",
+                  "carriage_authority"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "operation": {
+                "const": "CARRIED"
+              }
+            },
+            "required": [
+              "operation"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "type": "object",
+                "properties": {
+                  "lifecycle": {
+                    "enum": [
+                      "CONSTITUTED",
+                      "RETURNED",
+                      "EXPIRED"
+                    ]
+                  },
+                  "from_lifecycle": {
+                    "const": "UNCONSTITUTED"
+                  },
+                  "carriage_authority": {
+                    "const": "NONE"
+                  }
+                },
+                "required": [
+                  "lifecycle",
+                  "from_lifecycle",
+                  "carriage_authority"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "operation": {
+                "const": "DELEGATED"
+              }
+            },
+            "required": [
+              "operation"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "type": "object",
+                "properties": {
+                  "lifecycle": {
+                    "const": "DELEGATED"
+                  },
+                  "grant_id": {
+                    "type": "string",
+                    "minLength": 16
+                  },
+                  "authority_envelope": {
+                    "type": "object"
+                  },
+                  "signed_grant": {
+                    "type": "object",
+                    "properties": {
+                      "body": {
+                        "type": "object"
+                      },
+                      "signature": {
+                        "type": "string",
+                        "pattern": "^[0-9a-f]{128}$"
+                      }
+                    },
+                    "required": [
+                      "body",
+                      "signature"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "predecessor_delegation_ref": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "lifecycle",
+                  "grant_id",
+                  "authority_envelope",
+                  "signed_grant",
+                  "predecessor_delegation_ref"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "operation": {
+                "const": "HOST_ADMISSION"
+              }
+            },
+            "required": [
+              "operation"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "enum": [
+                      "ADMITTED",
+                      "DENIED"
+                    ]
+                  },
+                  "host_node": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "delegation_ref": {
+                    "type": "string",
+                    "minLength": 16
+                  },
+                  "binding_id": {
+                    "type": "string",
+                    "minLength": 16
+                  },
+                  "reason": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "status",
+                  "host_node",
+                  "delegation_ref",
+                  "binding_id",
+                  "reason"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "operation": {
+                "const": "BOUND"
+              }
+            },
+            "required": [
+              "operation"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "type": "object",
+                "properties": {
+                  "lifecycle": {
+                    "const": "BOUND"
+                  },
+                  "binding": {
+                    "$ref": "#/$defs/binding"
+                  }
+                },
+                "required": [
+                  "lifecycle",
+                  "binding"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "operation": {
+                "const": "REBINDING"
+              }
+            },
+            "required": [
+              "operation"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "type": "object",
+                "properties": {
+                  "lifecycle": {
+                    "const": "REBINDING"
+                  },
+                  "requested_host": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "lifecycle",
+                  "requested_host"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "operation": {
+                "const": "OPERATING"
+              }
+            },
+            "required": [
+              "operation"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "type": "object",
+                "properties": {
+                  "lifecycle": {
+                    "const": "OPERATING"
+                  },
+                  "passage_id": {
+                    "type": "string",
+                    "minLength": 16
+                  },
+                  "decision_id": {
+                    "type": "string",
+                    "minLength": 16
+                  },
+                  "expression_ref": {
+                    "type": "string",
+                    "minLength": 16
+                  },
+                  "model_ref": {
+                    "type": "object",
+                    "properties": {
+                      "model_id": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "runtime_node": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "required": [
+                      "model_id",
+                      "runtime_node"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "lifecycle",
+                  "passage_id",
+                  "decision_id",
+                  "expression_ref",
+                  "model_ref"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "operation": {
+                "const": "SUSPENDED"
+              }
+            },
+            "required": [
+              "operation"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "type": "object",
+                "properties": {
+                  "lifecycle": {
+                    "const": "SUSPENDED"
+                  },
+                  "reason": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "lifecycle",
+                  "reason"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "operation": {
+                "const": "RETURN_ACCOUNT"
+              }
+            },
+            "required": [
+              "operation"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "type": "object",
+                "properties": {
+                  "lifecycle": {
+                    "enum": [
+                      "RETURNING",
+                      "RETURNED",
+                      "EXPIRED"
+                    ]
+                  },
+                  "passage_id": {
+                    "type": "string",
+                    "minLength": 16
+                  },
+                  "decision_id": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "fidelity_id": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "attempt_id": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "occurrence_id": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "occurrence_status": {
+                    "enum": [
+                      "OBSERVED",
+                      "NOT_OBSERVED",
+                      "UNKNOWN",
+                      "NOT_ATTEMPTED"
+                    ]
+                  },
+                  "receipt_id": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "return_id": {
+                    "type": "string",
+                    "minLength": 16
+                  },
+                  "native_return": {
+                    "type": "object"
+                  },
+                  "projection_authority_effect": {
+                    "const": "NONE"
+                  }
+                },
+                "required": [
+                  "lifecycle",
+                  "passage_id",
+                  "decision_id",
+                  "fidelity_id",
+                  "attempt_id",
+                  "occurrence_id",
+                  "occurrence_status",
+                  "receipt_id",
+                  "return_id",
+                  "native_return",
+                  "projection_authority_effect"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "operation": {
+                "const": "RETURNED"
+              }
+            },
+            "required": [
+              "operation"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "type": "object",
+                "properties": {
+                  "lifecycle": {
+                    "const": "RETURNED"
+                  },
+                  "passage_id": {
+                    "type": "string",
+                    "minLength": 16
+                  },
+                  "decision_id": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "fidelity_id": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "attempt_id": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "occurrence_id": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "occurrence_status": {
+                    "enum": [
+                      "OBSERVED",
+                      "NOT_OBSERVED",
+                      "UNKNOWN",
+                      "NOT_ATTEMPTED"
+                    ]
+                  },
+                  "receipt_id": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "return_id": {
+                    "type": "string",
+                    "minLength": 16
+                  },
+                  "native_return": {
+                    "type": "object"
+                  },
+                  "projection_authority_effect": {
+                    "const": "NONE"
+                  }
+                },
+                "required": [
+                  "lifecycle",
+                  "passage_id",
+                  "decision_id",
+                  "fidelity_id",
+                  "attempt_id",
+                  "occurrence_id",
+                  "occurrence_status",
+                  "receipt_id",
+                  "return_id",
+                  "native_return",
+                  "projection_authority_effect"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "operation": {
+                "const": "EXPIRED"
+              }
+            },
+            "required": [
+              "operation"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "type": "object",
+                "properties": {
+                  "lifecycle": {
+                    "const": "EXPIRED"
+                  },
+                  "reason": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "pending_return_refs": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 16
+                    }
+                  }
+                },
+                "required": [
+                  "lifecycle",
+                  "reason",
+                  "pending_return_refs"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "operation": {
+                "const": "RENEWED"
+              }
+            },
+            "required": [
+              "operation"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "type": "object",
+                "properties": {
+                  "successor_ref": {
+                    "type": "string",
+                    "minLength": 16
+                  },
+                  "successor_constitution_ref": {
+                    "type": "string",
+                    "minLength": 16
+                  },
+                  "predecessor_terminal_ref": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "successor_ref",
+                  "successor_constitution_ref",
+                  "predecessor_terminal_ref"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "operation": {
+                "const": "RETURN_ACKNOWLEDGED"
+              }
+            },
+            "required": [
+              "operation"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "type": "object",
+                "properties": {
+                  "lifecycle": {
+                    "enum": [
+                      "RETURNING",
+                      "RETURNED",
+                      "EXPIRED"
+                    ]
+                  },
+                  "passage_id": {
+                    "type": "string",
+                    "minLength": 16
+                  },
+                  "decision_id": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "fidelity_id": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "attempt_id": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "occurrence_id": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "occurrence_status": {
+                    "enum": [
+                      "OBSERVED",
+                      "NOT_OBSERVED",
+                      "UNKNOWN",
+                      "NOT_ATTEMPTED"
+                    ]
+                  },
+                  "receipt_id": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "return_id": {
+                    "type": "string",
+                    "minLength": 16
+                  },
+                  "native_return": {
+                    "type": "object"
+                  },
+                  "projection_authority_effect": {
+                    "const": "NONE"
+                  }
+                },
+                "required": [
+                  "lifecycle",
+                  "passage_id",
+                  "decision_id",
+                  "fidelity_id",
+                  "attempt_id",
+                  "occurrence_id",
+                  "occurrence_status",
+                  "receipt_id",
+                  "return_id",
+                  "native_return",
+                  "projection_authority_effect"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      ]
+    },
+    "view": {
+      "type": "object",
+      "properties": {
+        "projection": {
+          "$ref": "#/$defs/projection"
+        },
+        "constitution_record": {
+          "$ref": "#/$defs/command"
+        },
+        "inherited_history": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/event"
+          }
+        },
+        "events": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/event"
+          }
+        },
+        "recorded_lifecycle": {
+          "enum": [
+            "UNCONSTITUTED",
+            "CONSTITUTED",
+            "DELEGATED",
+            "BOUND",
+            "OPERATING",
+            "SUSPENDED",
+            "REBINDING",
+            "RETURNING",
+            "RETURNED",
+            "EXPIRED"
+          ]
+        },
+        "delegation": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/event"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "current_binding": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/binding"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "pending_returns": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "lifecycle": {
+                "enum": [
+                  "RETURNING",
+                  "RETURNED",
+                  "EXPIRED"
+                ]
+              },
+              "passage_id": {
+                "type": "string",
+                "minLength": 16
+              },
+              "decision_id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "fidelity_id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "attempt_id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "occurrence_id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "occurrence_status": {
+                "enum": [
+                  "OBSERVED",
+                  "NOT_OBSERVED",
+                  "UNKNOWN",
+                  "NOT_ATTEMPTED"
+                ]
+              },
+              "receipt_id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "return_id": {
+                "type": "string",
+                "minLength": 16
+              },
+              "native_return": {
+                "type": "object"
+              },
+              "projection_authority_effect": {
+                "const": "NONE"
+              }
+            },
+            "required": [
+              "lifecycle",
+              "passage_id",
+              "decision_id",
+              "fidelity_id",
+              "attempt_id",
+              "occurrence_id",
+              "occurrence_status",
+              "receipt_id",
+              "return_id",
+              "native_return",
+              "projection_authority_effect"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "successors": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 16
+          }
+        },
+        "admissions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "enum": [
+                  "ADMITTED",
+                  "DENIED"
+                ]
+              },
+              "host_node": {
+                "type": "string",
+                "minLength": 1
+              },
+              "delegation_ref": {
+                "type": "string",
+                "minLength": 16
+              },
+              "binding_id": {
+                "type": "string",
+                "minLength": 16
+              },
+              "reason": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "admission_id": {
+                "type": "string",
+                "minLength": 16
+              }
+            },
+            "required": [
+              "status",
+              "host_node",
+              "delegation_ref",
+              "binding_id",
+              "reason",
+              "admission_id"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "profile": {
+          "const": "one.projection-runtime.v0.1"
+        },
+        "lifecycle": {
+          "enum": [
+            "UNCONSTITUTED",
+            "CONSTITUTED",
+            "DELEGATED",
+            "BOUND",
+            "OPERATING",
+            "SUSPENDED",
+            "REBINDING",
+            "RETURNING",
+            "RETURNED",
+            "EXPIRED"
+          ]
+        },
+        "delegation_status": {
+          "type": "object",
+          "properties": {
+            "active": {
+              "type": "boolean"
+            },
+            "reason": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "active",
+            "reason"
+          ],
+          "additionalProperties": false
+        },
+        "dependency_drift": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "conflicts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "reason": {
+                "type": "string",
+                "minLength": 1
+              },
+              "requires_human_decision": {
+                "const": true
+              }
+            },
+            "required": [
+              "reason",
+              "requires_human_decision"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "authority_effect": {
+          "const": "NONE"
+        },
+        "visibility_effect": {
+          "const": "NONE"
+        },
+        "open_passages": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "passage_id": {
+                "type": "string",
+                "minLength": 16
+              },
+              "decision_id": {
+                "type": "string",
+                "minLength": 16
+              },
+              "host_node": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "passage_id",
+              "decision_id",
+              "host_node"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "projection",
+        "constitution_record",
+        "inherited_history",
+        "events",
+        "recorded_lifecycle",
+        "delegation",
+        "current_binding",
+        "pending_returns",
+        "successors",
+        "admissions",
+        "profile",
+        "lifecycle",
+        "delegation_status",
+        "dependency_drift",
+        "conflicts",
+        "authority_effect",
+        "visibility_effect",
+        "open_passages"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

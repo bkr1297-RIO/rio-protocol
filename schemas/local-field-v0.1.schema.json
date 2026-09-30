@@ -283,6 +283,18 @@
             "rule"
           ],
           "additionalProperties": false
+        },
+        "projection_runtime": {
+          "type": "object",
+          "properties": {
+            "profile": {
+              "const": "one.projection-runtime.v0.1"
+            }
+          },
+          "required": [
+            "profile"
+          ],
+          "additionalProperties": false
         }
       },
       "required": [
@@ -748,6 +760,53 @@
               "arrow_id"
             ]
           }
+        },
+        "projection": {
+          "type": "object",
+          "properties": {
+            "projection_id": {
+              "type": "string",
+              "minLength": 16
+            },
+            "delegation_ref": {
+              "type": "string",
+              "minLength": 16
+            },
+            "binding_ref": {
+              "type": "string",
+              "minLength": 16
+            },
+            "expression_ref": {
+              "type": "string",
+              "minLength": 16
+            },
+            "model_ref": {
+              "type": "object",
+              "properties": {
+                "model_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "runtime_node": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "model_id",
+                "runtime_node"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "projection_id",
+            "delegation_ref",
+            "binding_ref",
+            "expression_ref",
+            "model_ref"
+          ],
+          "additionalProperties": false
         }
       },
       "required": [
@@ -811,10 +870,15 @@
           "enum": [
             "status",
             "ledger",
-            "arrow"
+            "arrow",
+            "projection"
           ]
         },
         "arrow_id": {
+          "type": "string",
+          "minLength": 16
+        },
+        "projection_id": {
           "type": "string",
           "minLength": 16
         }
@@ -843,6 +907,23 @@
           "then": {
             "required": [
               "arrow_id"
+            ]
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "view"
+            ],
+            "properties": {
+              "view": {
+                "const": "projection"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "projection_id"
             ]
           }
         }
