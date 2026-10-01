@@ -261,6 +261,9 @@
         "policy": {
           "type": "object"
         },
+        "bilateral_profile": { "const": "local-field-bilateral-v0.1" },
+        "return_policy": { "type": "object" },
+        "return_authority_basis": { "type": "string", "minLength": 16 },
         "dependencies": {
           "type": "object",
           "additionalProperties": {
@@ -642,6 +645,9 @@
         "type": {
           "const": "passage"
         },
+        "schema_version": { "const": "0.1" },
+        "replay": { "const": "single-use" },
+        "lineage": { "type": "array", "items": { "type": "string" } },
         "passage_id": {
           "type": "string",
           "minLength": 16
