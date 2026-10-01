@@ -1,0 +1,409 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rio.ai/schemas/local-field-bilateral-v0.1.schema.json",
+  "title": "Local Field bilateral transport and typed Return admission",
+  "description": "Shape is not authority, truth, evidence or settlement. Native proof and current standing are verified by existing runtime owners.",
+  "$defs": {
+    "passage": {
+      "allOf": [
+        {
+          "$ref": "local-field-v0.1.schema.json"
+        },
+        {
+          "properties": {
+            "body": {
+              "required": [
+                "schema_version",
+                "replay"
+              ],
+              "properties": {
+                "schema_version": {
+                  "const": "0.1"
+                },
+                "replay": {
+                  "const": "single-use"
+                }
+              },
+              "propertyNames": {
+                "enum": [
+                  "type",
+                  "field_id",
+                  "record_id",
+                  "issued_at",
+                  "expires_at",
+                  "schema_version",
+                  "passage_id",
+                  "intent_id",
+                  "source_node",
+                  "subject",
+                  "target_node",
+                  "action",
+                  "target",
+                  "payload",
+                  "payload_hash",
+                  "authority_basis",
+                  "scope",
+                  "purpose",
+                  "dependencies",
+                  "conditions",
+                  "nonce",
+                  "replay",
+                  "correlation_id",
+                  "return_requirement",
+                  "origin",
+                  "lineage"
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "egress": {
+      "type": "object",
+      "properties": {
+        "body": {
+          "type": "object",
+          "properties": {
+            "field_id": {
+              "type": "string",
+              "minLength": 16
+            },
+            "source_node": {
+              "type": "string",
+              "minLength": 1
+            },
+            "issued_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "expires_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "type": {
+              "const": "egress_decision"
+            },
+            "target_node": {
+              "type": "string",
+              "minLength": 1
+            },
+            "passage_id": {
+              "type": "string",
+              "minLength": 16
+            },
+            "decision_id": {
+              "type": "string",
+              "minLength": 16
+            },
+            "context": {
+              "const": "EGRESS"
+            },
+            "status": {
+              "const": "EMIT_AUTHORIZED"
+            },
+            "passage_hash": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "authority_lineage": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "minLength": 16
+              }
+            },
+            "policy": {
+              "type": "object"
+            },
+            "owner": {
+              "const": "gateway/governance/policy-engine.mjs"
+            }
+          },
+          "required": [
+            "field_id",
+            "source_node",
+            "issued_at",
+            "expires_at",
+            "type",
+            "target_node",
+            "passage_id",
+            "decision_id",
+            "context",
+            "status",
+            "passage_hash",
+            "authority_lineage",
+            "policy",
+            "owner"
+          ],
+          "additionalProperties": false
+        },
+        "signature": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{128}$"
+        }
+      },
+      "required": [
+        "body",
+        "signature"
+      ],
+      "additionalProperties": false
+    },
+    "transit": {
+      "type": "object",
+      "properties": {
+        "body": {
+          "type": "object",
+          "properties": {
+            "field_id": {
+              "type": "string",
+              "minLength": 16
+            },
+            "source_node": {
+              "type": "string",
+              "minLength": 1
+            },
+            "issued_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "expires_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "type": {
+              "const": "passage_transit"
+            },
+            "record_id": {
+              "type": "string",
+              "minLength": 16
+            },
+            "passage": {
+              "$ref": "#/$defs/passage"
+            },
+            "egress_decision": {
+              "$ref": "#/$defs/egress"
+            }
+          },
+          "required": [
+            "field_id",
+            "source_node",
+            "issued_at",
+            "expires_at",
+            "type",
+            "record_id",
+            "passage",
+            "egress_decision"
+          ],
+          "additionalProperties": false
+        },
+        "signature": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{128}$"
+        }
+      },
+      "required": [
+        "body",
+        "signature"
+      ],
+      "additionalProperties": false
+    },
+    "return_transit": {
+      "type": "object",
+      "properties": {
+        "body": {
+          "type": "object",
+          "properties": {
+            "field_id": {
+              "type": "string",
+              "minLength": 16
+            },
+            "source_node": {
+              "type": "string",
+              "minLength": 1
+            },
+            "issued_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "expires_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "type": {
+              "const": "return_transit"
+            },
+            "record_id": {
+              "type": "string",
+              "minLength": 16
+            },
+            "target_node": {
+              "type": "string",
+              "minLength": 1
+            },
+            "return_egress": {
+              "type": "object",
+              "properties": {
+                "decision_id": {
+                  "type": "string",
+                  "minLength": 16
+                },
+                "passage_id": {
+                  "type": "string",
+                  "minLength": 16
+                },
+                "context": {
+                  "const": "RETURN_EGRESS"
+                },
+                "status": {
+                  "const": "EMIT_AUTHORIZED"
+                },
+                "authority_effect": {
+                  "const": "none"
+                }
+              },
+              "required": [
+                "decision_id",
+                "passage_id",
+                "context",
+                "status",
+                "authority_effect"
+              ]
+            },
+            "chain": {
+              "type": "object",
+              "properties": {
+                "passage": {
+                  "$ref": "#/$defs/passage"
+                },
+                "decision": {
+                  "type": "object"
+                },
+                "return": {
+                  "$ref": "local-field-return-v0.1.schema.json"
+                }
+              },
+              "required": [
+                "passage",
+                "decision",
+                "return"
+              ]
+            }
+          },
+          "required": [
+            "field_id",
+            "source_node",
+            "issued_at",
+            "expires_at",
+            "type",
+            "record_id",
+            "target_node",
+            "return_egress",
+            "chain"
+          ],
+          "additionalProperties": false
+        },
+        "signature": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{128}$"
+        }
+      },
+      "required": [
+        "body",
+        "signature"
+      ],
+      "additionalProperties": false
+    },
+    "return_ingress": {
+      "type": "object",
+      "properties": {
+        "decision_id": {
+          "type": "string",
+          "minLength": 16
+        },
+        "passage_id": {
+          "type": "string",
+          "minLength": 16
+        },
+        "context": {
+          "const": "RETURN_INGRESS"
+        },
+        "status": {
+          "const": "ADMITTED_AS_ATTRIBUTED_RECORD"
+        },
+        "authority_effect": {
+          "const": "none"
+        },
+        "return_id": {
+          "type": "string",
+          "minLength": 16
+        },
+        "correlation_id": {
+          "type": "string",
+          "minLength": 16
+        },
+        "return_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "truth_status": {
+          "const": "UNESTABLISHED"
+        },
+        "observation_status": {
+          "const": "ATTRIBUTED_CLAIM"
+        },
+        "evidence_status": {
+          "const": "NOT_ADMITTED"
+        },
+        "settlement_status": {
+          "const": "UNSETTLED"
+        },
+        "return_completion_status": {
+          "const": "RETURNED_WITH_RESIDUE"
+        },
+        "residue": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        },
+        "authority_basis": {
+          "type": "object"
+        },
+        "policy": {
+          "type": "object"
+        },
+        "checked_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "owner": {
+          "const": "gateway/governance/policy-engine.mjs"
+        }
+      },
+      "required": [
+        "decision_id",
+        "passage_id",
+        "context",
+        "status",
+        "authority_effect",
+        "return_id",
+        "correlation_id",
+        "return_hash",
+        "truth_status",
+        "observation_status",
+        "evidence_status",
+        "settlement_status",
+        "return_completion_status",
+        "residue",
+        "authority_basis",
+        "policy",
+        "checked_at",
+        "owner"
+      ],
+      "additionalProperties": false
+    }
+  }
+}
